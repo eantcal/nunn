@@ -1,0 +1,10 @@
+nunn library NEWS -- history of user-visible changes.
+Author - Antonino Calderone - antonino.calderone@ericsson.com - (c) 2015
+
+Please send nunn bug reports to <acaldmail@gmail.com>.
+
+Jun 1, 2015
+* Released nunn library 1.0 for Windows
+
+Jul 23, 2015
+* Released nunn library 1.43 for Windows and Linux

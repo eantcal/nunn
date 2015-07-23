@@ -1,0 +1,13 @@
+-------------------------------------------------------------------------------
+OCR Test Demo (ocr_test) relies on nunn library by Antonino Calderone
+(c) Antonino Calderone <acaldmail@gmail.com> - 2015
+https://sourceforge.net/projects/nunn/
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+Handwritten Digit OCR Demo (ocr_test)
+-------------------------------------------------------------------------------
+This is an interactive demo which uses MNIST trained neural network created 
+by using nunn library.
+nunn status files (.net) have been created by mnist_test application.
+
