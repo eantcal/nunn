@@ -1276,8 +1276,6 @@ int main(int argc, char* argv[])
          cnt = 0;
 
          double min_err = 1.0;
-
-         int max_epoch = 200000;
          double err = 0.0;
 
          for ( const auto & sample : samples )
