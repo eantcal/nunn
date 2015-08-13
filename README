@@ -152,8 +152,8 @@ Where:
 
 
 -------------------------------------------------------------------------------
-Example: Running the program which load a trained NN from file tictactoe.net
-         skypping training stage (-n)
+Example: Running the program which loads a trained NN from the file 
+         tictactoe.net skypping training stage (-n)
 
 >tictactoe.exe -l tictactoe.net -n
 Inputs                     : 10
