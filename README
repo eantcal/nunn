@@ -107,3 +107,89 @@ This is an interactive demo which uses MNIST trained neural network created
 by using nunn library.
 nunn status files (.net) have been created by mnist_test application
 
+
+-------------------------------------------------------------------------------
+TicTacToe Demo (tictactoe)
+-------------------------------------------------------------------------------
+
+Basic TicTacToe game which uses neural networks. 
+
+
+TicTacToe - Usage:
+
+>tictactoe.exe -l tictactoe.net -h
+Usage:
+tictactoe.exe
+        [--version|-v]
+        [--help|-h]
+        [--save|-s <net_description_file_name>]
+        [--load|-l <net_description_file_name>]
+        [--skip_training|-n]
+        [--learning_rate|-r <rate>]
+        [--epoch_cnt|-e <count>]
+        [--stop_on_err_tr|-x <error rate>]
+        [[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]
+
+Where:
+--version or -v
+        shows the program version
+--help or -h
+        generates just this 'Usage' text
+--save or -s
+        save net data to file
+--load or -l
+        load net data from file
+--skip_training or -n
+        skip net training
+--learning_rate or -r
+        set learning rate (default 0.3)
+--epoch_cnt or -e
+        set epoch count (default 100000)
+--stop_on_err_tr or -x
+        set error rate threshold (default 0.1)
+--hidden_layer or -hl
+        set hidden layer size (n. of neurons, default 30 )
+
+
+-------------------------------------------------------------------------------
+Example: Running the program which load a trained NN from file tictactoe.net
+         skypping training stage (-n)
+
+>tictactoe.exe -l tictactoe.net -n
+Inputs                     : 10
+NN hidden neurons L1       : 50
+NN hidden neurons L2       : 30
+NN hidden neurons L3       : 20
+Outputs                    : 9
+Net Learning rate  ( LR )  : 0.3
+Net Momentum       ( M )   : 0.5
+MSE Threshold      ( T )   : 0.1
+Neuron 2 -> 0.1%
+Neuron 8 -> 0.1%
+Neuron 5 -> 99.9%
+-------------
+|   |   |   |
+|   |   |   |
+|---|---|---|
+|   |   |   |
+|   | O |   |
+|---|---|---|
+|   |   |   |
+|   |   |   |
+-------------
+
+-------------
+|   |   |   |
+| 1 | 2 | 3 |
+|---|---|---|
+|   |   |   |
+| 4 | O | 6 |
+|---|---|---|
+|   |   |   |
+| 7 | 8 | 9 |
+-------------
+
+Please, give me a number within the range [1..9]: 1
+
+...
+
