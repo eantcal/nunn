@@ -32,6 +32,7 @@
 #include <map>
 #include <set>
 #include <memory>
+#include <memory.h>
 
 #include "nu_mlpnn.h"
 
