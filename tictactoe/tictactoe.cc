@@ -32,6 +32,7 @@
 #include <map>
 #include <set>
 #include <memory>
+#include <memory.h>
 
 #include "nu_mlpnn.h"
 
@@ -1172,27 +1173,6 @@ int main(int argc, char* argv[])
    if ( hidden_layer.empty() )
       hidden_layer.push_back(HIDDEN_LAYER_SIZE);
 
-   int hl_cnt = 0;
-   for ( const auto & hl : hidden_layer )
-   {
-      std::cout
-         << "NN hidden neurons L"
-         << hl_cnt + 1;
-
-      std::cout
-         << "       : "
-         << hidden_layer[hl_cnt++] << std::endl;
-   }
-
-   std::cout
-      << "Net Learning rate  ( LR )  : " << learning_rate << std::endl;
-
-   std::cout
-      << "Net Momentum       ( M )   : " << momentum << std::endl;
-
-   std::cout
-      << "MSE Threshold      ( T )   : " << threshold << std::endl;
-
 
    std::unique_ptr<nu::mlp_neural_net_t> net;
 
@@ -1229,6 +1209,7 @@ int main(int argc, char* argv[])
       net = std::unique_ptr<nu::mlp_neural_net_t>(new nu::mlp_neural_net_t(ss));
    }
 
+
    if ( net == nullptr )
    {
       std::cerr
@@ -1242,6 +1223,40 @@ int main(int argc, char* argv[])
 
    if ( change_m )
       net->set_momentum(momentum);
+
+   size_t hl_cnt = 0;
+   auto top = net->get_topology();   
+
+   for ( const auto hl : top )
+   {
+      if (hl_cnt>0 && hl_cnt < top.size()-1)
+      {
+         std::cout << "NN hidden neurons L" << hl_cnt;
+         std::cout << "       : " << hl << std::endl;
+      }
+      else
+      {
+         if (hl_cnt == 0)
+            std::cout 
+               << "Inputs                    " 
+               << " : " << hl << std::endl;
+         else
+            std::cout 
+               << "Outputs                   " 
+               << " : " << hl << std::endl;
+      }
+
+      ++hl_cnt;
+   }
+
+   std::cout
+      << "Net Learning rate  ( LR )  : " << net->get_learing_rate() << std::endl;
+
+   std::cout
+      << "Net Momentum       ( M )   : " << net->get_momentum() << std::endl;
+
+   std::cout
+      << "MSE Threshold      ( T )   : " << threshold << std::endl;
 
    size_t cnt = 0;
 

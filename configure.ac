@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([nunn], [1.43], [acaldmail@gmail.com])
+AC_INIT([nunn], [1.44], [acaldmail@gmail.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
 
@@ -36,5 +36,6 @@ AC_CONFIG_FILES([
   nunn/Makefile
   mnist/Makefile
   mnist_test/Makefile
+  tictactoe/Makefile
 ])
 AC_OUTPUT

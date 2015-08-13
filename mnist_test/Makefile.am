@@ -6,8 +6,6 @@ AM_CPPFLAGS = \
    -I../mnist \
    -I../nunn
 
-# IRSC Bus Topology Basic Unit Test
-
 mnist_test_CXXFLAGS = \
    -std=c++11 \
    -g 
