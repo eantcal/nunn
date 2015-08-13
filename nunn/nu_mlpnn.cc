@@ -86,21 +86,7 @@ mlp_neural_net_t::mlp_neural_net_t(
 {
    _build(_topology, _neuron_layers, _inputs);
 
-   // Initialize all the network weights 
-   // using random numbers within the range [-1,1]
-   for ( auto & nl : _neuron_layers )
-   {
-      for ( auto & neuron : nl )
-      {
-         for ( auto & w : neuron.weights )
-            w = -1.0 + double(2 * rand()) / double(RAND_MAX);
-
-         for ( auto & dw : neuron.delta_weights )
-            dw = 0;
-
-         neuron.bias = -1.0 + double(2 * rand()) / double(RAND_MAX);
-      }
-   }
+   reshuffle_weights();
 }
 
 
@@ -146,7 +132,6 @@ void mlp_neural_net_t::back_propagate(const rvector_t & target)
    // -------- Calculate error for output neurons --------------------------
 
    rvector_t outputs_v;
-
    get_outputs(outputs_v);
 
    if ( target.size() != outputs_v.size() )
@@ -345,6 +330,8 @@ std::stringstream& mlp_neural_net_t::load(std::stringstream& ss)
 
 std::stringstream& mlp_neural_net_t::save(std::stringstream& ss)
 {
+   ss.clear();
+
    ss << mlp_neural_net_t::ID_ANN << std::endl;
 
    ss << _learning_rate << std::endl;
@@ -368,6 +355,28 @@ std::stringstream& mlp_neural_net_t::save(std::stringstream& ss)
    }
 
    return ss;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void mlp_neural_net_t::reshuffle_weights() throw( )
+{
+   // Initialize all the network weights 
+   // using random numbers within the range [-1,1]
+   for ( auto & nl : _neuron_layers )
+   {
+      for ( auto & neuron : nl )
+      {
+         for ( auto & w : neuron.weights )
+            w = -1.0 + double(2 * rand()) / double(RAND_MAX);
+
+         for ( auto & dw : neuron.delta_weights )
+            dw = 0;
+
+         neuron.bias = -1.0 + double(2 * rand()) / double(RAND_MAX);
+      }
+   }
 }
 
 

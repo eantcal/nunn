@@ -23,7 +23,7 @@
   This is an implementation of a Artificial Neural Network which learns by example
   by using Back Propagation algorithm.
   You can give it examples of what you want the network to do and the algorithm 
-  changes the network�s weights. When training is finished, the net will give you 
+  changes the network's weights. When training is finished, the net will give you 
   the required output for a particular input.
 
   Back Propagation algorithm
@@ -262,6 +262,9 @@ public:
       return mean_squared_error(output, target);
    }
 
+
+   //! Reset all net weights using new random values
+   void reshuffle_weights() throw();
 
 private:
    //Get input using layer index and input index

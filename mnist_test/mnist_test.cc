@@ -33,7 +33,7 @@ The second part of the MNIST data set is 10,000 images to be used as test data.
 To make this a good test of performance, the test data was taken from a different
 set of people than the original training data.
 
-The training input is treated as a 28�28=784-dimensional vector.
+The training input is treated as a 28×28=784-dimensional vector.
 Each entry in the vector represents the grey value for a single pixel in the image.
 The corresponding desired output is a 10-dimensional vector.
 
@@ -323,7 +323,7 @@ static void usage(const char* appname)
       << "--learning_rate or -r" << std::endl
       << "\tset learning rate (default 0.10)" << std::endl
       << "--epoch_cnt or -e" << std::endl
-      << "\tset epoch count (defualt 10)" << std::endl
+      << "\tset epoch count (default 10)" << std::endl
       << "--hidden_layer or -hl" << std::endl
       << "\tset hidden layer size (n. of neurons, default 100)" << std::endl;
 }
@@ -594,7 +594,6 @@ int main(int argc, char* argv[])
 
             for ( auto i = data.begin(); i != data.end(); ++i )
             {
-               nu::vector_t<double> outputs;
                nu::vector_t<double> inputs;
 
                ( *i )->to_vect(inputs);
