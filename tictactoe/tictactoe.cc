@@ -19,6 +19,14 @@
 *
 */
 
+/*
+ * Tic-Tac-Toe Demo
+ * This is an interactive demo which uses a MLP neural network 
+ * created by using Nunn Library.
+ * See https://sites.google.com/site/eantcal/home/c/artificial-neural-network-library
+ * for more information about this demo
+ */
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -79,8 +87,8 @@ public:
    {
       long sum = 0;
 
-      for ( int i = 0; i < size(); ++i )
-         sum += int(at(i) * std::pow(3, i));
+      for ( size_t i = 0; i < size(); ++i )
+         sum += long(at(int(i)) * std::pow(3, i));
 
       return sum;
    }
@@ -88,11 +96,11 @@ public:
 
    void get_xo_cnt(int & x_cnt, int & o_cnt) const
    {
-      for ( int i = 0; i < size(); ++i )
+      for ( size_t i = 0; i < size(); ++i )
       {
-         if ( at(i) == O )
+         if ( at(int(i)) == O )
             ++o_cnt;
-         else if ( at(i) == X )
+         else if ( at(int(i)) == X )
             ++x_cnt;
       }
    }
@@ -120,21 +128,21 @@ public:
 
    void invert()
    {
-      for ( int i = 0; i < size(); ++i )
+      for ( size_t i = 0; i < size(); ++i )
       {
-         if ( at(i) == O )
-            at(i) = X;
-         else if ( at(i) == X )
-            at(i) = O;
+         if ( at(int(i)) == O )
+            at(int(i)) = X;
+         else if ( at(int(i)) == X )
+            at(int(i)) = O;
       }
    }
 
    friend grid_t operator-( const grid_t& g1, const grid_t& g2 )
    {
       auto result = g1;
-      for ( int i = 0; i < g1.size(); ++i )
+      for ( size_t i = 0; i < g1.size(); ++i )
       {
-         if ( g1.at(i) == g2.at(i) )
+         if ( g1.at(int(i)) == g2.at(int(i)) )
             result[i] = EMPTY;
       }
 
@@ -346,7 +354,7 @@ public:
       nu::vector_t<double>& inputs)
    {
       inputs.resize(10, 0.0);
-      int i = 0;
+      size_t i = 0;
 
       for ( ; i < grid.size(); ++i )
       {
@@ -366,7 +374,7 @@ public:
 
       grid_t res = new_grid - grid;
 
-      for ( int i = 0; i < res.size(); ++i )
+      for ( size_t i = 0; i < res.size(); ++i )
       {
          if ( res[i] != grid_t::EMPTY )
             outputs[i] = 1.0;
@@ -642,7 +650,7 @@ private:
       int x_cnt = 0;
       int o_cnt = 0;
 
-      for ( int i = 0; i < grid.size(); ++i )
+      for ( size_t i = 0; i < grid.size(); ++i )
       {
          if ( grid[i] == grid_t::O )
             ++o_cnt;
@@ -807,7 +815,9 @@ public:
 
       int move = 0;
 
-      // Find win move avoiding lose one it matches
+      // Find best matching move (e.g. starting from higher rate move
+      // check if game grid cell is empty, upon empty do the move. 
+      // If the cell is not empty, search for next one...)
       for ( auto it = moves.rbegin(); it != moves.rend(); ++it )
       {
          move = it->second;
@@ -1261,7 +1271,6 @@ int main(int argc, char* argv[])
    size_t cnt = 0;
 
    const int max_epoch_number = epoch_cnt;
-   double best_performance = 100.0;
    int best_epoch = 0;
 
    if ( !skip_training )
