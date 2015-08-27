@@ -49,11 +49,12 @@
 
 #define TICTACTOE_SIDE 3
 #define TICTACTOE_CELLS (TICTACTOE_SIDE*TICTACTOE_SIDE)
-#define HIDDEN_LAYER_SIZE  30
+#define HIDDEN_LAYER_SIZE1 60
+#define HIDDEN_LAYER_SIZE2 30
 #define LEARNING_RATE 0.30
-#define MOMENTUM 0.10
+#define MOMENTUM 0.50
 #define TRAINING_EPOCH_NUMBER 100000
-#define TRAINING_ERR_THRESHOLD 0.10
+#define TRAINING_ERR_THRESHOLD 0.01
 
 
 /* -------------------------------------------------------------------------- */
@@ -817,7 +818,7 @@ public:
 
       // Find best matching move (e.g. starting from higher rate move
       // check if game grid cell is empty, upon empty do the move. 
-      // If the cell is not empty, search for next one...)
+      // If cell is not empty, search for next one...)
       for ( auto it = moves.rbegin(); it != moves.rend(); ++it )
       {
          move = it->second;
@@ -958,8 +959,7 @@ static void usage(const char* appname)
       << "\tset error rate threshold (default " << TRAINING_ERR_THRESHOLD << ")" 
       << std::endl
       << "--hidden_layer or -hl" << std::endl
-      << "\tset hidden layer size (n. of neurons, default " << HIDDEN_LAYER_SIZE 
-      << " )" << std::endl;
+      << "\tset hidden layer size (n. of neurons)" << std::endl;
 }
 
 
@@ -1181,8 +1181,10 @@ int main(int argc, char* argv[])
    }
 
    if ( hidden_layer.empty() )
-      hidden_layer.push_back(HIDDEN_LAYER_SIZE);
-
+   {
+      hidden_layer.push_back(HIDDEN_LAYER_SIZE1);
+      hidden_layer.push_back(HIDDEN_LAYER_SIZE2);
+   }
 
    std::unique_ptr<nu::mlp_neural_net_t> net;
 
@@ -1199,7 +1201,7 @@ int main(int argc, char* argv[])
       topology.push_back(TICTACTOE_CELLS /*outputs*/);
 
       net = std::unique_ptr<nu::mlp_neural_net_t>(
-         new nu::mlp_neural_net_t(topology, learning_rate));
+         new nu::mlp_neural_net_t(topology, learning_rate, MOMENTUM));
    }
 
    if ( !load_file_name.empty() )
@@ -1260,13 +1262,16 @@ int main(int argc, char* argv[])
    }
 
    std::cout
-      << "Net Learning rate  ( LR )  : " << net->get_learing_rate() << std::endl;
+      << "Net Learning rate  ( LR )  : " 
+      << net->get_learing_rate() << std::endl;
 
    std::cout
-      << "Net Momentum       ( M )   : " << net->get_momentum() << std::endl;
+      << "Net Momentum       ( M )   : " 
+      << net->get_momentum() << std::endl;
 
    std::cout
-      << "MSE Threshold      ( T )   : " << threshold << std::endl;
+      << "MSE Threshold      ( T )   : " 
+      << threshold << std::endl;
 
    size_t cnt = 0;
 
@@ -1334,7 +1339,6 @@ int main(int argc, char* argv[])
          }
       }
    }
-
 
 
    while ( 1 )

@@ -193,3 +193,10 @@ Please, give me a number within the range [1..9]: 1
 
 ...
 
+
+-------------------------------------------------------------------------------
+TicTacToe Demo for Windows (winttt)
+-------------------------------------------------------------------------------
+
+Interactive TicTacToe game for Windows which uses trained neural networks 
+created by using tictactoe program
