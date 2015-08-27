@@ -1038,11 +1038,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                   {
                      case grid_t::X:
                         SelectPen(hdc, hpenX);
-                        verdict = "Neural Network player wins !";
+                        verdict = "Human player wins !";
                         break;
                      case grid_t::O:
                         SelectPen(hdc, hpenO);
-                        verdict = "Human player wins !";
+                        verdict = "Neural Network player wins !";
                         break;
                      case grid_t::EMPTY:
                         break;
