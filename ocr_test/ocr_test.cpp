@@ -43,7 +43,8 @@
 #define PROG_WINXRES 800
 #define PROG_WINYRES 600
 
-
+#define TRAINING_NET_EPOCHS 10000
+#define TRAINING_NET_ERRTR  0.05
 #define MAX_LOADSTRING 100
 
 #define DIGIT_SIDE_LEN 28
@@ -252,8 +253,6 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
    if ( ::GetOpenFileName(&ofn) )
    {
-      //open_document_file(open_file_name.data());
-
       std::ifstream nf(open_file_name.data());
       std::stringstream ss;
 
@@ -377,19 +376,50 @@ void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 
 /* -------------------------------------------------------------------------- */
 
-bool TrainNet(int digit)
+bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 {
    assert( digit >= 0 && digit <= 9);
 
    if ( !neural_net || g_hwdigit.empty() )
       return false;
 
+   double err = 0.0;
+
+   RECT rcClient;  // Client area of parent window.
+   GetClientRect(hWnd, &rcClient);
+
+   int cyVScroll = GetSystemMetrics(SM_CYVSCROLL);
+
+   HWND hwndPB = CreateWindowEx(0, PROGRESS_CLASS, ( LPTSTR ) NULL,
+      WS_CHILD | WS_VISIBLE, rcClient.left,
+      rcClient.bottom - cyVScroll,
+      rcClient.right, cyVScroll,
+      hWnd, ( HMENU ) 0, hinstance, NULL);
+
+
+   const int cb = TRAINING_NET_EPOCHS;
+
+   // Set the range and increment of the progress bar. 
+   SendMessage(hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, cb));
+   SendMessage(hwndPB, PBM_SETSTEP, ( WPARAM ) 1, 0);
+
+   for ( int i = 0; i < TRAINING_NET_EPOCHS; ++i )
+   {
    nu::vector_t<double> target(10, 0.0);
    target[ digit ] = 1.0;
    
    neural_net->set_inputs(g_hwdigit);
-
    neural_net->back_propagate(target);
+
+      err = neural_net->mean_squared_error(target);
+
+      SendMessage(hwndPB, PBM_STEPIT, 0, 0);
+
+      if ( err < TRAINING_NET_ERRTR )
+         break;
+   }
+
+   DestroyWindow(hwndPB);
 
    return true;
 }
@@ -778,7 +808,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_7:
             case IDM_8:
             case IDM_9:
-               if ( !TrainNet(wmId - IDM_0) )
+               if ( !TrainNet(hWnd, hInst, wmId - IDM_0) )
                {
                   MessageBox(
                      hWnd, 

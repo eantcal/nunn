@@ -49,8 +49,8 @@
 
 #define TICTACTOE_SIDE 3
 #define TICTACTOE_CELLS (TICTACTOE_SIDE*TICTACTOE_SIDE)
-#define HIDDEN_LAYER_SIZE1 60
-#define HIDDEN_LAYER_SIZE2 30
+
+#define HIDDEN_LAYER_SIZE     60
 #define LEARNING_RATE 0.30
 #define MOMENTUM 0.50
 #define TRAINING_EPOCH_NUMBER 100000
@@ -166,7 +166,9 @@ public:
 
    bool operator==( const grid_t& other )
    {
-      return this == &other || memcmp(_grid, other._grid, sizeof(_grid)) == 0;
+      return 
+         this == &other || 
+         memcmp(_grid, other._grid, sizeof(_grid)) == 0;
    }
 
    bool operator!=( const grid_t& other )
@@ -435,6 +437,76 @@ private:
 
       bool done = false;
 
+      {
+         int symcnt = 0;
+         int osymcnt = 0;
+
+         for ( int y = 0; y < TICTACTOE_SIDE; ++y )
+         {
+            for ( int x = 0; x < TICTACTOE_SIDE; ++x )
+            {
+               if ( new_grid.at(x, y) == symbol )
+                  ++symcnt;
+               else if ( new_grid.at(x, y) == other_symbol )
+                  ++osymcnt;
+            }
+         }
+
+         if ( symcnt == 1 && osymcnt == 2 && new_grid.at(1,1) == symbol )
+         {
+            if (( new_grid.at(0, 0) == other_symbol && 
+                  new_grid.at(2, 2) == other_symbol ) ||
+
+               ( new_grid.at(0, 2) == other_symbol && 
+                 new_grid.at(2, 0) == other_symbol ))
+
+            {
+               new_grid.at(1,0) = symbol;
+               return;
+            }
+
+            if ( ( new_grid.at(2) == other_symbol &&
+               new_grid.at(7) == other_symbol ) )
+            {
+               new_grid.at(5) = symbol;
+               return;
+            }
+
+
+            if ( ( new_grid.at(1) == other_symbol &&
+               new_grid.at(8) == other_symbol ) )
+            {
+               new_grid.at(5) = symbol;
+               return;
+            }
+
+
+            if ( ( new_grid.at(0) == other_symbol &&
+               new_grid.at(7) == other_symbol ) )
+            {
+               new_grid.at(3) = symbol;
+               return;
+            }
+
+
+            if ( ( new_grid.at(1) == other_symbol &&
+               new_grid.at(6) == other_symbol ) )
+            {
+               new_grid.at(0) = symbol;
+               return;
+            }
+
+            if ( ( new_grid.at(5) == other_symbol &&
+               new_grid.at(6) == other_symbol ) )
+            {
+               new_grid.at(7) = symbol;
+               return;
+            }
+         }
+      }
+
+
+      // Check for horizontal lines (if we can close and win)
       for ( int y = 0; y < TICTACTOE_SIDE; ++y )
       {
          int symcnt = 0;
@@ -457,6 +529,7 @@ private:
          }
       }
 
+      // Check for vertical lines (if we can close and win)
       for ( int x = 0; x < TICTACTOE_SIDE; ++x )
    {
          int symcnt = 0;
@@ -479,6 +552,8 @@ private:
          }
       }
 
+
+      // Check for diagonal 0,0->2,2 (if we can close and win)
       int symcnt = 0;
       int osymcnt = 0;
       int empty_pos = 0;
@@ -499,6 +574,7 @@ private:
          return;
       }
 
+      // Check for diagonal 2,0->0,2 (if we can close and win)
       symcnt = 0;
       osymcnt = 0;
       empty_pos = 0;
@@ -519,6 +595,8 @@ private:
          return;
       }
 
+
+      // Check for horizontal lines (defend)
       for ( int y = 0; y < TICTACTOE_SIDE; ++y )
    {
          symcnt = 0;
@@ -541,6 +619,7 @@ private:
          }
    }
 
+      // Check for vertical lines (defend)
       for ( int x = 0; x < TICTACTOE_SIDE; ++x )
    {
          int symcnt = 0;
@@ -563,6 +642,7 @@ private:
          }
       }
 
+      // Check for diagonal 0,0->2,2 (defend)
       symcnt = 0;
       osymcnt = 0;
       empty_pos = 0;
@@ -583,6 +663,7 @@ private:
          return;
    }
 
+      // Check for diagonal 2,0->2,0 (defend)
       symcnt = 0;
       osymcnt = 0;
       empty_pos = 0;
@@ -602,6 +683,9 @@ private:
          new_grid.at(2 - empty_pos, empty_pos) = symbol;
          return;
       }
+
+
+      //All other default moves...
 
       if ( new_grid.at(4) == grid_t::EMPTY )
       {
@@ -633,6 +717,7 @@ private:
          return;
       }
 
+      // ... 
       int move = 0;
       while ( 1 )
       {
@@ -703,7 +788,6 @@ private:
       nu::vector_t<double>& outputs)
    {
       auto res = init_grid_st;
-
       _play(res, symb_turn);
 
       nn_io_converter_t::get_inputs(init_grid_st, symb_turn, inputs);
@@ -953,6 +1037,8 @@ static void usage(const char* appname)
       << "\tskip net training" << std::endl
       << "--learning_rate or -r" << std::endl
       << "\tset learning rate (default " << LEARNING_RATE << ")" << std::endl
+      << "--momentum or -m" << std::endl
+      << "\tset momentum (default " << MOMENTUM << ")" << std::endl
       << "--epoch_cnt or -e" << std::endl
       << "\tset epoch count (default " << TRAINING_EPOCH_NUMBER << ")" << std::endl
       << "--stop_on_err_tr or -x" << std::endl
@@ -1151,6 +1237,7 @@ int main(int argc, char* argv[])
    double learning_rate = LEARNING_RATE;
    double momentum = MOMENTUM;
    int epoch_cnt = TRAINING_EPOCH_NUMBER;
+   double min_err = 1.0;
 
    std::vector<size_t> hidden_layer;
 
@@ -1182,8 +1269,7 @@ int main(int argc, char* argv[])
 
    if ( hidden_layer.empty() )
    {
-      hidden_layer.push_back(HIDDEN_LAYER_SIZE1);
-      hidden_layer.push_back(HIDDEN_LAYER_SIZE2);
+      hidden_layer.push_back(HIDDEN_LAYER_SIZE);
    }
 
    std::unique_ptr<nu::mlp_neural_net_t> net;
@@ -1239,23 +1325,31 @@ int main(int argc, char* argv[])
    size_t hl_cnt = 0;
    auto top = net->get_topology();   
 
+   std::string net_desc = "Net:";
+
    for ( const auto hl : top )
    {
+      
       if (hl_cnt>0 && hl_cnt < top.size()-1)
       {
          std::cout << "NN hidden neurons L" << hl_cnt;
          std::cout << "       : " << hl << std::endl;
+         net_desc += "  hl(" + std::to_string(hl_cnt) + ")=" + std::to_string(hl);
       }
       else
       {
          if (hl_cnt == 0)
+         {
             std::cout 
                << "Inputs                    " 
                << " : " << hl << std::endl;
+         }
          else
+         {
             std::cout 
                << "Outputs                   " 
                << " : " << hl << std::endl;
+      }
       }
 
       ++hl_cnt;
@@ -1289,9 +1383,8 @@ int main(int argc, char* argv[])
 
       for ( int epoch = 0; epoch < max_epoch_number; ++epoch )
       {
-         double mean_squared_error = 0.0;
-
          std::cout
+            << net_desc << " " 
             << "Learning epoch " << epoch + 1
             << " of " << max_epoch_number
             << " ( LR = " << net->get_learing_rate()
@@ -1303,8 +1396,6 @@ int main(int argc, char* argv[])
             << std::endl;
 
          cnt = 0;
-
-         double min_err = 1.0;
          double err = 0.0;
 
          for ( const auto & sample : samples )
@@ -1326,9 +1417,11 @@ int main(int argc, char* argv[])
          if ( mean_err < min_err )
          {
             min_err = mean_err;
+            std::cout << "New min err " << min_err << std::endl;
 
             if ( !save_file_name.empty() )
             {
+               std::cout << "Saving net status" << std::endl;
                std::stringstream ss;
                net->save(ss);
                save_the_net(save_file_name, ss);

@@ -130,13 +130,13 @@ TBBUTTON g_toolbar_buttons[] =
 {
    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-   { 0, IDM_LOAD, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "Load" },
+   { 0, IDM_LOAD, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "Load trained NN status" },
    //{ 1, IDM_SAVE, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "Save" },
 
    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-   { 2, IDM_NEWGAME, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "New Game" },
-   { 3, IDM_NEWGAME_SC, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "New Game (start computer)" },
+   { 2, IDM_NEWGAME, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "New Game (human first-move)" },
+   { 3, IDM_NEWGAME_SC, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "New Game (computer first-move)" },
 };
 
 const int g_toolbar_n_of_buttons = sizeof(g_toolbar_buttons) / sizeof(TBBUTTON);
