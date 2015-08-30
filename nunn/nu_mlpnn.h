@@ -151,7 +151,7 @@ public:
 
 
    //! Returns current learning rate
-   double get_learing_rate() const throw( )
+   double get_learning_rate() const throw( )
    {
       return _learning_rate;
    }

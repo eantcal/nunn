@@ -37,7 +37,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define PROG_VERSION "1.45"
+#define PROG_VERSION "1.46"
 #define ABOUT_TEXT "Nunn Library and OCR Test by A. Calderone (c) - 2015"
 #define ABOUT_INFO "OCR Test Version " PROG_VERSION
 #define PROG_WINXRES 800
@@ -290,7 +290,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
    if (! neural_net )
       return false;
 
-   const double learning_rate = neural_net->get_learing_rate();
+   const double learning_rate = neural_net->get_learning_rate();
    const auto & topology = neural_net->get_topology();
 
    std::string inputs;

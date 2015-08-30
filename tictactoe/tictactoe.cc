@@ -47,6 +47,7 @@
 
 /* -------------------------------------------------------------------------- */
 
+#define PROG_VERSION "1.46"
 #define TICTACTOE_SIDE 3
 #define TICTACTOE_CELLS (TICTACTOE_SIDE*TICTACTOE_SIDE)
 
@@ -399,9 +400,15 @@ public:
    {
       nu::vector_t<double> inputs;
       nu::vector_t<double> outputs;
+
+      bool operator<( const sample_t& other ) const throw( )
+      {
+         return inputs<other.inputs || 
+            (inputs==other.inputs && outputs<other.outputs);
+      }
    };
 
-   using samples_t = std::vector<sample_t>;
+   using samples_t = std::set<sample_t>;
 
 private:
    std::set<grid_t> _pos_coll;
@@ -816,7 +823,7 @@ public:
             grid_t grid = item;
             _create_sample(item, grid_t::X, inputs, outputs);
 
-            samples.push_back({ inputs, outputs });
+            samples.insert({ inputs, outputs });
          }
 
          if ( x_cnt >= o_cnt )
@@ -824,7 +831,7 @@ public:
             grid_t grid = item;
             _create_sample(item, grid_t::O, inputs, outputs);
 
-            samples.push_back({ inputs, outputs });
+            samples.insert({ inputs, outputs });
          }
 
          ++n;
@@ -1083,7 +1090,7 @@ static bool process_cl(
          ( arg == "--version" || arg == "-v" ) )
       {
          std::cout
-            << "nunnlib TicTacToe 1.0 (c) acaldmail@gmail.com"
+            << "nunnlib TicTacToe "PROG_VERSION" (c) acaldmail@gmail.com"
             << std::endl;
          continue;
       }
@@ -1268,9 +1275,7 @@ int main(int argc, char* argv[])
    }
 
    if ( hidden_layer.empty() )
-   {
       hidden_layer.push_back(HIDDEN_LAYER_SIZE);
-   }
 
    std::unique_ptr<nu::mlp_neural_net_t> net;
 
@@ -1357,7 +1362,7 @@ int main(int argc, char* argv[])
 
    std::cout
       << "Net Learning rate  ( LR )  : " 
-      << net->get_learing_rate() << std::endl;
+      << net->get_learning_rate() << std::endl;
 
    std::cout
       << "Net Momentum       ( M )   : " 
@@ -1387,7 +1392,7 @@ int main(int argc, char* argv[])
             << net_desc << " " 
             << "Learning epoch " << epoch + 1
             << " of " << max_epoch_number
-            << " ( LR = " << net->get_learing_rate()
+            << " ( LR = " << net->get_learning_rate()
             << ", M = " << net->get_momentum()
             << ", T = " << threshold
             << " )"

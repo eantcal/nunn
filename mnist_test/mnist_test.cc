@@ -33,7 +33,7 @@ The second part of the MNIST data set is 10,000 images to be used as test data.
 To make this a good test of performance, the test data was taken from a different
 set of people than the original training data.
 
-The training input is treated as a 28×28=784-dimensional vector.
+The training input is treated as a 28Ã—28=784-dimensional vector.
 Each entry in the vector represents the grey value for a single pixel in the image.
 The corresponding desired output is a 10-dimensional vector.
 
@@ -372,7 +372,7 @@ static double test_net(
    mean_square_error /= cnt;
 
    double err_rate = double(err_cnt) / double(cnt);
-   
+
    return err_rate;
 }
 
@@ -547,7 +547,7 @@ int main(int argc, char* argv[])
 
          net = std::unique_ptr<nu::mlp_neural_net_t>(new nu::mlp_neural_net_t(ss));
       }
-      
+
       if ( net == nullptr )
       {
          std::cerr 
@@ -577,13 +577,13 @@ int main(int argc, char* argv[])
          for ( int epoch = 0; epoch < max_epoch_number; ++epoch )
          {
             locate(1);
-         
+
             double mean_squared_error = 0.0;
             
             std::cout
                << "Learning epoch " << epoch + 1
                << " of " << max_epoch_number 
-               << " ( LR = " << net->get_learing_rate() 
+               << " ( LR = " << net->get_learning_rate() 
                << ", M = " << net->get_momentum() << " )"
                << std::endl
                << std::endl;

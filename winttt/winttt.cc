@@ -42,10 +42,12 @@
 #include <memory>
 #include <string>
 #include <map>
+#include <set>
+
 
 /* -------------------------------------------------------------------------- */
 
-#define PROG_VERSION "1.45"
+#define PROG_VERSION "1.46"
 #define ABOUT_TEXT "TicTacToe for Windows by A. Calderone (c) - 2015"
 #define ABOUT_INFO "WinTTT " PROG_VERSION
 #define PROG_WINXRES 664
@@ -63,6 +65,8 @@
 #define BOARDOFF_Y 124
 #define BOARDCELLSIZE 70
 #define YBMPOFF 50
+#define TRAINING_TICK 10
+#define TRAINING_EPERT 100
 
 #define FILE_FILTER "nuNN (.net)\0*.net;\0All Files (*.*)\0*.*\0\0";
 
@@ -104,25 +108,42 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
+struct sample_t
+{
+   nu::vector_t<double> inputs;
+   nu::vector_t<double> outputs;
+
+   bool operator<( const sample_t& other ) const throw( )
+   {
+      return inputs<other.inputs ||
+         ( inputs == other.inputs && outputs<other.outputs );
+   }
+};
+
+using samples_t = std::set<sample_t>;
+
+
+/* -------------------------------------------------------------------------- */
+
 // Global Variables
-HINSTANCE hInst;								// current instance
-TCHAR szTitle[MAX_LOADSTRING];			// The title bar text
-TCHAR szWindowClass[MAX_LOADSTRING];	// the main window class name
-
-
+static HINSTANCE hInst;								// current instance
+static TCHAR szTitle[MAX_LOADSTRING];			// The title bar text
+static TCHAR szWindowClass[MAX_LOADSTRING];	// the main window class name
 static HFONT g_hfFont = nullptr;
-
-std::unique_ptr<nu::mlp_neural_net_t> neural_net;
-std::string current_file_name;
-std::string net_description = "Load a net description file (File->Load)";
-nu::vector_t<double> g_hwdigit;
-
+static std::unique_ptr<nu::mlp_neural_net_t> g_neural_net;
+static samples_t g_training_samples;
+static double g_last_mse = 1.0;
+static std::string g_current_file_name;
+static std::string g_net_desc;
+static nu::mlp_neural_net_t::topology_t g_topology({ 10, 30, 9 });
+static double g_learing_rate = 0.30;
+static double g_momentum = 0.50;
 
 /* -------------------------------------------------------------------------- */
 
 // Toolbar
 static toolbar_t * g_toolbar = nullptr;
-const int g_toolbar_n_of_bmps = 4;
+const int g_toolbar_n_of_bmps = 5;
 const int g_toolbar_btn_state = TBSTATE_ENABLED;
 const int g_toolbar_btn_style = BTNS_BUTTON /*| TBSTATE_ELLIPSES*/;
 
@@ -130,13 +151,14 @@ TBBUTTON g_toolbar_buttons[] =
 {
    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-   { 0, IDM_LOAD, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "Load trained NN status" },
-   //{ 1, IDM_SAVE, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "Save" },
+   { 0, IDM_NEW, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "New untrained NN" },
+   { 1, IDM_LOAD, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "Load NN" },
+   { 2, IDM_SAVE, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "Save NN" },
 
    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-   { 2, IDM_NEWGAME, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "New Game (human first-move)" },
-   { 3, IDM_NEWGAME_SC, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "New Game (computer first-move)" },
+   { 3, IDM_NEWGAME, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "Restart (human)" },
+   { 4, IDM_NEWGAME_SC, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "Restart (computer)" },
 };
 
 const int g_toolbar_n_of_buttons = sizeof(g_toolbar_buttons) / sizeof(TBBUTTON);
@@ -239,6 +261,40 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 /* -------------------------------------------------------------------------- */
 
+void UpdateStatusBar()
+{
+   const double learning_rate = g_neural_net->get_learning_rate();
+   const double momentum = g_neural_net->get_momentum();
+   auto topology = g_neural_net->get_topology();
+
+   std::string inputs;
+   std::string outputs;
+   std::string hl;
+
+   for ( size_t i = 0; i<topology.size(); ++i )
+   {
+      if ( i == 0 )
+         inputs = std::to_string(topology[i]);
+      else if ( i == ( topology.size() - 1 ) )
+         outputs = std::to_string(topology[i]);
+      else
+         hl += std::to_string(topology[i]) + " ";
+   }
+
+   const auto tsc = g_training_samples.size();
+   const auto mse = g_last_mse;
+
+   g_net_desc =
+      "   LR: " + std::to_string(learning_rate) +
+      "   M: " + std::to_string(momentum) +
+      "   HL(" + std::to_string(topology.size() - 2) + ") :" + hl +
+      "   SC: " + std::to_string(tsc) +
+      "   TL: " + std::to_string(100.00-mse*100.00);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 {
    std::vector<char> open_file_name(MAX_PATH);
@@ -279,10 +335,10 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
       ss << nf.rdbuf();
       nf.close();
 
-      current_file_name = open_file_name.data();
+      g_current_file_name = open_file_name.data();
 
       try {
-         neural_net = std::make_unique< nu::mlp_neural_net_t >(ss);
+         g_neural_net = std::make_unique< nu::mlp_neural_net_t >(ss);
       }
       catch ( ... )
       {
@@ -296,32 +352,11 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
       }
    }
 
-   if (! neural_net )
+   if ( !g_neural_net )
       return false;
 
-   const double learning_rate = neural_net->get_learing_rate();
-   const auto & topology = neural_net->get_topology();
-
-   std::string inputs;
-   std::string outputs;
-   std::string hl;
-
-   for ( size_t i = 0; i<topology.size(); ++i )
-   {
-      if ( i == 0 )
-         inputs = std::to_string(topology[i]);
-      else if ( i == (topology.size()-1))
-         outputs = std::to_string(topology[i]);
-      else
-         hl += std::to_string(topology[i]) + " ";
-   }
-
-   net_description =
-      "   Inputs: " + inputs + 
-      "   Outputs: " + outputs + 
-      "   HL Neurons: " + hl;
-
-   SetWindowText(hWnd, current_file_name.c_str());
+   UpdateStatusBar();
+   SetWindowText(hWnd, g_current_file_name.c_str());
 
    RECT r = { 0, PROG_WINYRES-100, PROG_WINXRES, PROG_WINYRES };
    InvalidateRect(hWnd, &r, TRUE);
@@ -333,18 +368,70 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
 /* -------------------------------------------------------------------------- */
 
+void Training(HWND hWnd, HWND hwndPB)
+{
+   auto & samples = g_training_samples;
+   static auto old_samples_num = samples.size();
+
+   if ( !g_neural_net || samples.empty() )
+   {
+      MessageBeep(0);
+      return;
+   }
+
+   if ( old_samples_num == samples.size() && g_last_mse < 0.001 )
+   {
+      MessageBeep(0);
+      return;
+   }
+
+   KillTimer(hWnd, 0);
+
+   double err = 0;
+   nu::vector_t<double> outputs;
+   
+   for ( int i = 0; i < TRAINING_EPERT; ++i )
+   {
+      for ( const auto & sample : samples )
+      {
+         if ( g_neural_net )
+         {
+            g_neural_net->set_inputs(sample.inputs);
+            g_neural_net->back_propagate(sample.outputs);
+            g_neural_net->get_outputs(outputs);
+         }
+
+         err +=
+            nu::mlp_neural_net_t::mean_squared_error(outputs, sample.outputs);
+      }
+
+      err /= samples.size();
+   }
+   g_last_mse = err;
+
+   if ( hwndPB )
+      SendMessage(hwndPB, PBM_SETPOS, ( WPARAM ) ( ( 1.0 - g_last_mse )*100.0 ), 0);
+
+   old_samples_num = samples.size();
+
+   SetTimer(hWnd, 0, TRAINING_TICK, 0);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
 {
-   if ( !neural_net )
+   if ( !g_neural_net )
    {
       MessageBox(hWnd, "No neural network loaded", "Error", MB_ICONERROR);
       return;
    }
 
    std::stringstream ss;
-   ss << *neural_net;
 
-   //std::cout << ss.str() << std::endl;
+   ss << *g_neural_net;
+
    std::ofstream nf(filename);
    if ( nf.is_open() )
    {
@@ -357,7 +444,7 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
       return;
    }
 
-   current_file_name = filename;
+   g_current_file_name = filename;
    SetWindowText(hWnd, filename.c_str());
 }
 
@@ -367,7 +454,7 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
 void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 {
    char openName[MAX_PATH] = "\0";
-   strncpy(openName, current_file_name.c_str(), MAX_PATH - 1);
+   strncpy(openName, g_current_file_name.c_str(), MAX_PATH - 1);
 
    OPENFILENAME ofn = { sizeof(ofn) };
    ofn.hwndOwner = hWnd;
@@ -437,6 +524,27 @@ private:
    int _grid[TICTACTOE_SIDE][TICTACTOE_SIDE];
    int _tmp_grid[TICTACTOE_SIDE][TICTACTOE_SIDE];
 
+
+   inline int & _at(int x, int y) throw()
+   {
+      return _grid[x][y];
+   }
+
+   inline const int & _at(int x, int y) const throw( )
+   {
+      return _grid[x][y];
+   }
+
+   inline static int _pos2y(int pos) throw( )
+   {
+      return pos / TICTACTOE_SIDE;
+   }
+
+   inline static int _pos2x(int pos) throw( )
+   {
+      return pos % TICTACTOE_SIDE;
+   }
+
 public:
    enum symbol_t
    {
@@ -449,6 +557,31 @@ public:
       clear();
    }
 
+   void rotate_cw(bool invert = false)
+   {
+      memcpy(_tmp_grid, _grid, sizeof(_grid));
+
+      auto _tmp = [&](int indx)
+      {
+         return _tmp_grid[_pos2x(indx)][_pos2y(indx)];
+      };
+
+      std::list<int> lidx = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
+      std::list<int> rlidx = { 2, 5, 8, 1, 4, 7, 0, 3, 6 };
+
+      if ( invert )
+      {
+         int indx = 0;
+         for ( auto i : lidx )
+            at(indx++) = _tmp(i);
+      }
+      else
+      {
+         int indx = 0;
+         for ( auto i : rlidx )
+            at(indx++) = _tmp(i);
+      }
+   }
 
    size_t size() const throw( )
    {
@@ -566,7 +699,7 @@ public:
       assert(x >= 0 && x <= ( TICTACTOE_SIDE - 1 ));
       assert(y >= 0 && y <= ( TICTACTOE_SIDE - 1 ));
 
-      return _grid[y][x];
+      return _at(x,y);
    }
 
 
@@ -575,24 +708,24 @@ public:
       assert(x >= 0 && x <= ( TICTACTOE_SIDE - 1 ));
       assert(y >= 0 && y <= ( TICTACTOE_SIDE - 1 ));
 
-      return _grid[y][x];
+      return _at(x,y);
    }
 
 
    const int& at(int position) const
    {
-      const int y = position / TICTACTOE_SIDE;
-      const int x = position % TICTACTOE_SIDE;
+      const int y = _pos2y(position);
+      const int x = _pos2x(position);
 
-      return _grid[y][x];
+      return _at(x,y);
    }
 
    int& at(int position)
    {
-      const int y = position / TICTACTOE_SIDE;
-      const int x = position % TICTACTOE_SIDE;
+      const int y = _pos2y(position);
+      const int x = _pos2x(position);
 
-      return _grid[y][x];
+      return _at(x,y);
    }
 
    bool is_the_winner(const grid_t::symbol_t symbol) const
@@ -804,7 +937,312 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-static void ComputerPlay(
+static void ExpertAlgo(grid_t & new_grid, grid_t::symbol_t symbol)
+{
+   int x = 0;
+   int y = 0;
+
+   grid_t::symbol_t other_symbol = symbol == grid_t::O ? grid_t::X : grid_t::O;
+
+   bool done = false;
+  
+   {
+      int symcnt = 0;
+      int osymcnt = 0;
+
+      for ( int y = 0; y < TICTACTOE_SIDE; ++y )
+      {
+         for ( int x = 0; x < TICTACTOE_SIDE; ++x )
+         {
+            if ( new_grid.at(x, y) == symbol )
+               ++symcnt;
+            else if ( new_grid.at(x, y) == other_symbol )
+               ++osymcnt;
+         }
+      }
+
+      if ( symcnt == 1 && osymcnt == 2 && new_grid.at(1, 1) == symbol )
+      {
+         if ( ( new_grid.at(0, 0) == other_symbol &&
+                new_grid.at(2, 2) == other_symbol ) ||
+
+            ( new_grid.at(0, 2) == other_symbol &&
+            new_grid.at(2, 0) == other_symbol ))
+            
+         {
+            new_grid.at(1, 0) = symbol;
+            return;
+         }
+
+         if (( new_grid.at(2) == other_symbol && 
+               new_grid.at(7) == other_symbol )) 
+         {
+            new_grid.at(5) = symbol;
+            return;
+         }
+
+
+         if ( ( new_grid.at(1) == other_symbol &&
+            new_grid.at(8) == other_symbol ) )
+         {
+            new_grid.at(5) = symbol;
+            return;
+         }
+
+
+         if ( ( new_grid.at(0) == other_symbol &&
+            new_grid.at(7) == other_symbol ) )
+         {
+            new_grid.at(3) = symbol;
+            return;
+         }
+
+
+         if ( ( new_grid.at(1) == other_symbol &&
+            new_grid.at(6) == other_symbol ) )
+         {
+            new_grid.at(0) = symbol;
+            return;
+         }
+
+         if ( ( new_grid.at(5) == other_symbol &&
+            new_grid.at(6) == other_symbol ) )
+         {
+            new_grid.at(7) = symbol;
+            return;
+         }
+      }
+   }
+
+
+   // Check for horizontal lines (if we can close and win)
+   for ( int y = 0; y < TICTACTOE_SIDE; ++y )
+   {
+      int symcnt = 0;
+      int osymcnt = 0;
+      int empty_pos = 0;
+
+      for ( int x = 0; x < TICTACTOE_SIDE; ++x )
+      {
+         if ( new_grid.at(x, y) == symbol )
+            ++symcnt;
+         else if ( new_grid.at(x, y) == other_symbol )
+            ++osymcnt;
+         else empty_pos = x;
+      }
+
+      if ( symcnt == 2 && osymcnt == 0 )
+      {
+         new_grid.at(empty_pos, y) = symbol;
+         return;
+      }
+   }
+
+   // Check for vertical lines (if we can close and win)
+   for ( int x = 0; x < TICTACTOE_SIDE; ++x )
+   {
+      int symcnt = 0;
+      int osymcnt = 0;
+      int empty_pos = 0;
+
+      for ( int y = 0; y < TICTACTOE_SIDE; ++y )
+      {
+         if ( new_grid.at(x, y) == symbol )
+            ++symcnt;
+         else if ( new_grid.at(x, y) == other_symbol )
+            ++osymcnt;
+         else empty_pos = y;
+      }
+
+      if ( symcnt == 2 && osymcnt == 0 )
+      {
+         new_grid.at(x, empty_pos) = symbol;
+         return;
+      }
+   }
+
+
+   // Check for diagonal 0,0->2,2 (if we can close and win)
+   int symcnt = 0;
+   int osymcnt = 0;
+   int empty_pos = 0;
+   int d = 0;
+
+   for ( ; d < TICTACTOE_SIDE; ++d )
+   {
+      if ( new_grid.at(d, d) == symbol )
+         ++symcnt;
+      else if ( new_grid.at(d, d) == other_symbol )
+         ++osymcnt;
+      else empty_pos = d;
+   }
+
+   if ( symcnt == 2 && osymcnt == 0 )
+   {
+      new_grid.at(empty_pos, empty_pos) = symbol;
+      return;
+   }
+
+   // Check for diagonal 2,0->0,2 (if we can close and win)
+   symcnt = 0;
+   osymcnt = 0;
+   empty_pos = 0;
+   d = 0;
+
+   for ( ; d < TICTACTOE_SIDE; ++d )
+   {
+      if ( new_grid.at(2 - d, d) == symbol )
+         ++symcnt;
+      else if ( new_grid.at(2 - d, d) == other_symbol )
+         ++osymcnt;
+      else empty_pos = d;
+   }
+
+   if ( symcnt == 2 && osymcnt == 0 )
+   {
+      new_grid.at(2 - empty_pos, empty_pos) = symbol;
+      return;
+   }
+
+
+   // Check for horizontal lines (defend)
+   for ( int y = 0; y < TICTACTOE_SIDE; ++y )
+   {
+      symcnt = 0;
+      osymcnt = 0;
+      empty_pos = 0;
+
+      for ( int x = 0; x < TICTACTOE_SIDE; ++x )
+      {
+         if ( new_grid.at(x, y) == symbol )
+            ++symcnt;
+         else if ( new_grid.at(x, y) == other_symbol )
+            ++osymcnt;
+         else empty_pos = x;
+      }
+
+      if ( osymcnt == 2 && symcnt == 0 )
+      {
+         new_grid.at(empty_pos, y) = symbol;
+         return;
+      }
+   }
+
+   // Check for vertical lines (defend)
+   for ( int x = 0; x < TICTACTOE_SIDE; ++x )
+   {
+      int symcnt = 0;
+      int osymcnt = 0;
+      int empty_pos = 0;
+
+      for ( int y = 0; y < TICTACTOE_SIDE; ++y )
+      {
+         if ( new_grid.at(x, y) == symbol )
+            ++symcnt;
+         else if ( new_grid.at(x, y) == other_symbol )
+            ++osymcnt;
+         else empty_pos = y;
+      }
+
+      if ( osymcnt == 2 && symcnt == 0 )
+      {
+         new_grid.at(x, empty_pos) = symbol;
+         return;
+      }
+   }
+
+   // Check for diagonal 0,0->2,2 (defend)
+   symcnt = 0;
+   osymcnt = 0;
+   empty_pos = 0;
+   d = 0;
+
+   for ( ; d < TICTACTOE_SIDE; ++d )
+   {
+      if ( new_grid.at(d, d) == symbol )
+         ++symcnt;
+      else if ( new_grid.at(d, d) == other_symbol )
+         ++osymcnt;
+      else empty_pos = d;
+   }
+
+   if ( osymcnt == 2 && symcnt == 0 )
+   {
+      new_grid.at(empty_pos, empty_pos) = symbol;
+      return;
+   }
+
+   // Check for diagonal 2,0->2,0 (defend)
+   symcnt = 0;
+   osymcnt = 0;
+   empty_pos = 0;
+   d = 0;
+
+   for ( ; d < TICTACTOE_SIDE; ++d )
+   {
+      if ( new_grid.at(2 - d, d) == symbol )
+         ++symcnt;
+      else if ( new_grid.at(2 - d, d) == other_symbol )
+         ++osymcnt;
+      else empty_pos = d;
+   }
+
+   if ( osymcnt == 2 && symcnt == 0 )
+   {
+      new_grid.at(2 - empty_pos, empty_pos) = symbol;
+      return;
+   }
+
+
+   //All other default moves...
+
+   if ( new_grid.at(4) == grid_t::EMPTY )
+   {
+      new_grid.at(4) = symbol;
+      return;
+   }
+
+   if ( new_grid.at(0) == grid_t::EMPTY )
+   {
+      new_grid.at(0) = symbol;
+      return;
+   }
+
+   if ( new_grid.at(2) == grid_t::EMPTY )
+   {
+      new_grid.at(2) = symbol;
+      return;
+   }
+
+   if ( new_grid.at(6) == grid_t::EMPTY )
+   {
+      new_grid.at(6) = symbol;
+      return;
+   }
+
+   if ( new_grid.at(8) == grid_t::EMPTY )
+   {
+      new_grid.at(8) = symbol;
+      return;
+   }
+
+   // ... 
+   int move = 0;
+   while ( 1 )
+   {
+      if ( new_grid.at(move) == grid_t::EMPTY )
+      {
+         new_grid.at(move) = symbol;
+         return;
+      }
+
+      ++move;
+   }
+}
+
+
+
+static void NetAnswer(
    nu::mlp_neural_net_t & nn,
    grid_t & grid,
    grid_t::symbol_t symbol)
@@ -843,6 +1281,54 @@ static void ComputerPlay(
       MessageBox(0, 
          "Are you loaded an incompatibile net?", "Error", MB_ICONERROR);
    }
+
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static void ComputerPlay(
+   HWND hWnd,
+   HINSTANCE hInst,
+   nu::mlp_neural_net_t & nn,
+   grid_t & grid,
+   grid_t::symbol_t symbol)
+{
+   auto grid_old = grid;
+   auto grid_expert_move = grid;
+
+   // Ask to net the move
+   NetAnswer(nn, grid, symbol);
+
+   InvalidateRect(hWnd, NULL, TRUE);
+   UpdateWindow(hWnd);
+   
+   // Ask to expert algo the move
+   ExpertAlgo(grid_expert_move, symbol);
+   
+   // In case net answer with no expected move
+   // train it with the expert algo answer
+   if ( grid != grid_expert_move )
+   {
+      nu::vector_t<double> inputs, target;
+      
+      // From each example you have 4 different training samples,
+      // one for each board's orientation
+      for (int i = 0; i<4; ++i )
+      {
+         grid_old.rotate_cw();
+         grid_expert_move.rotate_cw();
+
+         nn_io_converter_t::get_inputs(grid_old, symbol, inputs);
+         nn_io_converter_t::get_outputs(grid_old, grid_expert_move, target);       
+
+         g_training_samples.insert({ inputs, target });
+      }
+
+      UpdateStatusBar();
+      InvalidateRect(hWnd, NULL, TRUE);
+      UpdateWindow(hWnd);
+   }
 }
 
 
@@ -875,6 +1361,39 @@ static bool GetGridPos(HWND hWnd, std::pair<int, int>& gpt)
 
 /* -------------------------------------------------------------------------- */
 
+static void NewNN()
+{
+   g_neural_net = 
+      std::unique_ptr<nu::mlp_neural_net_t>(
+      new nu::mlp_neural_net_t(g_topology, g_learing_rate, g_momentum));
+
+   UpdateStatusBar();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void RotateCW(HWND hWnd, bool acw, grid_t & grid)
+{
+   grid.rotate_cw(acw);
+   InvalidateRect(hWnd, NULL, TRUE);
+   UpdateWindow(hWnd);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static void SetNewTopology(HWND hWnd, const nu::mlp_neural_net_t::topology_t & t)
+{
+   g_topology = t;
+   NewNN();
+   InvalidateRect(hWnd, NULL, TRUE);
+   UpdateWindow(hWnd);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
    int wmId, wmEvent;
@@ -883,12 +1402,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
    static grid_t game_board;
 
+   RECT rcClient;  // Client area of parent window.
+   GetClientRect(hWnd, &rcClient);
+
+   static int cyVScroll = GetSystemMetrics(SM_CYVSCROLL);
+   static HWND hwndPB = 0;
+
    switch ( message )
    {
+      case WM_TIMER:
+         Training(hWnd, hwndPB);
+         break;
 
       case WM_CREATE:
+         NewNN();
          InitCommonControls();
-
          DoSelectFont(hWnd);
 
          {
@@ -919,6 +1447,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             g_toolbar_n_of_bmps,
             g_toolbar_buttons,
             g_toolbar_n_of_buttons);
+
+
+         hwndPB = CreateWindowEx(
+            0, PROGRESS_CLASS, ( LPTSTR ) NULL,
+            WS_CHILD | WS_VISIBLE, 
+            0,
+            YBMPOFF + cyVScroll / 2,
+            PROG_WINXRES,
+            cyVScroll/2,
+            hWnd, ( HMENU ) 0, hInst, NULL);
+
+         SendMessage(hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
+         SetTimer(hWnd, 0, 1000, 0);
+
          break;
 
       case WM_COMMAND:
@@ -927,6 +1469,76 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
          // Parse the menu selections:
          switch ( wmId )
          {
+            case IDM_LR_30:
+            case IDM_LR_35:
+            case IDM_LR_40:
+               if ( g_neural_net )
+               {
+                  g_neural_net->set_learning_rate(
+                     wmId == IDM_LR_30 ? 0.30 : ( wmId == IDM_LR_35 ? 0.35 : 0.40 ));
+                  g_learing_rate = g_neural_net->get_learning_rate();
+               }
+
+               UpdateStatusBar();
+               InvalidateRect(hWnd, NULL, TRUE);
+               UpdateWindow(hWnd);
+               break;
+
+            case IDM_M_0:
+            case IDM_M_30:
+            case IDM_M_40:
+            case IDM_M_50:
+               if ( g_neural_net )
+               {
+                  g_neural_net->set_momentum(
+                     wmId == IDM_M_0 ? 0 : ( wmId == IDM_M_30 ? 0.30 :
+                     ( wmId == IDM_M_40 ? 0.40 : 0.50 ) ));
+                  g_momentum = g_neural_net->get_momentum();
+               }
+               UpdateStatusBar();
+               InvalidateRect(hWnd, NULL, TRUE);
+               UpdateWindow(hWnd);
+
+               break;
+
+            case IDM_HL_30:
+               SetNewTopology(hWnd, { 10, 30, 9 });
+               break;
+
+            case IDM_HL_60:
+               SetNewTopology(hWnd, { 10, 60, 9 });
+               break;
+
+            case IDM_HL_90:
+               SetNewTopology(hWnd, { 10, 90, 9 });
+               break;
+
+            case IDM_HL_30_30:
+               SetNewTopology(hWnd, { 10, 30, 30, 9 });
+               break;
+
+            case IDM_HL_60_60:
+               SetNewTopology(hWnd, { 10, 60, 60, 9 });
+               break;
+
+            case IDM_HL_90_90:
+               SetNewTopology(hWnd, { 10, 90, 90, 9 });
+               break;
+
+            case IDM_NEW:
+               NewNN();
+               InvalidateRect(hWnd, NULL, TRUE);
+               UpdateWindow(hWnd);
+               break;
+
+            case IDM_ROTATE_CW:
+               RotateCW(hWnd, true, game_board);
+               break;
+
+            case IDM_ROTATE_ACW:
+               RotateCW(hWnd, false, game_board);
+               break;
+
             case IDM_NEWGAME:
                game_board.clear();
                InvalidateRect(hWnd, NULL, TRUE);
@@ -935,8 +1547,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_NEWGAME_SC:
                game_board.clear();
 
-               if (neural_net) 
-                  ComputerPlay(*neural_net, game_board, grid_t::O);
+               if (g_neural_net) 
+                  ComputerPlay(hWnd, hInst, *g_neural_net, game_board, grid_t::O);
                else
                   MessageBox(
                   hWnd,
@@ -979,7 +1591,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                  game_board.get_winner_symbol() != grid_t::EMPTY  )
                break;
 
-            if ( !neural_net )
+            if ( !g_neural_net )
             {
                MessageBox(
                   hWnd, 
@@ -1010,16 +1622,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                      break;
                }
 
-               auto win_symb = game_board.get_winner_symbol();
-
-               if ( modified && neural_net && win_symb == grid_t::EMPTY )
-               {
-                  ComputerPlay(*neural_net, game_board, grid_t::O);
-                  win_symb = game_board.get_winner_symbol();
-               }
-
                InvalidateRect(hWnd, NULL, TRUE);
                UpdateWindow(hWnd);
+
+               auto win_symb = game_board.get_winner_symbol();
+
+               bool nnet_ok = g_neural_net != nullptr;
+               
+               if ( modified && nnet_ok && win_symb == grid_t::EMPTY )
+               {
+                  ComputerPlay(hWnd, hInst, *g_neural_net, game_board, grid_t::O);
+                  win_symb = game_board.get_winner_symbol();
+               }
 
                if ( win_symb != grid_t::EMPTY || game_board.is_completed() )
                {
@@ -1092,6 +1706,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                renderer.draw(hdc);
             }
 
+            if ( !g_net_desc.empty() )
+            {
+               RECT rcClient;  // Client area of parent window.
+               GetClientRect(hWnd, &rcClient);
+               rcClient.top = rcClient.bottom - GetSystemMetrics(SM_CYVSCROLL);
+               FillRect(hdc, &rcClient, GetStockBrush(WHITE_BRUSH));
+               TextOut(hdc, 0, rcClient.top, g_net_desc.c_str(), int(g_net_desc.size() + 1));
+            }
+
             EndPaint(hWnd, &ps);
          }
          break;
@@ -1117,6 +1740,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
          break;
 
       case WM_DESTROY:
+         DestroyWindow(hwndPB);
          PostQuitMessage(0);
          break;
       default:
