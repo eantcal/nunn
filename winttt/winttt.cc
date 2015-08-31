@@ -374,16 +374,10 @@ void Training(HWND hWnd, HWND hwndPB)
    static auto old_samples_num = samples.size();
 
    if ( !g_neural_net || samples.empty() )
-   {
-      MessageBeep(0);
       return;
-   }
 
    if ( old_samples_num == samples.size() && g_last_mse < 0.001 )
-   {
-      MessageBeep(0);
       return;
-   }
 
    KillTimer(hWnd, 0);
 
