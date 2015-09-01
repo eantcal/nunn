@@ -136,12 +136,51 @@ public:
    }
 
 
+   mlp_neural_net_t(const mlp_neural_net_t& nn) = default;
+
+   mlp_neural_net_t(mlp_neural_net_t&& nn) :
+      _topology(std::move(nn._topology)),
+      _learning_rate(std::move(nn._learning_rate)),
+      _momentum(std::move(nn._momentum)),
+      _inputs(std::move(nn._inputs)),
+      _neuron_layers(std::move(nn._neuron_layers))
+   {
+   }
+
+   mlp_neural_net_t& operator=( const mlp_neural_net_t& nn ) = default;
+
+   mlp_neural_net_t& operator=( mlp_neural_net_t&& nn ) 
+   {
+      if ( this != &nn )
+      {
+         _topology = std::move(nn._topology);
+         _learning_rate = std::move(nn._learning_rate);
+         _momentum = std::move(nn._momentum);
+         _inputs = std::move(nn._inputs);
+         _neuron_layers = std::move(nn._neuron_layers);
+      }
+
+      return *this;
+   }
+   
+
+
    //! Returns the number of inputs 
    size_t get_inputs_count() const throw()
    {
       return _inputs.size();
    }
 
+
+   //! Returns the number of outputs 
+   size_t get_outputs_count() const throw( )
+   {
+      if ( _topology.empty() )
+         return 0;
+
+      return _topology[_topology.size()-1];
+   }
+   
 
    //! Returns a const reference to topology vector
    const topology_t& get_topology() const throw( )

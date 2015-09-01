@@ -43,11 +43,13 @@
 #include <string>
 #include <map>
 #include <set>
+#include <thread>
+#include <mutex>
 
 
 /* -------------------------------------------------------------------------- */
 
-#define PROG_VERSION "1.46"
+#define PROG_VERSION "1.47"
 #define ABOUT_TEXT "TicTacToe for Windows by A. Calderone (c) - 2015"
 #define ABOUT_INFO "WinTTT " PROG_VERSION
 #define PROG_WINXRES 664
@@ -65,7 +67,7 @@
 #define BOARDOFF_Y 124
 #define BOARDCELLSIZE 70
 #define YBMPOFF 50
-#define TRAINING_TICK 10
+#define TRAINING_TICK 1000
 #define TRAINING_EPERT 100
 
 #define FILE_FILTER "nuNN (.net)\0*.net;\0All Files (*.*)\0*.*\0\0";
@@ -130,14 +132,21 @@ static HINSTANCE hInst;								// current instance
 static TCHAR szTitle[MAX_LOADSTRING];			// The title bar text
 static TCHAR szWindowClass[MAX_LOADSTRING];	// the main window class name
 static HFONT g_hfFont = nullptr;
+
 static std::unique_ptr<nu::mlp_neural_net_t> g_neural_net;
 static samples_t g_training_samples;
+
 static double g_last_mse = 1.0;
 static std::string g_current_file_name;
 static std::string g_net_desc;
 static nu::mlp_neural_net_t::topology_t g_topology({ 10, 30, 9 });
 static double g_learing_rate = 0.30;
 static double g_momentum = 0.50;
+
+static std::mutex g_tsync_mtx;
+static std::unique_ptr<nu::mlp_neural_net_t> g_neural_net_copy;
+static samples_t g_training_samples_copy;
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -173,6 +182,22 @@ BOOL	InitInstance(HINSTANCE, int);
 
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
+
+
+/* -------------------------------------------------------------------------- */
+
+static void realignNNCopy()
+{
+   g_tsync_mtx.lock();
+
+   if ( g_neural_net )
+      g_neural_net_copy =
+      std::move(
+      std::unique_ptr<nu::mlp_neural_net_t>(
+      new nu::mlp_neural_net_t(*g_neural_net)));
+
+   g_tsync_mtx.unlock();
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -261,7 +286,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 /* -------------------------------------------------------------------------- */
 
-void UpdateStatusBar()
+void UpdateStatusBar(HWND hWnd)
 {
    const double learning_rate = g_neural_net->get_learning_rate();
    const double momentum = g_neural_net->get_momentum();
@@ -290,6 +315,10 @@ void UpdateStatusBar()
       "   HL(" + std::to_string(topology.size() - 2) + ") :" + hl +
       "   SC: " + std::to_string(tsc) +
       "   TL: " + std::to_string(100.00-mse*100.00);
+
+   RECT r = { 0, PROG_WINYRES - 100, PROG_WINXRES, PROG_WINYRES };
+   InvalidateRect(hWnd, &r, TRUE);
+   UpdateWindow(hWnd);
 }
 
 
@@ -355,12 +384,10 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
    if ( !g_neural_net )
       return false;
 
-   UpdateStatusBar();
-   SetWindowText(hWnd, g_current_file_name.c_str());
+   realignNNCopy();
 
-   RECT r = { 0, PROG_WINYRES-100, PROG_WINXRES, PROG_WINYRES };
-   InvalidateRect(hWnd, &r, TRUE);
-   UpdateWindow(hWnd);
+   SetWindowText(hWnd, g_current_file_name.c_str());
+   UpdateStatusBar(hWnd);
 
    return true;
 }
@@ -370,45 +397,88 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
 void Training(HWND hWnd, HWND hwndPB)
 {
-   auto & samples = g_training_samples;
-   static auto old_samples_num = samples.size();
-
-   if ( !g_neural_net || samples.empty() )
+   if ( !g_neural_net || g_training_samples.empty() )
       return;
 
-   if ( old_samples_num == samples.size() && g_last_mse < 0.001 )
-      return;
+   static bool toggle = false;
 
    KillTimer(hWnd, 0);
-
-   double err = 0;
-   nu::vector_t<double> outputs;
-   
-   for ( int i = 0; i < TRAINING_EPERT; ++i )
-   {
-      for ( const auto & sample : samples )
-      {
-         if ( g_neural_net )
-         {
-            g_neural_net->set_inputs(sample.inputs);
-            g_neural_net->back_propagate(sample.outputs);
-            g_neural_net->get_outputs(outputs);
-         }
-
-         err +=
-            nu::mlp_neural_net_t::mean_squared_error(outputs, sample.outputs);
-      }
-
-      err /= samples.size();
-   }
-   g_last_mse = err;
 
    if ( hwndPB )
       SendMessage(hwndPB, PBM_SETPOS, ( WPARAM ) ( ( 1.0 - g_last_mse )*100.0 ), 0);
 
-   old_samples_num = samples.size();
+   g_tsync_mtx.lock();
+   
+   toggle = !toggle;
+
+   if ( toggle )
+   {
+      if ( g_training_samples_copy.size() != g_training_samples.size() )
+      {
+         g_training_samples_copy = g_training_samples;
+
+         g_neural_net_copy =
+            std::unique_ptr<nu::mlp_neural_net_t>(new nu::mlp_neural_net_t(*g_neural_net));
+      }
+   }
+   else
+   {
+      if ( g_neural_net_copy )
+         g_neural_net =
+            std::unique_ptr<nu::mlp_neural_net_t>(new nu::mlp_neural_net_t(*g_neural_net_copy));
+   }
+
+   g_tsync_mtx.unlock();
+   
+   UpdateStatusBar(hWnd);
 
    SetTimer(hWnd, 0, TRAINING_TICK, 0);
+}
+
+
+
+/* -------------------------------------------------------------------------- */
+
+void TrainingThread()
+{
+   while ( 1 )
+   {
+      g_tsync_mtx.lock();
+
+      auto & samples = g_training_samples_copy;
+
+      if ( samples.size() < 1 || g_neural_net_copy == nullptr )
+      {
+         g_tsync_mtx.unlock();
+         Sleep(1000);
+         continue;
+      }
+
+      double err = 0;
+      nu::vector_t<double> outputs;
+   
+      for ( int i = 0; i < TRAINING_EPERT; ++i )
+      {
+         for ( const auto & sample : samples )
+         {
+            if ( g_neural_net_copy )
+            {
+               g_neural_net_copy->set_inputs(sample.inputs);
+               g_neural_net_copy->back_propagate(sample.outputs);
+               g_neural_net_copy->get_outputs(outputs);
+            }
+
+            err +=
+               nu::mlp_neural_net_t::mean_squared_error(outputs, sample.outputs);
+         }
+
+         err /= samples.size();
+      }
+
+      g_last_mse = err;
+
+      g_tsync_mtx.unlock();
+   }
 }
 
 
@@ -1319,9 +1389,8 @@ static void ComputerPlay(
          g_training_samples.insert({ inputs, target });
       }
 
-      UpdateStatusBar();
-      InvalidateRect(hWnd, NULL, TRUE);
-      UpdateWindow(hWnd);
+      UpdateStatusBar(hWnd);
+      
    }
 }
 
@@ -1355,13 +1424,14 @@ static bool GetGridPos(HWND hWnd, std::pair<int, int>& gpt)
 
 /* -------------------------------------------------------------------------- */
 
-static void NewNN()
+static void NewNN(HWND hWnd)
 {
    g_neural_net = 
       std::unique_ptr<nu::mlp_neural_net_t>(
       new nu::mlp_neural_net_t(g_topology, g_learing_rate, g_momentum));
 
-   UpdateStatusBar();
+   realignNNCopy();
+   UpdateStatusBar(hWnd);
 }
 
 
@@ -1380,9 +1450,7 @@ void RotateCW(HWND hWnd, bool acw, grid_t & grid)
 static void SetNewTopology(HWND hWnd, const nu::mlp_neural_net_t::topology_t & t)
 {
    g_topology = t;
-   NewNN();
-   InvalidateRect(hWnd, NULL, TRUE);
-   UpdateWindow(hWnd);
+   NewNN(hWnd);
 }
 
 
@@ -1409,7 +1477,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
          break;
 
       case WM_CREATE:
-         NewNN();
          InitCommonControls();
          DoSelectFont(hWnd);
 
@@ -1449,12 +1516,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             0,
             YBMPOFF + cyVScroll / 2,
             PROG_WINXRES,
-            cyVScroll/2,
+            cyVScroll,
             hWnd, ( HMENU ) 0, hInst, NULL);
 
+         NewNN(hWnd);
+         
          SendMessage(hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
          SetTimer(hWnd, 0, 1000, 0);
-
+         {
+            std::thread trainer(TrainingThread);
+            trainer.detach();
+         }
          break;
 
       case WM_COMMAND:
@@ -1473,9 +1545,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                   g_learing_rate = g_neural_net->get_learning_rate();
                }
 
-               UpdateStatusBar();
-               InvalidateRect(hWnd, NULL, TRUE);
-               UpdateWindow(hWnd);
+               UpdateStatusBar(hWnd);
                break;
 
             case IDM_M_0:
@@ -1489,10 +1559,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                      ( wmId == IDM_M_40 ? 0.40 : 0.50 ) ));
                   g_momentum = g_neural_net->get_momentum();
                }
-               UpdateStatusBar();
-               InvalidateRect(hWnd, NULL, TRUE);
-               UpdateWindow(hWnd);
-
+               UpdateStatusBar(hWnd);
                break;
 
             case IDM_HL_30:
@@ -1520,9 +1587,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                break;
 
             case IDM_NEW:
-               NewNN();
-               InvalidateRect(hWnd, NULL, TRUE);
-               UpdateWindow(hWnd);
+               NewNN(hWnd);
                break;
 
             case IDM_ROTATE_CW:

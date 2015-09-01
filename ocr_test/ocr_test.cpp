@@ -37,7 +37,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define PROG_VERSION "1.46"
+#define PROG_VERSION "1.47"
 #define ABOUT_TEXT "Nunn Library and OCR Test by A. Calderone (c) - 2015"
 #define ABOUT_INFO "OCR Test Version " PROG_VERSION
 #define PROG_WINXRES 800
@@ -58,6 +58,11 @@
 
 #define FILE_FILTER "nuNN (.net)\0*.net;\0All Files (*.*)\0*.*\0\0";
 
+
+
+//Loading a new NN we check for the following values
+#define NN_INPUTS  784
+#define NN_OUTPUTS 10
 
 
 /* -------------------------------------------------------------------------- */
@@ -272,8 +277,25 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
       current_file_name = open_file_name.data();
 
+      auto nn = std::unique_ptr< nu::mlp_neural_net_t >();
+
       try {
-         neural_net = std::make_unique< nu::mlp_neural_net_t >(ss);
+         nn = std::move(std::unique_ptr< nu::mlp_neural_net_t >( 
+            new nu::mlp_neural_net_t(ss) ));
+
+         if (! nn || 
+            nn->get_inputs_count() != NN_INPUTS ||
+            nn->get_outputs_count() != NN_OUTPUTS )
+         {
+            MessageBox(
+               hWnd,
+               "Invalid network topology detected. "
+               "It might be an invalid net status file for this application",
+               open_file_name.data(),
+               MB_ICONERROR);
+
+            return false;
+         }
       }
       catch ( ... )
       {
@@ -285,6 +307,8 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
          return false;
       }
+
+      neural_net = std::move(nn);
    }
 
    if (! neural_net )
