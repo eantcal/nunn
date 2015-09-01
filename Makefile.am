@@ -8,6 +8,7 @@ EXTRA_DIST= \
    nunn/*.vcxproj* \
    mnist/*.vcxproj* \
    mnist_test/*.vcxproj* \
+   mnist_test/*ubyte \
    *.net \
    tictactoe/*.vcxproj* \
    tictactoe/*.net \
