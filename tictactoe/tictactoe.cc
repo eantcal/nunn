@@ -1025,7 +1025,9 @@ static void usage(const char* appname)
       << "\t[--save|-s <net_description_file_name>] " << std::endl
       << "\t[--load|-l <net_description_file_name>] " << std::endl
       << "\t[--skip_training|-n] " << std::endl
+      << "\t[--use_cross_entropy|-c] " << std::endl
       << "\t[--learning_rate|-r <rate>] " << std::endl
+      << "\t[--momentum|-m <value>] " << std::endl
       << "\t[--epoch_cnt|-e <count>] " << std::endl
       << "\t[--stop_on_err_tr|-x <error rate>] " << std::endl
       << "\t[[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]  "
@@ -1042,6 +1044,8 @@ static void usage(const char* appname)
       << "\tload net data from file" << std::endl
       << "--skip_training or -n" << std::endl
       << "\tskip net training" << std::endl
+      << "--use_cross_entropy or -c" << std::endl
+      << "\tuse the cross entropy cost function instead of MSE" << std::endl
       << "--learning_rate or -r" << std::endl
       << "\tset learning rate (default " << LEARNING_RATE << ")" << std::endl
       << "--momentum or -m" << std::endl
@@ -1070,8 +1074,9 @@ static bool process_cl(
    double & momentum,
    bool & change_m,
    int & epoch,
-   double& threshold,
-   std::vector<size_t>& hidden_layer
+   double & threshold,
+   std::vector<size_t>& hidden_layer,
+   bool & use_cross_entropy
    )
 {
    int pidx = 1;
@@ -1114,6 +1119,12 @@ static bool process_cl(
          ( arg == "--skip_training" || arg == "-n" ) )
       {
          skip_training = true;
+         continue;
+      }
+
+      if ( ( arg == "--use_cross_entropy" || arg == "-c" ) )
+      {
+         use_cross_entropy = true;
          continue;
       }
 
@@ -1250,6 +1261,7 @@ int main(int argc, char* argv[])
 
    bool change_lr = false;
    bool change_m = false;
+   bool use_cross_entropy = false;
 
    double threshold = TRAINING_ERR_THRESHOLD;
 
@@ -1267,7 +1279,8 @@ int main(int argc, char* argv[])
          change_m,
          epoch_cnt,
          threshold,
-         hidden_layer) )
+         hidden_layer,
+         use_cross_entropy) )
       {
          usage(argv[0]);
          return 1;
@@ -1402,6 +1415,7 @@ int main(int argc, char* argv[])
 
          cnt = 0;
          double err = 0.0;
+         double cross_err = 0.0;
 
          for ( const auto & sample : samples )
          {
@@ -1409,19 +1423,29 @@ int main(int argc, char* argv[])
             nu::vector_t<double> outputs;
 
             net->set_inputs(sample.inputs);
-            net->back_propagate(target);
-            net->get_outputs(outputs);
+
+            net->back_propagate(
+               target, 
+               outputs,
+               use_cross_entropy ? 
+                  nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY : 
+                  nu::mlp_neural_net_t::err_cost_t::MSE);
 
             err += nu::mlp_neural_net_t::mean_squared_error(outputs, target);
+            cross_err += nu::mlp_neural_net_t::cross_entropy(outputs, target);
          }
 
          double mean_err = err / samples.size();
+         double mean_entropy = cross_err / samples.size();
 
-         std::cout << "MSE=" << mean_err << std::endl;
+         std::cout << "MSE=" << mean_err 
+                   << "  Entropy=" << mean_entropy << std::endl;
 
-         if ( mean_err < min_err )
+         double err_tr = use_cross_entropy ? mean_entropy : mean_err;
+
+         if ( err_tr < min_err )
          {
-            min_err = mean_err;
+            min_err = err_tr;
             std::cout << "New min err " << min_err << std::endl;
 
             if ( !save_file_name.empty() )

@@ -215,7 +215,7 @@ static bool process_cl(
          continue;
       }
 
-      if ( ( arg == "--cross_entropy" || arg == "-c" ))
+      if ( ( arg == "--use_cross_entropy" || arg == "-c" ))
       {
          use_cross_entropy = true;
          continue;
@@ -301,7 +301,7 @@ static void usage(const char* appname)
       << "\t[--save|-s <net_description_file_name>] " << std::endl
       << "\t[--load|-l <net_description_file_name>] " << std::endl
       << "\t[--skip_training|-n] " << std::endl
-      << "\t[--cross_entropy|-c] " << std::endl
+      << "\t[--use_cross_entropy|-c] " << std::endl
       << "\t[--learning_rate|-r <rate>] " << std::endl
       << "\t[--momentum|-m <value>] " << std::endl
       << "\t[--epoch_cnt|-e <count>] " << std::endl
@@ -328,7 +328,7 @@ static void usage(const char* appname)
       << "\tload net data from file" << std::endl
       << "--skip_training or -n" << std::endl
       << "\tskip net training" << std::endl
-      << "--cross_entropy or -c" << std::endl
+      << "--use_cross_entropy or -c" << std::endl
       << "\tuse the cross entropy cost function instead of MSE" << std::endl
       << "--learning_rate or -r" << std::endl
       << "\tset learning rate (default 0.10)" << std::endl

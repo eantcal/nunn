@@ -140,7 +140,7 @@ static double g_last_mse = 1.0;
 static std::string g_current_file_name;
 static std::string g_net_desc;
 static nu::mlp_neural_net_t::topology_t g_topology({ 10, 30, 9 });
-static double g_learing_rate = 0.30;
+static double g_learing_rate = 0.030;
 static double g_momentum = 0.50;
 
 static std::mutex g_tsync_mtx;
@@ -464,12 +464,14 @@ void TrainingThread()
             if ( g_neural_net_copy )
             {
                g_neural_net_copy->set_inputs(sample.inputs);
-               g_neural_net_copy->back_propagate(sample.outputs);
+               g_neural_net_copy->back_propagate(
+                  sample.outputs, 
+                  nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY);
                g_neural_net_copy->get_outputs(outputs);
             }
 
             err +=
-               nu::mlp_neural_net_t::mean_squared_error(outputs, sample.outputs);
+               nu::mlp_neural_net_t::cross_entropy(outputs, sample.outputs);
          }
 
          err /= samples.size();
@@ -1541,7 +1543,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                if ( g_neural_net )
                {
                   g_neural_net->set_learning_rate(
-                     wmId == IDM_LR_30 ? 0.30 : ( wmId == IDM_LR_35 ? 0.35 : 0.40 ));
+                     wmId == IDM_LR_30 ? 0.030 : ( wmId == IDM_LR_35 ? 0.035 : 0.040 ));
                   g_learing_rate = g_neural_net->get_learning_rate();
                }
 
