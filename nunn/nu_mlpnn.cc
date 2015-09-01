@@ -123,36 +123,67 @@ void mlp_neural_net_t::feed_forward()
 
 /* -------------------------------------------------------------------------- */
 
-void mlp_neural_net_t::back_propagate(const rvector_t & target)
+void mlp_neural_net_t::back_propagate(
+   const rvector_t & target, 
+   rvector_t & outputs_v,
+   err_cost_t ec)
 {
-   // Calculate the outputs
+   // Calculate and get the outputs
    feed_forward();
 
-
-   // -------- Calculate error for output neurons --------------------------
-
-   rvector_t outputs_v;
    get_outputs(outputs_v);
+
+   // Apply back_propagate algo
+   _back_propagate(target, outputs_v, ec);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void mlp_neural_net_t::_back_propagate(
+   const rvector_t & target, 
+   rvector_t & outputs_v,
+   err_cost_t ec)
+{
+   // -------- Calculate error for output neurons --------------------------
 
    if ( target.size() != outputs_v.size() )
       throw exception_t::size_mismatch;
 
-   // res = (1 - out) * out 
-   rvector_t res_v(outputs_v.size(), 1.0);
-   res_v -= outputs_v;
-   res_v *= outputs_v;
+   
 
-   // diff = target - out
-   rvector_t diff_v(target);
-   diff_v -= outputs_v;
+   if ( ec != err_cost_t::CROSSENTROPY )
+   {
+      // res = (1 - out) * out 
+      rvector_t res_v(outputs_v.size(), 1.0);
+      res_v -= outputs_v;
+      res_v *= outputs_v;
 
-   // Error vector = (1 - out) * out * (target - out)
-   res_v *= diff_v;
+      // diff = target - out
+      rvector_t diff_v(target);
+      diff_v -= outputs_v;
 
-   // Copy error values into the output neurons
-   size_t i = 0;
-   for ( auto & neuron : *_neuron_layers.rbegin() )
-      neuron.error = res_v[i++];
+      // Error vector = (1 - out) * out * (target - out)
+      res_v *= diff_v;
+
+      // Copy error values into the output neurons
+      size_t i = 0;
+      for ( auto & neuron : *_neuron_layers.rbegin() )
+         neuron.error = res_v[i++];
+   }
+   else
+   {
+      // Error vector = target - out
+      rvector_t diff_v(target);
+      diff_v -= outputs_v;
+
+      // Copy error values into the output neurons
+      size_t i = 0;
+      for ( auto & neuron : *_neuron_layers.rbegin() )
+         neuron.error = diff_v[i++];
+   }
+
+   
 
 
    // -------- Change output layer weights ---------------------------------
@@ -362,6 +393,13 @@ std::stringstream& mlp_neural_net_t::save(std::stringstream& ss)
 
 void mlp_neural_net_t::reshuffle_weights() throw( )
 {
+   double weights_cnt = 0.0;
+   for ( auto & nl : _neuron_layers )
+      for ( auto & neuron : nl )
+         weights_cnt += double(neuron.weights.size());
+
+   weights_cnt = std::sqrt(weights_cnt);
+
    // Initialize all the network weights 
    // using random numbers within the range [-1,1]
    for ( auto & nl : _neuron_layers )
@@ -369,12 +407,15 @@ void mlp_neural_net_t::reshuffle_weights() throw( )
       for ( auto & neuron : nl )
       {
          for ( auto & w : neuron.weights )
-            w = -1.0 + double(2 * rand()) / double(RAND_MAX);
+         {
+            auto random_n = -1.0 + 2 * double(rand()) / double(RAND_MAX);
+            w = random_n / weights_cnt;
+         }
 
          for ( auto & dw : neuron.delta_weights )
             dw = 0;
 
-         neuron.bias = -1.0 + double(2 * rand()) / double(RAND_MAX);
+         neuron.bias = double(rand()) / double(RAND_MAX);
       }
    }
 }
@@ -427,6 +468,40 @@ std::ostream& mlp_neural_net_t::dump(std::ostream& os)
    }
 
    return os;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+double mlp_neural_net_t::cross_entropy(rvector_t output, const rvector_t& target)
+{
+   auto log_output = output;
+
+   for ( auto & i : log_output )
+      if ( i == 0.0 )
+         i = 0.000001;
+
+   log_output.log();
+
+   rvector_t inv_target(target.size(), 1.0);
+   inv_target -= target;
+
+   rvector_t log_inv_output(output.size(), 1.0);
+   log_inv_output -= output;
+
+   for ( auto & i : log_inv_output )
+      if ( i == 0.0 )
+         i = 0.000001;
+
+   log_inv_output.log();
+
+   auto res = target;
+   res *= log_output;
+
+   inv_target *= log_inv_output;
+   res += inv_target;
+
+   return -res.sum() / double(res.size());
 }
 
 

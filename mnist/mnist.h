@@ -37,7 +37,7 @@
 #include <cassert>
 #include <algorithm>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <Windows.h>
 #endif
 
@@ -140,7 +140,7 @@ public:
    void label_to_target(nu::vector_t < double > & v) const throw( );
 
 
-#ifdef WIN32
+#ifdef _WIN32
    //! Draw the digit image on the window
    void paint(int xoff, int yoff, HWND hwnd = nullptr) const throw( );
 #endif

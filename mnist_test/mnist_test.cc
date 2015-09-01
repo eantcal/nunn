@@ -59,17 +59,17 @@ The corresponding desired output is a 10-dimensional vector.
 #include <cstdint>
 #include <memory>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <Windows.h>
 #endif
 
 
 /* -------------------------------------------------------------------------- */
 
-const size_t HIDDEN_LAYER_SIZE = 135; // neurons
+const size_t HIDDEN_LAYER_SIZE = 125; // neurons
 const size_t OUTPUT_LAYER_SIZE = 10;  // neurons
-const double NET_LEARING_RATE = 0.40;
-const double NET_MOMENTUM = 0.10;
+const double NET_LEARING_RATE = 0.025;
+const double NET_MOMENTUM = 0.50;
 
 std::string TRAINING_LABELS_FN = "train-labels.idx1-ubyte";
 std::string TRAINING_IMAGES_FN = "train-images.idx3-ubyte";
@@ -93,7 +93,8 @@ static bool process_cl(
    double & momentum,
    bool & change_m,
    int & epoch,
-   std::vector<size_t>& hidden_layer
+   std::vector<size_t>& hidden_layer,
+   bool & use_cross_entropy
    )
 {
    int pidx = 1;
@@ -214,6 +215,11 @@ static bool process_cl(
          continue;
       }
 
+      if ( ( arg == "--cross_entropy" || arg == "-c" ))
+      {
+         use_cross_entropy = true;
+         continue;
+      }
 
       if ( ( arg == "--epoch_num" || arg == "-e" ) &&
          ( pidx + 1 ) < argc )
@@ -252,7 +258,7 @@ static bool process_cl(
 
 static int get_y_pos()
 {
-#ifdef WIN32
+#ifdef _WIN32
    CONSOLE_SCREEN_BUFFER_INFO info = {0};
    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
 
@@ -269,7 +275,7 @@ static void locate(int x, int y = 0)
    if ( y == 0 )
       y = get_y_pos();
 
-#ifdef WIN32
+#ifdef _WIN32
    COORD c = { short(( x - 1 ) & 0xffff), short(( y - 1 ) & 0xffff) };
    ::SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
 #else
@@ -295,7 +301,9 @@ static void usage(const char* appname)
       << "\t[--save|-s <net_description_file_name>] " << std::endl
       << "\t[--load|-l <net_description_file_name>] " << std::endl
       << "\t[--skip_training|-n] " << std::endl
+      << "\t[--cross_entropy|-c] " << std::endl
       << "\t[--learning_rate|-r <rate>] " << std::endl
+      << "\t[--momentum|-m <value>] " << std::endl
       << "\t[--epoch_cnt|-e <count>] " << std::endl
       << "\t[[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]  " << std::endl
       << std::endl
@@ -320,9 +328,13 @@ static void usage(const char* appname)
       << "\tload net data from file" << std::endl
       << "--skip_training or -n" << std::endl
       << "\tskip net training" << std::endl
+      << "--cross_entropy or -c" << std::endl
+      << "\tuse the cross entropy cost function instead of MSE" << std::endl
       << "--learning_rate or -r" << std::endl
       << "\tset learning rate (default 0.10)" << std::endl
       << "--epoch_cnt or -e" << std::endl
+      << "--momentum or -m" << std::endl
+      << "\tset momentum (default " << NET_MOMENTUM << ")" << std::endl
       << "\tset epoch count (default 10)" << std::endl
       << "--hidden_layer or -hl" << std::endl
       << "\tset hidden layer size (n. of neurons, default 100)" << std::endl;
@@ -334,12 +346,14 @@ static void usage(const char* appname)
 static double test_net(
    std::unique_ptr<nu::mlp_neural_net_t> & net,
    const training_data_t::data_t & test_data,
-   double & mean_square_error)
+   double & mean_square_error,
+   double & entropy_cost)
 {
    size_t cnt = 0;
    size_t err_cnt = 0;
 
    mean_square_error = 0.0;
+   entropy_cost = 0.0;
 
    for ( auto i = test_data.begin(); i != test_data.end(); ++i )
    {
@@ -358,21 +372,26 @@ static double test_net(
       mean_square_error += 
          nu::mlp_neural_net_t::mean_squared_error(outputs, target);
 
+      entropy_cost +=
+         nu::mlp_neural_net_t::cross_entropy(outputs, target);
+
       if ( ( *i )->get_label() != outputs.max_item_index() )
          ++err_cnt;
 
       ++cnt;
 
-#ifdef WIN32
+#ifdef _WIN32
       if ( ( cnt % 100 ) == 0 )
          ( *i )->paint(0, 0);
 #endif
+
    }
 
    mean_square_error /= cnt;
+   entropy_cost /= cnt;
 
    double err_rate = double(err_cnt) / double(cnt);
-
+   
    return err_rate;
 }
 
@@ -419,6 +438,7 @@ int main(int argc, char* argv[])
    double learning_rate = NET_LEARING_RATE;
    double momentum = NET_MOMENTUM;
    int epoch_cnt = TRAINING_EPOCH_NUMBER;
+   bool use_ce = false;
 
    std::vector<size_t> hidden_layer;
 
@@ -438,7 +458,8 @@ int main(int argc, char* argv[])
          momentum,
          change_m,
          epoch_cnt,
-         hidden_layer) )
+         hidden_layer,
+         use_ce) )
       {
          usage(argv[0]);
          return 1;
@@ -449,7 +470,7 @@ int main(int argc, char* argv[])
    if ( hidden_layer.empty() )
       hidden_layer.push_back(HIDDEN_LAYER_SIZE);
 
-#ifdef WIN32
+#ifdef _WIN32
    ::system("cls");
 #else
    int dummy = ::system("clear");
@@ -529,7 +550,7 @@ int main(int argc, char* argv[])
          topology.push_back(OUTPUT_LAYER_SIZE);
 
          net = std::unique_ptr<nu::mlp_neural_net_t> (
-            new nu::mlp_neural_net_t(topology, learning_rate));
+            new nu::mlp_neural_net_t(topology, learning_rate, momentum));
       }
 
       if ( !load_file_name.empty() )
@@ -547,7 +568,7 @@ int main(int argc, char* argv[])
 
          net = std::unique_ptr<nu::mlp_neural_net_t>(new nu::mlp_neural_net_t(ss));
       }
-
+      
       if ( net == nullptr )
       {
          std::cerr 
@@ -577,8 +598,9 @@ int main(int argc, char* argv[])
          for ( int epoch = 0; epoch < max_epoch_number; ++epoch )
          {
             locate(1);
-
+         
             double mean_squared_error = 0.0;
+            double cross_entropy = 0.0;
             
             std::cout
                << "Learning epoch " << epoch + 1
@@ -602,7 +624,12 @@ int main(int argc, char* argv[])
                ( *i )->label_to_target(target);
 
                net->set_inputs(inputs);
-               net->back_propagate(target);
+               net->back_propagate(
+                  target, 
+                  use_ce ? 
+                     nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY :
+                     nu::mlp_neural_net_t::err_cost_t::MSE
+                     );
 
                ++cnt;
 
@@ -614,20 +641,24 @@ int main(int argc, char* argv[])
                      << "Completed " << ( double(cnt) / data.size() )*100.0
                      << "%   " << std::endl;
 
-#ifdef WIN32
+#ifdef _WIN32
                   if ( cnt % 600 )
                      ( *i )->paint(0, 0);
 #endif
                }
             }
 
-            auto err_rate = test_net(net, test_data, mean_squared_error);
+            auto err_rate = 
+               test_net(net, test_data, mean_squared_error, cross_entropy);
 
             std::cout << "Error rate   : " 
                << err_rate * 100.0 << "%     " << std::endl;
 
             std::cout << "MS Error rate: "
                << mean_squared_error * 100.0 << "%     " << std::endl;
+
+            std::cout << "Cross entropy: "
+               << cross_entropy * 100.0 << "%     " << std::endl;
 
             std::cout << "Success rate : " 
                << ( 1.0 - err_rate ) * 100.0 << "%    " << std::endl;

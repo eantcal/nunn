@@ -65,6 +65,14 @@ public:
 
    vector_t& operator=(const vector_t&) = default;
 
+   vector_t& operator=( const T& value )
+   {
+      if ( !_v.empty() )
+         std::fill(_v.begin(), _v.end(), value);
+
+      return *this;
+   }
+
    vector_t(const std::initializer_list<T> l) throw() :
       _v(l) {}
 
@@ -188,6 +196,34 @@ public:
          i = ::abs(i);
 
       return *this;
+   }
+
+
+   const vector_t& log() throw( )
+   {
+      for ( auto & i : _v )
+         i = std::log(i);
+
+      return *this;
+   }
+
+
+   const vector_t& negate() throw( )
+   {
+      for ( auto & i : _v )
+         i = -i;
+
+      return *this;
+   }
+
+
+   T sum() const throw( )
+   {
+      T res = T(0);
+      for ( auto & i : _v )
+         res += i;
+
+      return res;
    }
 
 

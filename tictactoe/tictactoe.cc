@@ -52,8 +52,8 @@
 #define TICTACTOE_CELLS (TICTACTOE_SIDE*TICTACTOE_SIDE)
 
 #define HIDDEN_LAYER_SIZE     60
-#define LEARNING_RATE 0.30
-#define MOMENTUM 0.50
+#define LEARNING_RATE         0.30
+#define MOMENTUM              0.50
 #define TRAINING_EPOCH_NUMBER 100000
 #define TRAINING_ERR_THRESHOLD 0.01
 
@@ -412,7 +412,7 @@ public:
 
 private:
    std::set<grid_t> _pos_coll;
-   
+
    static grid_t::symbol_t _get_turn_symb(
       const grid_t & grid, grid_t::symbol_t default_symb)
    {
@@ -459,16 +459,16 @@ private:
             }
          }
 
-         if ( symcnt == 1 && osymcnt == 2 && new_grid.at(1,1) == symbol )
+         if ( symcnt == 1 && osymcnt == 2 && new_grid.at(1, 1) == symbol )
          {
-            if (( new_grid.at(0, 0) == other_symbol && 
-                  new_grid.at(2, 2) == other_symbol ) ||
+            if ( ( new_grid.at(0, 0) == other_symbol &&
+               new_grid.at(2, 2) == other_symbol ) ||
 
-               ( new_grid.at(0, 2) == other_symbol && 
-                 new_grid.at(2, 0) == other_symbol ))
+               ( new_grid.at(0, 2) == other_symbol &&
+               new_grid.at(2, 0) == other_symbol ) )
 
             {
-               new_grid.at(1,0) = symbol;
+               new_grid.at(1, 0) = symbol;
                return;
             }
 
@@ -538,7 +538,7 @@ private:
 
       // Check for vertical lines (if we can close and win)
       for ( int x = 0; x < TICTACTOE_SIDE; ++x )
-   {
+      {
          int symcnt = 0;
          int osymcnt = 0;
          int empty_pos = 0;
@@ -565,7 +565,7 @@ private:
       int osymcnt = 0;
       int empty_pos = 0;
       int d = 0;
-
+            
       for ( ; d < TICTACTOE_SIDE; ++d )
       {
          if ( new_grid.at(d, d) == symbol )
@@ -594,7 +594,7 @@ private:
          else if ( new_grid.at(2 - d, d) == other_symbol )
             ++osymcnt;
          else empty_pos = d;
-   }
+      }
 
       if ( symcnt == 2 && osymcnt == 0 )
       {
@@ -605,7 +605,7 @@ private:
 
       // Check for horizontal lines (defend)
       for ( int y = 0; y < TICTACTOE_SIDE; ++y )
-   {
+      {
          symcnt = 0;
          osymcnt = 0;
          empty_pos = 0;
@@ -617,33 +617,33 @@ private:
             else if ( new_grid.at(x, y) == other_symbol )
                ++osymcnt;
             else empty_pos = x;
-   }
+         }
 
          if ( osymcnt == 2 && symcnt == 0 )
-   {
+         {
             new_grid.at(empty_pos, y) = symbol;
             return;
          }
-   }
+      }
 
       // Check for vertical lines (defend)
       for ( int x = 0; x < TICTACTOE_SIDE; ++x )
-   {
+      {
          int symcnt = 0;
          int osymcnt = 0;
          int empty_pos = 0;
 
          for ( int y = 0; y < TICTACTOE_SIDE; ++y )
-      {
+         {
             if ( new_grid.at(x, y) == symbol )
                ++symcnt;
             else if ( new_grid.at(x, y) == other_symbol )
                ++osymcnt;
             else empty_pos = y;
-      }
+         }
 
          if ( osymcnt == 2 && symcnt == 0 )
-      {
+         {
             new_grid.at(x, empty_pos) = symbol;
             return;
          }
@@ -662,13 +662,13 @@ private:
          else if ( new_grid.at(d, d) == other_symbol )
             ++osymcnt;
          else empty_pos = d;
-   }
+      }
 
       if ( osymcnt == 2 && symcnt == 0 )
-   {
+      {
          new_grid.at(empty_pos, empty_pos) = symbol;
          return;
-   }
+      }
 
       // Check for diagonal 2,0->2,0 (defend)
       symcnt = 0;
@@ -707,7 +707,7 @@ private:
       }
 
       if ( new_grid.at(2) == grid_t::EMPTY )
-{
+      {
          new_grid.at(2) = symbol;
          return;
       }
@@ -729,7 +729,7 @@ private:
       while ( 1 )
       {
          if ( new_grid.at(move) == grid_t::EMPTY )
-   {
+         {
             new_grid.at(move) = symbol;
             return;
          }
@@ -749,22 +749,22 @@ private:
             ++o_cnt;
          else  if ( grid[i] == grid_t::X )
             ++x_cnt;
-         }
+      }
 
       return std::abs(x_cnt - o_cnt)>1 || ( ( o_cnt + x_cnt ) > 8 );
    }
 
 
    void _build_pos_coll()
-         {
+   {
       grid_t grid;
 
       for ( int i = 0; i < 0x3FFFF; ++i )
-         {
+      {
          int k = i;
 
          for ( int j = 0; j < TICTACTOE_CELLS; ++j )
-            {
+         {
             switch ( k & 3 )
             {
                case 0:
@@ -784,8 +784,8 @@ private:
 
          if ( !_is_invalid(grid) )
             _pos_coll.insert(grid);
-         }
       }
+   }
 
 
    void _create_sample(
@@ -810,7 +810,7 @@ public:
 
       size_t n = 0;
       for ( auto & item : _pos_coll )
-   {
+      {
 
          int o_cnt = 0;
          int x_cnt = 0;
@@ -859,7 +859,7 @@ private:
       switch ( symbol )
       {
          case grid_t::X:
-            std::cout << "X wins !" << std::endl << std::endl << std::endl;            
+            std::cout << "X wins !" << std::endl << std::endl << std::endl;
             break;
          case grid_t::O:
             std::cout << "O wins !" << std::endl << std::endl << std::endl;
@@ -885,7 +885,7 @@ public:
    void play_computer(grid_t::symbol_t symbol)
    {
       nu::vector_t<double> inputs, outputs;
-      nn_io_converter_t::get_inputs(_grid, symbol, inputs);    
+      nn_io_converter_t::get_inputs(_grid, symbol, inputs);
 
       _nn.set_inputs(inputs);
       _nn.feed_forward();
@@ -899,10 +899,10 @@ public:
       for ( auto m : moves )
       {
          auto rate = double(int(m.first * 1000)) / 10.0;
-         if (rate>0.01)
+         if ( rate > 0.01 )
             std::cout
-               << "Neuron " << m.second + 1 << " -> "
-               << rate << "%" << std::endl;
+            << "Neuron " << m.second + 1 << " -> "
+            << rate << "%" << std::endl;
       }
 
       int move = 0;
@@ -915,7 +915,7 @@ public:
          move = it->second;
 
          if ( _grid.at(move) == grid_t::EMPTY )
-      {
+         {
             _grid.at(move) = symbol;
             break;
          }
@@ -951,8 +951,8 @@ public:
 
       if ( _grid.at(move) != grid_t::EMPTY )
       {
-         std::cout 
-            << "Move not allowed, please change your choice." 
+         std::cout
+            << "Move not allowed, please change your choice."
             << std::endl;
 
          return false;
@@ -1028,7 +1028,7 @@ static void usage(const char* appname)
       << "\t[--learning_rate|-r <rate>] " << std::endl
       << "\t[--epoch_cnt|-e <count>] " << std::endl
       << "\t[--stop_on_err_tr|-x <error rate>] " << std::endl
-      << "\t[[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]  " 
+      << "\t[[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]  "
       << std::endl
       << std::endl
       << "Where:" << std::endl
@@ -1049,7 +1049,7 @@ static void usage(const char* appname)
       << "--epoch_cnt or -e" << std::endl
       << "\tset epoch count (default " << TRAINING_EPOCH_NUMBER << ")" << std::endl
       << "--stop_on_err_tr or -x" << std::endl
-      << "\tset error rate threshold (default " << TRAINING_ERR_THRESHOLD << ")" 
+      << "\tset error rate threshold (default " << TRAINING_ERR_THRESHOLD << ")"
       << std::endl
       << "--hidden_layer or -hl" << std::endl
       << "\tset hidden layer size (n. of neurons)" << std::endl;
@@ -1115,7 +1115,7 @@ static bool process_cl(
       {
          skip_training = true;
          continue;
-   }
+      }
 
       if ( ( arg == "--load" || arg == "-l" ) &&
          ( pidx + 1 ) < argc )
@@ -1126,7 +1126,7 @@ static bool process_cl(
 
       if ( ( arg == "--save" || arg == "-s" ) &&
          ( pidx + 1 ) < argc )
-   {
+      {
          save_file_name = argv[++pidx];
          continue;
       }
@@ -1204,7 +1204,7 @@ static bool process_cl(
    }
 
    return true;
-         }
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -1223,10 +1223,10 @@ bool save_the_net(const std::string& filename, std::stringstream & ss)
    {
       std::cerr << "Cannot open '" << filename << "'" << std::endl;
       return false;
-      }
+   }
 
    return true;
-   }
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -1328,14 +1328,14 @@ int main(int argc, char* argv[])
       net->set_momentum(momentum);
 
    size_t hl_cnt = 0;
-   auto top = net->get_topology();   
+   auto top = net->get_topology();
 
    std::string net_desc = "Net:";
 
    for ( const auto hl : top )
    {
       
-      if (hl_cnt>0 && hl_cnt < top.size()-1)
+      if ( hl_cnt > 0 && hl_cnt < top.size() - 1 )
       {
          std::cout << "NN hidden neurons L" << hl_cnt;
          std::cout << "       : " << hl << std::endl;
@@ -1343,18 +1343,18 @@ int main(int argc, char* argv[])
       }
       else
       {
-         if (hl_cnt == 0)
+         if ( hl_cnt == 0 )
          {
-            std::cout 
-               << "Inputs                    " 
+            std::cout
+               << "Inputs                    "
                << " : " << hl << std::endl;
          }
          else
          {
-            std::cout 
-               << "Outputs                   " 
+            std::cout
+               << "Outputs                   "
                << " : " << hl << std::endl;
-      }
+         }
       }
 
       ++hl_cnt;
@@ -1396,7 +1396,7 @@ int main(int argc, char* argv[])
             << ", M = " << net->get_momentum()
             << ", T = " << threshold
             << " )"
-            
+
             << std::endl
             << std::endl;
 

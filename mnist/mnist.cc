@@ -86,7 +86,7 @@ void digit_data_t::label_to_target(nu::vector_t < double > & v) const throw( )
 /* -------------------------------------------------------------------------- */
 
 
-#ifdef WIN32
+#ifdef _WIN32
 void digit_data_t::paint(int xoff, int yoff, HWND hwnd) const throw( )
 {
    size_t dx = get_dx();

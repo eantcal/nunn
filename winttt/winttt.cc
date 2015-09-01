@@ -456,7 +456,7 @@ void TrainingThread()
 
       double err = 0;
       nu::vector_t<double> outputs;
-   
+
       for ( int i = 0; i < TRAINING_EPERT; ++i )
       {
          for ( const auto & sample : samples )
@@ -646,7 +646,7 @@ public:
             at(indx++) = _tmp(i);
       }
    }
-
+   
    size_t size() const throw( )
    {
       return TICTACTOE_SIDE*TICTACTOE_SIDE;
@@ -1312,37 +1312,37 @@ static void NetAnswer(
    grid_t::symbol_t symbol)
 {
    try {
-   nu::vector_t<double> inputs, outputs;
-   nn_io_converter_t::get_inputs(grid, symbol, inputs);
+      nu::vector_t<double> inputs, outputs;
+      nn_io_converter_t::get_inputs(grid, symbol, inputs);
 
-   nn.set_inputs(inputs);
-   nn.feed_forward();
-   nn.get_outputs(outputs);
+      nn.set_inputs(inputs);
+      nn.feed_forward();
+      nn.get_outputs(outputs);
 
-   int i = 0;
-   std::map<double, int> moves;
-   for ( auto output : outputs )
-      moves.insert(std::make_pair(output, i++));
+      int i = 0;
+      std::map<double, int> moves;
+      for ( auto output : outputs )
+         moves.insert(std::make_pair(output, i++));
 
-   int move = 0;
+      int move = 0;
 
-   // Find best matching move (e.g. starting from higher rate move
-   // check if game grid cell is empty, upon empty do the move. 
-   // If cell is not empty, search for next one...)
-   for ( auto it = moves.rbegin(); it != moves.rend(); ++it )
-   {
-      move = it->second;
-
-      if ( grid.at(move) == grid_t::EMPTY )
+      // Find best matching move (e.g. starting from higher rate move
+      // check if game grid cell is empty, upon empty do the move. 
+      // If cell is not empty, search for next one...)
+      for ( auto it = moves.rbegin(); it != moves.rend(); ++it )
       {
-         grid.at(move) = symbol;
-         break;
+         move = it->second;
+
+         if ( grid.at(move) == grid_t::EMPTY )
+         {
+            grid.at(move) = symbol;
+            break;
+         }
       }
    }
-}
    catch ( ... )
    {
-      MessageBox(0, 
+      MessageBox(0,
          "Are you loaded an incompatibile net?", "Error", MB_ICONERROR);
    }
 
@@ -1518,7 +1518,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PROG_WINXRES,
             cyVScroll,
             hWnd, ( HMENU ) 0, hInst, NULL);
-
+         
          NewNN(hWnd);
          
          SendMessage(hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, 100));

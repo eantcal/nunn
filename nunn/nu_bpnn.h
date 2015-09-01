@@ -37,7 +37,7 @@ namespace nu
 {
    // For compatibility with old implementations
    using bp_neural_net_t = mlp_neural_net_t;
-   }
+}
 
 
 #endif // __NU_BPNN_H__

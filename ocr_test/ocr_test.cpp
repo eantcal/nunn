@@ -429,11 +429,11 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 
    for ( int i = 0; i < TRAINING_NET_EPOCHS; ++i )
    {
-   nu::vector_t<double> target(10, 0.0);
-   target[ digit ] = 1.0;
-   
-   neural_net->set_inputs(g_hwdigit);
-   neural_net->back_propagate(target);
+      nu::vector_t<double> target(10, 0.0);
+      target[digit] = 1.0;
+
+      neural_net->set_inputs(g_hwdigit);
+      neural_net->back_propagate(target);
 
       err = neural_net->mean_squared_error(target);
 
@@ -459,7 +459,7 @@ void GetDigitBox(int xo, int yo, HDC hdc, RECT& r)
    r.top = GRIDSIZE + FRAME_SIZE;
    r.right = 0;
    r.bottom = 0;
-
+   
    for ( int x = FRAME_SIZE; x < ( GRIDSIZE - FRAME_SIZE/2); ++x )
    {
       for ( int y = FRAME_SIZE; y < ( GRIDSIZE - FRAME_SIZE/2); ++y )
@@ -517,7 +517,7 @@ int ReadCellValue(HDC hdc, int xo, int yo, int cell_col, int cell_row, const REC
 
    DWORD res = 0;
 
-   if (xoff< FRAME_SIZE || xoff> (GRIDSIZE-FRAME_SIZE) ||
+   if (xoff < FRAME_SIZE || xoff > ( GRIDSIZE - FRAME_SIZE) ||
        yoff < FRAME_SIZE || yoff > ( GRIDSIZE - FRAME_SIZE ))
       return 0;
 
@@ -529,7 +529,7 @@ int ReadCellValue(HDC hdc, int xo, int yo, int cell_col, int cell_row, const REC
          int ycell = y + yo + yoff;
 
          COLORREF c = GetPixel( hdc, xcell, ycell );
-
+         
          switch ( c )
          {
             case RGB(255,255,255):
@@ -575,8 +575,8 @@ void PrintGrayscaleDigit(int xo, int yo, HDC hdc, const nu::vector_t<double>& hw
             for ( auto b = 0; b<zoom; ++b )
                SetPixel(hdc, px + a, py + b, RGB(255 - c, 255 - c, 255 - c));
       }
-      }
    }
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -586,7 +586,7 @@ bool GetDigitInfo(HDC hdc, nu::vector_t<double>& hwdigit, const RECT & r)
    size_t vec_idx = 0;
    double sum = 0.0;
 
-   auto f = [](double x) { return ( x / double(CELLSIZE*CELLSIZE) ); };
+   auto f = [](double x) { return ( x / double(CELLSIZE*CELLSIZE) ); }; 
 
    for ( int y = 0; y < GRIDSIZE / CELLSIZE; ++y )
       for ( int x = 0; x < GRIDSIZE / CELLSIZE; ++x )
@@ -597,7 +597,7 @@ bool GetDigitInfo(HDC hdc, nu::vector_t<double>& hwdigit, const RECT & r)
          sum += value;
 
          if ( vec_idx < ( DIGIT_SIDE_LEN*DIGIT_SIDE_LEN ) )
-         hwdigit[vec_idx++] = value;
+            hwdigit[vec_idx++] = value;
       }
 
    return sum > 0.0;
@@ -656,44 +656,44 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
    {
       int xo1 = xo + 40;
       const int yo1 = yo + 235;
-
+      
       PrintGrayscaleDigit(xo1, yo1, hdc, hwdigit);
 
-   neural_net->set_inputs(hwdigit);
-   neural_net->feed_forward();
+      neural_net->set_inputs(hwdigit);
+      neural_net->feed_forward();
 
-   nu::vector_t<double> outputs;
-   neural_net->get_outputs(outputs);
+      nu::vector_t<double> outputs;
+      neural_net->get_outputs(outputs);
 
       WriteBars(530, 90, hdc, outputs);
 
-   int percent = int(outputs[outputs.max_item_index()] * 100);
-   std::string net_answer = std::to_string(outputs.max_item_index());
+      int percent = int(outputs[outputs.max_item_index()] * 100);
+      std::string net_answer = std::to_string(outputs.max_item_index());
 
-   if ( percent < 1 )
-      net_answer = "?";
+      if ( percent < 1 )
+         net_answer = "?";
 
-   if ( !net_answer.empty() )
-   {
-      HFONT hfont_old = ( HFONT ) SelectObject(hdc, g_hfFont);
+      if ( !net_answer.empty() )
+      {
+         HFONT hfont_old = ( HFONT ) SelectObject(hdc, g_hfFont);
 
-      net_answer += "             ";
+         net_answer += " ";
 
          xo1 += 420;
-
-      TextOut(
-         hdc,
+         
+         TextOut(
+            hdc,
             xo1 + 40,
             yo1 - 40,
-         net_answer.c_str(),
-         int(net_answer.size() + 1));
+            net_answer.c_str(),
+            int(net_answer.size() + 1));
 
-      SelectObject(hdc, hfont_old);
-      
+         SelectObject(hdc, hfont_old);
+
          g_hwdigit = hwdigit;
-   }
+      }
 
-   ReleaseDC(hWnd, hdc);
+      ReleaseDC(hWnd, hdc);
    }
    else
       MessageBox(
@@ -955,7 +955,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                GetModuleHandle(NULL),
                MAKEINTRESOURCE(IDI_BG));
 
-         hdc = BeginPaint(hWnd, &ps);
+            hdc = BeginPaint(hWnd, &ps);
 
             if ( image )
             {
@@ -979,20 +979,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                ::DeleteDC(hdcMem);
             }
 
-         TextOut(
-            hdc, 
+            TextOut(
+               hdc,
                220,
                500,
-            net_description.c_str(), 
-            int(net_description.size()));
-
-         Rectangle(hdc,
-            WHITEBOARD_X + FRAME_SIZE,
-            WHITEBOARD_Y + FRAME_SIZE,
+               net_description.c_str(),
+               int(net_description.size()));
+            
+            Rectangle(hdc,
+               WHITEBOARD_X + FRAME_SIZE,
+               WHITEBOARD_Y + FRAME_SIZE,
                WHITEBOARD_X + GRIDSIZE - FRAME_SIZE/2,
                WHITEBOARD_Y + GRIDSIZE - FRAME_SIZE/2);
-
-         EndPaint(hWnd, &ps);
+               
+            EndPaint(hWnd, &ps);
          }
          break;
 

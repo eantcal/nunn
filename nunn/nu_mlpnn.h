@@ -113,6 +113,13 @@ public:
    using topology_t = vector_t < size_t > ;
 
 
+   enum class err_cost_t
+   {
+      MSE,          //! mean square error cost function
+      CROSSENTROPY  //! cross entropy cost function
+   };
+
+
    enum class exception_t
    {
       size_mismatch,
@@ -242,8 +249,23 @@ public:
    void feed_forward();
 
 
-   //! Apply the Back Propagation Algorithm to the net
-   void back_propagate(const rvector_t & target);
+   //! Fire all neurons of the net and calculate the outputs
+   //! and then apply the Back Propagation Algorithm to the net
+   inline void mlp_neural_net_t::back_propagate(
+      const rvector_t & target, 
+      err_cost_t ec = err_cost_t::MSE)
+   {
+      rvector_t outputs_v;
+      back_propagate(target, outputs_v, ec);
+   }
+   
+
+   //! Fire all neurons of the net and calculate the outputs
+   //! and then apply the Back Propagation Algorithm to the net
+   void back_propagate(
+      const rvector_t & target, 
+      rvector_t& outputs,
+      err_cost_t ec = err_cost_t::MSE);
 
 
    //! Build the net by using data of the given string stream
@@ -293,6 +315,12 @@ public:
    }
 
 
+   //! Calculate the cross-entropy cost defined as
+   //! C=Sum(target*Log(output)+(1-target)*Log(1-output))/output.size()
+   static 
+   double cross_entropy(rvector_t output, const rvector_t& target);
+
+
    //! Calculate the mean squared error of net 'output vector' - 'target vector'
    double mean_squared_error(const rvector_t& target)
    {
@@ -302,10 +330,26 @@ public:
    }
 
 
+   //! Calculate the cross-entropy cost defined as
+   //! C=Sum(target*Log(output)+(1-target)*Log(1-output))/output.size()
+   double cross_entropy(const rvector_t& target)
+   {
+      rvector_t output;
+      get_outputs(output);
+      return cross_entropy(output, target);
+   }
+
+
    //! Reset all net weights using new random values
    void reshuffle_weights() throw();
 
 private:
+   void _back_propagate(
+      const rvector_t & target, 
+      rvector_t& outputs,
+      err_cost_t ec
+      );
+
    //Get input using layer index and input index
    //by means of layer==0 -> net inputs, 
    //layer>0 -> inputs == outputs of hidden neurons 
