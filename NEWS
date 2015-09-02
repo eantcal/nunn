@@ -20,3 +20,6 @@ Aug 30, 2015
 
 Sep 1, 2015
 * Released nunn library 1.47 (Bug-fixing, improved dynamic learing in winttt)
+
+Sep 2, 2015
+* Released nunn library 1.48 (Add cross entropy cost function support, bug-fixing)
