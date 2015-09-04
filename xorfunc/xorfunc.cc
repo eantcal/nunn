@@ -25,7 +25,7 @@
 /*
  * Solving the XOR Problem with nunn Lib
  *
- * A typical example of non-linealy separable function is the XOR.
+ * A typical example of non-linearly separable function is the XOR.
  * Implementing the XOR function is a classic problem in neural networks.
  *
  * This function takes two input arguments with values in [0,1] 
@@ -42,7 +42,7 @@
  * only if the two inputs have different values.
  *
  * So, this classification can not be solved with linear separation, 
- * but is very easy for a neural network to generate a non-linear solution to.
+ * but is very easy for an MLP to generate a non-linear solution to.
  *
  */
 
