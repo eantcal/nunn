@@ -133,7 +133,7 @@ public:
    mlp_neural_net_t(
       const topology_t& topology, 
       double learning_rate = 0.2,
-      double momentum = 0.1);
+      double momentum = 0.5);
    
 
    //! Create a network using data serialized into the given stream

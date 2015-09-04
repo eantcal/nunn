@@ -23,3 +23,6 @@ Sep 1, 2015
 
 Sep 2, 2015
 * Released nunn library 1.48 (Add cross entropy cost function support, bug-fixing)
+
+Sep 4, 2015
+* Released nunn library 1.48.1 (Add xor function sample)

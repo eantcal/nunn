@@ -150,8 +150,6 @@ void mlp_neural_net_t::_back_propagate(
    if ( target.size() != outputs_v.size() )
       throw exception_t::size_mismatch;
 
-   
-
    if ( ec != err_cost_t::CROSSENTROPY )
    {
       // res = (1 - out) * out 
@@ -182,8 +180,6 @@ void mlp_neural_net_t::_back_propagate(
       for ( auto & neuron : *_neuron_layers.rbegin() )
          neuron.error = diff_v[i++];
    }
-
-   
 
 
    // -------- Change output layer weights ---------------------------------
