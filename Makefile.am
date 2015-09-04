@@ -13,4 +13,5 @@ EXTRA_DIST= \
    tictactoe/*.vcxproj* \
    tictactoe/*.net \
    tictactoe/*.sh \
+   xorfunc/*.vcxproj* \
    winttt

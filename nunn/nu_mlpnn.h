@@ -251,7 +251,7 @@ public:
 
    //! Fire all neurons of the net and calculate the outputs
    //! and then apply the Back Propagation Algorithm to the net
-   inline void mlp_neural_net_t::back_propagate(
+   void back_propagate(
       const rvector_t & target, 
       err_cost_t ec = err_cost_t::MSE)
    {

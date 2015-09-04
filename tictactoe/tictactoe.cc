@@ -1095,7 +1095,7 @@ static bool process_cl(
          ( arg == "--version" || arg == "-v" ) )
       {
          std::cout
-            << "nunnlib TicTacToe "PROG_VERSION" (c) acaldmail@gmail.com"
+            << "nunnlib TicTacToe " PROG_VERSION " (c) acaldmail@gmail.com"
             << std::endl;
          continue;
       }
