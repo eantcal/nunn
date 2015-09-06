@@ -512,4 +512,22 @@ const char* mlp_neural_net_t::ID_INPUTS = "inputs";
 
 /* -------------------------------------------------------------------------- */
 
+bool mlp_nn_trainer_t::train(
+   const mlp_neural_net_t::rvector_t& input_vector,
+   const mlp_neural_net_t::rvector_t& target_vector)
+{
+   _nn.set_inputs(input_vector);
+   _nn.back_propagate(target_vector);
+
+   // Compute error for this sample
+   _err = _err_cost == mlp_neural_net_t::err_cost_t::MSE ?
+      _nn.mean_squared_error(target_vector) :
+      _nn.cross_entropy(target_vector);
+
+   return _err < _min_err;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 } // namespace nu

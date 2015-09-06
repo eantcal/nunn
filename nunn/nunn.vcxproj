@@ -220,7 +220,6 @@
     <ClCompile Include="nu_mlpnn.cc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="nu_bpnn.h" />
     <ClInclude Include="nu_mlpnn.h" />
     <ClInclude Include="nu_sigmoid.h" />
     <ClInclude Include="nu_vector.h" />

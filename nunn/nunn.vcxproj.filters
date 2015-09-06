@@ -24,9 +24,6 @@
     <ClInclude Include="nu_mlpnn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_bpnn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nu_mlpnn.cc">

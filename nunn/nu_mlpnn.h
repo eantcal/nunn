@@ -387,6 +387,168 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
+//! The trainer class is a helper class for network training
+class mlp_nn_trainer_t
+{
+   friend class iterator;
+
+public:
+   struct iterator
+   {
+      friend class mlp_nn_trainer_t;
+      mlp_nn_trainer_t * _trainer = nullptr;
+      size_t _epoch = 0;
+
+   private:
+      iterator(mlp_nn_trainer_t & trainer, size_t epoch) throw( )
+         : _trainer(&trainer),
+         _epoch(epoch)
+      {
+      }
+
+   public:
+      iterator(iterator & it) throw( ) :
+         _trainer(it._trainer),
+         _epoch(it._epoch)
+      {
+      }
+
+      iterator& operator=( iterator & it ) throw( )
+      {
+         if ( &it != this )
+         {
+            _trainer = it._trainer;
+            _epoch = it._epoch;
+         }
+
+         return *this;
+      }
+
+      iterator(iterator && it) throw( ) :
+         _trainer(std::move(it._trainer)),
+         _epoch(std::move(it._epoch))
+      {
+      }
+
+      iterator& operator=( iterator && it ) throw( )
+      {
+         if ( &it != this )
+         {
+            _trainer = std::move(it._trainer);
+            _epoch = std::move(it._epoch);
+         }
+
+         return *this;
+      }
+
+      size_t get_epoch() const throw( )
+      {
+         return _epoch;
+      }
+
+      mlp_nn_trainer_t& operator*( ) const throw( )
+      {
+         return *_trainer;
+      }
+
+      mlp_nn_trainer_t* operator->( ) const throw( )
+      {
+         return _trainer;
+      }
+
+      iterator operator++( ) throw( )
+      {
+         ++_epoch;
+         return *this;
+      }
+
+      iterator operator++( int ) throw( ) // post
+      {
+         iterator ret = *this;
+         ++_epoch;
+         return ret;
+      }
+
+      bool operator==( iterator & other ) const throw( )
+      {
+         return ( 
+            _trainer == other._trainer && 
+            _epoch == other._epoch );
+      }
+
+      bool operator!=( iterator & other ) const throw( )
+      {
+         return !this->operator==( other );
+      }
+   };
+
+
+   iterator begin()
+   {
+      return iterator(*this, 0);
+   }
+
+
+   iterator end()
+   {
+      return iterator(*this, this->_epochs + 1);
+   }
+
+
+   mlp_nn_trainer_t(
+      mlp_neural_net_t & nn,
+      size_t epochs,
+      double min_err,
+      mlp_neural_net_t::err_cost_t err_cost
+      ) :
+      _nn(nn),
+      _epochs(epochs),
+      _min_err(min_err),
+      _err_cost(err_cost),
+      _err(0.0)
+   {}
+
+
+   bool train(
+      const mlp_neural_net_t::rvector_t& input_vector,
+      const mlp_neural_net_t::rvector_t& target_vector);
+
+
+   size_t get_epochs() const throw()
+   {
+      return _epochs;
+   }
+
+
+   double get_min_err() const throw( )
+   {
+      return _min_err;
+   }
+
+
+   mlp_neural_net_t::err_cost_t get_err_cost() const throw( )
+   {
+      return _err_cost;
+   }
+   
+
+   double get_error() const throw()
+   {
+      return _err;
+   }
+
+   private:
+      nu::mlp_neural_net_t & _nn;
+      size_t _epochs;
+      double _min_err;
+      mlp_neural_net_t::err_cost_t _err_cost;
+      double _err;
+
+};
+
+
+/* -------------------------------------------------------------------------- */
+
 } // namespace nu
 
 

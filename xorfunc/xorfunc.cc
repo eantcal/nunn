@@ -57,6 +57,8 @@
 
 int main(int argc, char* argv[])
 {
+   using vect_t = nu::mlp_neural_net_t::rvector_t;
+
    // Topology is a vector of positive integers
    // First one represents the input layer size
    // Last one represents the output layer size
@@ -81,60 +83,47 @@ int main(int argc, char* argv[])
          0.9, // momentum
       };
 
-      using vect_t = nu::mlp_neural_net_t::rvector_t;
 
       // This is the bipolar-xor function used for the training
       auto xor = [](int a, int b) { return a ^ b; };
 
-      int epochs = 2000;     // Max number of epochs
-      double min_err = 0.01; // Min err
+      nu::mlp_nn_trainer_t trainer(
+         nn, 
+         2000,                                 // Max number of epochs
+         0.10,                                 // Min error 
+         nu::mlp_neural_net_t::err_cost_t::MSE // error cost function selector
+      );
 
       std::cout
-         << "XOR training start (Max epochs count=" << epochs
-         << " Minimum performance gradient=" << min_err << " )"
+         << "XOR training start ( Max epochs count=" << trainer.get_epochs()
+         << " Minimum error=" << trainer.get_min_err() << " )"
          << std::endl;
 
-      double err = 1.0;
-      int current_epoch = 0;
+      size_t epoch_n = 0;
 
-      //Repeat until err is less than min_err threshold or
-      //epochs iterations have been completed
-      while ( epochs-- )
+      for ( auto & training_epoch : trainer )
       {
-         err = 0.0;
+         bool training_completed = false;
 
          for ( int a = 0; a < 2; ++a )
          {
             for ( int b = 0; b < 2; ++b )
             {
-               int target = xor(a, b);
-
-               // Output is represented by one-dimensional vector
-               vect_t target_vec{ double(target) };
-
-               // Input is represented by two-dimensional vector
-               nn.set_inputs({ double(a), double(b) });
-
-               // Call back-propagation algo
-               nn.back_propagate(target_vec);
-
-               // Compute the mean squared error for this sample
-               err += nn.mean_squared_error(target_vec);
+               training_completed = 
+                  training_epoch.train(
+                     { double(a), double(b) }, // input
+                     { double(xor(a, b)) }     // target
+                  );
             }
          }
 
-         // Compute the error of a complete truth table sample
-         err /= 4.0;
-
-         // Periodically, show the training progress
-         if ( epochs % 100 == 0 )
+         if ( epoch_n++ % 100 == 0 )
             std::cout
-            << "Epoch #" << current_epoch
-            << " Err = " << err << std::endl;
-         ++current_epoch;
+            << "Epoch #" << epoch_n
+            << " Err = " << training_epoch.get_error() 
+            << std::endl;
 
-         // Terminate the loop if err is less than min_err threshold
-         if ( err < min_err )
+         if ( training_completed )
             break;
       }
 
@@ -184,6 +173,8 @@ int main(int argc, char* argv[])
             std::cout << "-------------------------------" << std::endl;
          }
       }
+
+      std::cout << "Test completed successfully" << std::endl;
    }
    catch ( nu::mlp_neural_net_t::exception_t & e )
    {
