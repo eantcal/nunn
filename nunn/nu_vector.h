@@ -190,30 +190,30 @@ public:
    }
 
 
-   const vector_t& abs() throw()
+   const vector_t& apply(const std::function<T(T)> & f)
    {
-      for (auto & i : _v)
-         i = ::abs(i);
+      for ( auto & i : _v )
+         i = f(i);
 
       return *this;
+   }
+
+
+   const vector_t& abs() throw()
+   {
+      return apply(::abs);
    }
 
 
    const vector_t& log() throw( )
    {
-      for ( auto & i : _v )
-         i = std::log(i);
-
-      return *this;
+      return apply([](double x) { return std::log(x); });
    }
 
 
    const vector_t& negate() throw( )
    {
-      for ( auto & i : _v )
-         i = -i;
-
-      return *this;
+      return apply([](double x) { return -x; });
    }
 
 

@@ -23,33 +23,30 @@
 /* -------------------------------------------------------------------------- */
 
 /*
- * Solving the XOR Problem with nunn Lib
+ * AND function implemented using a perceptron
  *
- * A typical example of non-linearly separable function is the XOR.
- * Implementing the XOR function is a classic problem in neural networks.
+ * A typical example of linearly separable function is the AND. This type
+ * of function can be learned by a single preceptron neural net
  *
- * This function takes two input arguments with values in [0,1] 
+ * AND takes two input arguments with values in [0,1] 
  * and returns one output in [0,1], as specified in the following table:
  *
  *  x1 x2 |  y   
  * ---+---+----
  *  0 | 0 |  0
- *  0 | 1 |  1
- *  1 | 0 |  1
- *  1 | 1 |  0
+ *  0 | 1 |  0
+ *  1 | 0 |  0
+ *  1 | 1 |  1
  *
- * XOR computes the logical exclusive-or, which yields 1 if and 
- * only if the two inputs have different values.
- *
- * So, this classification can not be solved with linear separation, 
- * but is very easy for an MLP to generate a non-linear solution to.
+ * AND computes the logical-AND, which yields 1 if and 
+ * only if the two inputs have 1 values.
  *
  */
 
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_mlpnn.h"
+#include "nu_perceptron.h"
 #include <iostream>
 
 
@@ -57,119 +54,102 @@
 
 int main(int argc, char* argv[])
 {
-   using vect_t = nu::mlp_neural_net_t::rvector_t;
-
-   // Topology is a vector of positive integers
-   // First one represents the input layer size
-   // Last one represents the output layer size
-   // All other values represent the hidden layers from input to output
-   // The topology vector must be at least of 3 items and all of them must be
-   // non-zero positive integer values
-   nu::mlp_neural_net_t::topology_t topology =
-   {
-      2, // input layer takes a two dimensional vector as input
-      2, // hidden layer size
-      1  // output
-   };
-
    try {
+      nu::step_func_t step_f(
+         0.5 /* Lo/Hi-threshold */, 
+         0   /* Lo - Output */, 
+         1   /* Hi - Output */);
 
-      // Construct the network using given topology and 
-      // learning rate and momentum 
-      nu::mlp_neural_net_t nn
-      {
-         topology,
-         0.4, // learing rate
-         0.9, // momentum
-      };
+      nu::perceptron_t nn(
+         2   /* inputs */, 
+         0.2 /* learning rate */, 
+         step_f);
+
+      // This is the bipolar-and function used for the training
+      auto and_function = [](int a, int b) { return a & b; };
 
 
-      // This is the bipolar-xor function used for the training
-      auto xor = [](int a, int b) { return a ^ b; };
+      // ---- TRAINING ---------------------------------------------------------
 
-      nu::mlp_nn_trainer_t trainer(
+      nu::perceptron_trainer_t trainer(
          nn, 
          200000,  // Max number of epochs
-         0.01   // Min error 
+         0.01     // Min error 
       );
 
       std::cout
-         << "XOR training start ( Max epochs count=" << trainer.get_epochs()
+         << "AND training start ( Max epochs count=" << trainer.get_epochs()
          << " Minimum error=" << trainer.get_min_err() << " )"
          << std::endl;
-
+      
       size_t epoch_n = 0;
 
       for ( auto & training_epoch : trainer )
       {
          bool training_completed = false;
 
+         double err = 0.0;
+
          for ( int a = 0; a < 2; ++a )
          {
             for ( int b = 0; b < 2; ++b )
-            {
-               training_completed = 
-                  training_epoch.train(
-                     { double(a), double(b) }, // input
-                     { double(xor(a, b)) },    // target
+            {          
+               training_epoch.train(
+                  { double(a),double(b) },           // input vector
+                  { double(and_function(a, b)) },    // target
 
-                     // cost function
-                     [](
-                     nu::mlp_neural_net_t& net,
-                     const nu::mlp_neural_net_t::rvector_t & target) 
-                     { return net.mean_squared_error(target); }
-                  );
+                  // cost function
+                  [](nu::perceptron_t& net, const double & target) 
+                  { return net.error(target); }
+               );
             }
          }
+
+         err = trainer.get_error();
 
          if ( epoch_n++ % 100 == 0 )
             std::cout
             << "Epoch #" << epoch_n
-            << " Err = " << training_epoch.get_error() 
+            << " Err = " << err 
             << std::endl;
 
-         if ( training_completed )
+         if ( err < trainer.get_min_err() )
             break;
       }
 
-
-      // Perform final XOR test
-      //
-      auto step_f = [](double x) { return x < 0.5 ? 0 : 1; };
-
-      std::cout << " XOR Test " << std::endl;
+      // ---- TEST -------------------------------------------------------------
+      
+      std::cout << " AND Test " << std::endl;
 
       for ( int a = 0; a < 2; ++a )
       {
          for ( int b = 0; b < 2; ++b )
          {
-            vect_t output_vec{ 0.0 };
-            vect_t input_vec{ double(a), double(b) };
+            double output=0.0;
+            nu::vector_t<double> input_vec{ double(a), double(b) };
 
             nn.set_inputs(input_vec);
             nn.feed_forward();
-            nn.get_outputs(output_vec);
+            output = nn.get_sharp_output();
 
             // Dump the network status
             std::cout << nn;
 
             std::cout << "-------------------------------" << std::endl;
 
-            auto net_res = step_f(output_vec[0]);
-
             std::cout
-               << a << " xor " << b << " = " << net_res << std::endl;
+               << a << " and " << b << " = " << output << std::endl;
 
-            auto xor_res = xor(a, b);
+            auto and_res = and_function(a, b);
 
             // In case you play with configuration parameters 
             // and break the code :-)
 
-            if ( xor_res != net_res )
+            if ( int(and_res) != int(output) )
             {
                std::cerr
-                  << "ERROR!: xor(" << a << "," << b << ") !="
-                  << xor_res
+                  << "ERROR!: and(" << a << "," << b << ") !="
+                  << and_res
                   << std::endl;
 
                return 1;
@@ -181,10 +161,10 @@ int main(int argc, char* argv[])
 
       std::cout << "Test completed successfully" << std::endl;
    }
-   catch ( nu::mlp_neural_net_t::exception_t & e )
+   catch ( nu::perceptron_t::exception_t & e )
    {
       std::cerr 
-         << "nu::mlp_neural_net_t::exception_t n# " << int(e) << std::endl;
+         << "nu::perceptron_t::exception_t n# " << int(e) << std::endl;
       
       std::cerr
          << "Check for configuration parameters and retry" << std::endl;

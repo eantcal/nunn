@@ -614,6 +614,11 @@ int main(int argc, char* argv[])
             training_set.reshuffle();
             const auto & data = training_set.data();
 
+            net->select_error_cost_function(
+               use_ce ?
+                  nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY :
+                  nu::mlp_neural_net_t::err_cost_t::MSE);
+
             for ( auto i = data.begin(); i != data.end(); ++i )
             {
                nu::vector_t<double> inputs;
@@ -624,12 +629,7 @@ int main(int argc, char* argv[])
                ( *i )->label_to_target(target);
 
                net->set_inputs(inputs);
-               net->back_propagate(
-                  target, 
-                  use_ce ? 
-                     nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY :
-                     nu::mlp_neural_net_t::err_cost_t::MSE
-                     );
+               net->back_propagate(target);
 
                ++cnt;
 

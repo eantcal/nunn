@@ -15,33 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="nu_sigmoid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="nu_vector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="nu_mlpnn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="nu_perceptron.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="nu_neuron.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="nu_trainer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="nu_stepf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="nu_mlpnn.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="nu_perceptron.cc">
+    <ClCompile Include="perceptron_and.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

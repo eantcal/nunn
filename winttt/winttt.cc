@@ -316,7 +316,9 @@ void UpdateStatusBar(HWND hWnd)
       "   SC: " + std::to_string(tsc) +
       "   TL: " + std::to_string(100.00-mse*100.00);
 
-   RECT r = { 0, PROG_WINYRES - 100, PROG_WINXRES, PROG_WINYRES };
+   static int cyVScroll = GetSystemMetrics(SM_CYVSCROLL);
+
+   RECT r = { 0, PROG_WINYRES - cyVScroll, PROG_WINXRES, PROG_WINYRES };
    InvalidateRect(hWnd, &r, TRUE);
    UpdateWindow(hWnd);
 }
@@ -457,6 +459,10 @@ void TrainingThread()
       double err = 0;
       nu::vector_t<double> outputs;
 
+      g_neural_net_copy->
+         select_error_cost_function(
+            nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY);
+
       for ( int i = 0; i < TRAINING_EPERT; ++i )
       {
          for ( const auto & sample : samples )
@@ -464,14 +470,10 @@ void TrainingThread()
             if ( g_neural_net_copy )
             {
                g_neural_net_copy->set_inputs(sample.inputs);
-               g_neural_net_copy->back_propagate(
-                  sample.outputs, 
-                  nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY);
-               g_neural_net_copy->get_outputs(outputs);
+               g_neural_net_copy->back_propagate(sample.outputs, outputs);
             }
 
-            err +=
-               nu::mlp_neural_net_t::cross_entropy(outputs, sample.outputs);
+            err += nu::mlp_neural_net_t::cross_entropy(outputs, sample.outputs);
          }
 
          err /= samples.size();

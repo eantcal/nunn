@@ -1417,6 +1417,11 @@ int main(int argc, char* argv[])
          double err = 0.0;
          double cross_err = 0.0;
 
+         net->select_error_cost_function(
+            use_cross_entropy ?
+               nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY :
+               nu::mlp_neural_net_t::err_cost_t::MSE);
+
          for ( const auto & sample : samples )
          {
             auto & target = sample.outputs;
@@ -1426,10 +1431,7 @@ int main(int argc, char* argv[])
 
             net->back_propagate(
                target, 
-               outputs,
-               use_cross_entropy ? 
-                  nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY : 
-                  nu::mlp_neural_net_t::err_cost_t::MSE);
+               outputs);
 
             err += nu::mlp_neural_net_t::mean_squared_error(outputs, target);
             cross_err += nu::mlp_neural_net_t::cross_entropy(outputs, target);

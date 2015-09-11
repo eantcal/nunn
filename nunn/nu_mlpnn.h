@@ -47,6 +47,8 @@
 
 #include "nu_vector.h"
 #include "nu_sigmoid.h"
+#include "nu_neuron.h"
+#include "nu_trainer.h"
 
 #include <vector>
 #include <iostream>
@@ -78,35 +80,7 @@ public:
 
 private:
    using actfunc_t = sigmoid_t;
-
-   struct neuron_t
-   {
-      rvector_t weights;
-      rvector_t delta_weights;
-      double    bias = 0.0;
-      double    output = 0.0;
-      double    error = 0.0;
-
-      friend 
-      std::stringstream& operator<<(std::stringstream& ss, neuron_t& n)
-      {
-         ss << n.bias << std::endl;
-         ss << n.weights << std::endl;
-         ss << n.delta_weights << std::endl;
-         return ss;
-      }
-
-      friend 
-      std::stringstream& operator>>(std::stringstream& ss, neuron_t& n)
-      {
-         ss >> n.bias;
-         ss >> n.weights;
-         ss >> n.delta_weights << std::endl;
-         return ss;
-      }
-
-   };
-
+   using neuron_t = neuron_data_t< double >;
    using neuron_layer_t = std::vector < neuron_t > ;
 
 public:
@@ -133,7 +107,8 @@ public:
    mlp_neural_net_t(
       const topology_t& topology, 
       double learning_rate = 0.2,
-      double momentum = 0.5);
+      double momentum = 0.5,
+      err_cost_t ec = err_cost_t::MSE);
    
 
    //! Create a network using data serialized into the given stream
@@ -150,7 +125,8 @@ public:
       _learning_rate(std::move(nn._learning_rate)),
       _momentum(std::move(nn._momentum)),
       _inputs(std::move(nn._inputs)),
-      _neuron_layers(std::move(nn._neuron_layers))
+      _neuron_layers(std::move(nn._neuron_layers)),
+      _err_cost_selector(std::move(nn._err_cost_selector))
    {
    }
 
@@ -165,13 +141,27 @@ public:
          _momentum = std::move(nn._momentum);
          _inputs = std::move(nn._inputs);
          _neuron_layers = std::move(nn._neuron_layers);
+         _err_cost_selector = std::move(nn._err_cost_selector);
       }
 
       return *this;
    }
    
 
+   //! Select error cost function
+   void select_error_cost_function(err_cost_t ec) throw( )
+   {
+      _err_cost_selector = ec;
+   }
 
+
+   //! Get current error cost selector value
+   err_cost_t get_err_cost() const throw( )
+   {
+      return _err_cost_selector;
+   }
+
+   
    //! Returns the number of inputs 
    size_t get_inputs_count() const throw()
    {
@@ -251,21 +241,16 @@ public:
 
    //! Fire all neurons of the net and calculate the outputs
    //! and then apply the Back Propagation Algorithm to the net
-   void back_propagate(
-      const rvector_t & target, 
-      err_cost_t ec = err_cost_t::MSE)
+   void back_propagate(const rvector_t & target)
    {
       rvector_t outputs_v;
-      back_propagate(target, outputs_v, ec);
+      back_propagate(target, outputs_v);
    }
    
 
    //! Fire all neurons of the net and calculate the outputs
    //! and then apply the Back Propagation Algorithm to the net
-   void back_propagate(
-      const rvector_t & target, 
-      rvector_t& outputs,
-      err_cost_t ec = err_cost_t::MSE);
+   void back_propagate(const rvector_t & target, rvector_t& outputs);
 
 
    //! Build the net by using data of the given string stream
@@ -344,11 +329,9 @@ public:
    void reshuffle_weights() throw();
 
 private:
-   void _back_propagate(
+   void _back_propagate( 
       const rvector_t & target, 
-      rvector_t& outputs,
-      err_cost_t ec
-      );
+      const rvector_t& outputs );
 
    //Get input using layer index and input index
    //by means of layer==0 -> net inputs, 
@@ -382,168 +365,30 @@ private:
    double _momentum = 0.1;
    rvector_t _inputs;
    std::vector< neuron_layer_t > _neuron_layers;
+   err_cost_t _err_cost_selector = err_cost_t::MSE;
 };
 
 
 /* -------------------------------------------------------------------------- */
 
 //! The trainer class is a helper class for network training
-class mlp_nn_trainer_t
+class mlp_nn_trainer_t : 
+   public nn_trainer_t< 
+      mlp_neural_net_t, 
+      mlp_neural_net_t::rvector_t,
+      mlp_neural_net_t::rvector_t >
 {
-   friend class iterator;
-
 public:
-   struct iterator
-   {
-      friend class mlp_nn_trainer_t;
-      mlp_nn_trainer_t * _trainer = nullptr;
-      size_t _epoch = 0;
-
-   private:
-      iterator(mlp_nn_trainer_t & trainer, size_t epoch) throw( )
-         : _trainer(&trainer),
-         _epoch(epoch)
-      {
-      }
-
-   public:
-      iterator(iterator & it) throw( ) :
-         _trainer(it._trainer),
-         _epoch(it._epoch)
-      {
-      }
-
-      iterator& operator=( iterator & it ) throw( )
-      {
-         if ( &it != this )
-         {
-            _trainer = it._trainer;
-            _epoch = it._epoch;
-         }
-
-         return *this;
-      }
-
-      iterator(iterator && it) throw( ) :
-         _trainer(std::move(it._trainer)),
-         _epoch(std::move(it._epoch))
-      {
-      }
-
-      iterator& operator=( iterator && it ) throw( )
-      {
-         if ( &it != this )
-         {
-            _trainer = std::move(it._trainer);
-            _epoch = std::move(it._epoch);
-         }
-
-         return *this;
-      }
-
-      size_t get_epoch() const throw( )
-      {
-         return _epoch;
-      }
-
-      mlp_nn_trainer_t& operator*( ) const throw( )
-      {
-         return *_trainer;
-      }
-
-      mlp_nn_trainer_t* operator->( ) const throw( )
-      {
-         return _trainer;
-      }
-
-      iterator operator++( ) throw( )
-      {
-         ++_epoch;
-         return *this;
-      }
-
-      iterator operator++( int ) throw( ) // post
-      {
-         iterator ret = *this;
-         ++_epoch;
-         return ret;
-      }
-
-      bool operator==( iterator & other ) const throw( )
-      {
-         return ( 
-            _trainer == other._trainer && 
-            _epoch == other._epoch );
-      }
-
-      bool operator!=( iterator & other ) const throw( )
-      {
-         return !this->operator==( other );
-      }
-   };
-
-
-   iterator begin()
-   {
-      return iterator(*this, 0);
-   }
-
-
-   iterator end()
-   {
-      return iterator(*this, this->_epochs + 1);
-   }
-
 
    mlp_nn_trainer_t(
       mlp_neural_net_t & nn,
       size_t epochs,
-      double min_err,
-      mlp_neural_net_t::err_cost_t err_cost
-      ) :
-      _nn(nn),
-      _epochs(epochs),
-      _min_err(min_err),
-      _err_cost(err_cost),
-      _err(0.0)
+      double min_err) :
+      nn_trainer_t<
+         mlp_neural_net_t, 
+         mlp_neural_net_t::rvector_t,
+         mlp_neural_net_t::rvector_t>(nn, epochs, min_err)
    {}
-
-
-   bool train(
-      const mlp_neural_net_t::rvector_t& input_vector,
-      const mlp_neural_net_t::rvector_t& target_vector);
-
-
-   size_t get_epochs() const throw()
-   {
-      return _epochs;
-   }
-
-
-   double get_min_err() const throw( )
-   {
-      return _min_err;
-   }
-
-
-   mlp_neural_net_t::err_cost_t get_err_cost() const throw( )
-   {
-      return _err_cost;
-   }
-   
-
-   double get_error() const throw()
-   {
-      return _err;
-   }
-
-   private:
-      nu::mlp_neural_net_t & _nn;
-      size_t _epochs;
-      double _min_err;
-      mlp_neural_net_t::err_cost_t _err_cost;
-      double _err;
-
 };
 
 

@@ -79,10 +79,12 @@ void mlp_neural_net_t::_build(
 mlp_neural_net_t::mlp_neural_net_t(
    const topology_t& topology,  
    double learning_rate,
-   double momentum) :
+   double momentum,
+   err_cost_t ec) :
    _topology(topology),
    _learning_rate(learning_rate),
-   _momentum(momentum)
+   _momentum(momentum),
+   _err_cost_selector(ec)
 {
    _build(_topology, _neuron_layers, _inputs);
 
@@ -125,8 +127,7 @@ void mlp_neural_net_t::feed_forward()
 
 void mlp_neural_net_t::back_propagate(
    const rvector_t & target, 
-   rvector_t & outputs_v,
-   err_cost_t ec)
+   rvector_t & outputs_v)
 {
    // Calculate and get the outputs
    feed_forward();
@@ -134,7 +135,7 @@ void mlp_neural_net_t::back_propagate(
    get_outputs(outputs_v);
 
    // Apply back_propagate algo
-   _back_propagate(target, outputs_v, ec);
+   _back_propagate(target, outputs_v);
 }
 
 
@@ -142,15 +143,14 @@ void mlp_neural_net_t::back_propagate(
 
 void mlp_neural_net_t::_back_propagate(
    const rvector_t & target, 
-   rvector_t & outputs_v,
-   err_cost_t ec)
+   const rvector_t & outputs_v)
 {
    // -------- Calculate error for output neurons --------------------------
 
    if ( target.size() != outputs_v.size() )
       throw exception_t::size_mismatch;
 
-   if ( ec != err_cost_t::CROSSENTROPY )
+   if ( _err_cost_selector != err_cost_t::CROSSENTROPY )
    {
       // res = (1 - out) * out 
       rvector_t res_v(outputs_v.size(), 1.0);
@@ -186,25 +186,26 @@ void mlp_neural_net_t::_back_propagate(
 
    auto layer_idx = _topology.size() - 1;
    auto & layer = _neuron_layers[layer_idx - 1];
-
+   
    for ( size_t nidx = 0; nidx < layer.size(); ++nidx )
    {
       auto & neuron = layer[nidx];
+
+      const auto lr_err = neuron.error * _learning_rate;
+      const auto m_err = neuron.error * _momentum;
 
       for ( size_t in_idx = 0; in_idx < neuron.weights.size(); ++in_idx )
       {
          const auto dw_prev_step = neuron.delta_weights[in_idx];
 
          neuron.delta_weights[in_idx] =
-            neuron.error * _get_input(layer_idx - 1, in_idx) * _learning_rate
-            + _momentum * neuron.error * dw_prev_step;
+            _get_input(layer_idx - 1, in_idx) * lr_err + m_err * dw_prev_step;
 
          neuron.weights[in_idx] += 
             neuron.delta_weights[in_idx];
       }
 
-      neuron.bias = neuron.error * _learning_rate + 
-         neuron.bias * neuron.error * _momentum;
+      neuron.bias = lr_err + m_err * neuron.bias;
    }
 
 
@@ -268,20 +269,21 @@ void mlp_neural_net_t::_back_propagate(
 
          neuron.error *= sum;
 
+         const auto lr_err = neuron.error * _learning_rate;
+         const auto m_err = neuron.error * _momentum;
+
          for ( size_t in_idx = 0; in_idx < neuron.weights.size(); ++in_idx )
          {
             const auto dw_prev_step = neuron.delta_weights[in_idx];
 
-            neuron.delta_weights[in_idx] =
-               neuron.error * _get_input(layer_idx - 1, in_idx) * _learning_rate
-               + _momentum * neuron.error * dw_prev_step;
+            neuron.delta_weights[in_idx] = 
+               lr_err * _get_input(layer_idx - 1, in_idx) + m_err * dw_prev_step;
 
             neuron.weights[in_idx] +=
                neuron.delta_weights[in_idx];
          }
 
-         neuron.bias = neuron.error * _learning_rate +
-            neuron.bias * neuron.error * _momentum;
+         neuron.bias = lr_err + m_err * neuron.bias;
       }
    }
 }
@@ -302,6 +304,8 @@ void mlp_neural_net_t::_fire_neuron(
    size_t idx = 0;
    for ( const auto & wi : neuron.weights )
       sum += _get_input(layer_idx, idx++) * wi;
+
+   sum += neuron.bias;
 
    neuron.output = actfunc_t()( sum );
 }
@@ -508,24 +512,6 @@ const char* mlp_neural_net_t::ID_NEURON = "neuron";
 const char* mlp_neural_net_t::ID_NEURON_LAYER = "layer";
 const char* mlp_neural_net_t::ID_TOPOLOGY = "topology";
 const char* mlp_neural_net_t::ID_INPUTS = "inputs";
-
-
-/* -------------------------------------------------------------------------- */
-
-bool mlp_nn_trainer_t::train(
-   const mlp_neural_net_t::rvector_t& input_vector,
-   const mlp_neural_net_t::rvector_t& target_vector)
-{
-   _nn.set_inputs(input_vector);
-   _nn.back_propagate(target_vector);
-
-   // Compute error for this sample
-   _err = _err_cost == mlp_neural_net_t::err_cost_t::MSE ?
-      _nn.mean_squared_error(target_vector) :
-      _nn.cross_entropy(target_vector);
-
-   return _err < _min_err;
-}
 
 
 /* -------------------------------------------------------------------------- */
