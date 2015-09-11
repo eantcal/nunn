@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 
       nu::perceptron_trainer_t trainer(
          nn, 
-         200000,  // Max number of epochs
+         2000,  // Max number of epochs
          0.01     // Min error 
       );
 
@@ -99,13 +99,14 @@ int main(int argc, char* argv[])
                   { double(and_function(a, b)) },    // target
 
                   // cost function
-                  [](nu::perceptron_t& net, const double & target) 
-                  { return net.error(target); }
+                  [&err](nu::perceptron_t& net, const double & target) 
+                  {  
+                     err = net.error(target); 
+                     return err;
+                  }
                );
             }
          }
-
-         err = trainer.get_error();
 
          if ( epoch_n++ % 100 == 0 )
             std::cout
@@ -113,8 +114,8 @@ int main(int argc, char* argv[])
             << " Err = " << err 
             << std::endl;
 
-         if ( err < trainer.get_min_err() )
-            break;
+         //if ( err < trainer.get_min_err() )
+         //   break;
       }
 
       // ---- TEST -------------------------------------------------------------

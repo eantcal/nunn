@@ -41,14 +41,6 @@
 #include "nu_stepf.h"
 #include "nu_trainer.h"
 
-#include <vector>
-#include <iostream>
-#include <functional>
-#include <cassert>
-#include <cstdlib>
-#include <sstream>
-#include <cmath>
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -72,12 +64,6 @@ private:
    step_func_t _step_f;
 
 public:
-   enum class err_cost_t
-   {
-      MSE,          //! mean square error cost function
-      CROSSENTROPY  //! cross entropy cost function
-   };
-
    enum class exception_t
    {
       size_mismatch,
@@ -206,7 +192,7 @@ public:
    //! Compute global error
    double error(const double& target) const throw( )
    {
-      return abs(target - get_output())/0.2;
+      return std::abs(target - get_output());
    }
 
 

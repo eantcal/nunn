@@ -38,5 +38,6 @@ AC_CONFIG_FILES([
   mnist_test/Makefile
   tictactoe/Makefile
   xorfunc/Makefile
+  perceptron_and/Makefile
 ])
 AC_OUTPUT
