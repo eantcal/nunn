@@ -3,26 +3,41 @@ Author - Antonino Calderone - antonino.calderone@ericsson.com - (c) 2015
 
 Please send nunn bug reports to <acaldmail@gmail.com>.
 
-Jun 1, 2015
-* Released nunn library 1.0 for Windows
+Sep 11, 2015
+* Released nunn library 1.50 
+- Add perceptron
+- Add perceptron_and sample
+- Bug fixes and improvements
+
+Sep 4, 2015
+* Released nunn library 1.48.1 
+- Add xor function sample
+- Bug fixes and improvements
+
+Sep 2, 2015
+* Released nunn library 1.48 
+- Add cross entropy cost function support
+- Bug fixes and improvements
+
+Sep 1, 2015
+* Released nunn library 1.47 
+- Bug fixes and improvements
+
+Aug 30, 2015
+* Released nunn library 1.46 
+- Bug fixes and improvements
+
+Aug 28, 2015
+* Released nunn library 1.45 
+- Added winttt sample
+
+Aug 13, 2015
+* Released nunn library 1.44 
+- Added Tic Tac Toe sample
 
 Jul 23, 2015
 * Released nunn library 1.43 for Windows and Linux
 
-Aug 13, 2015
-* Released nunn library 1.44 (includes TicTacToe sample)
+Jun 1, 2015
+* Released nunn library 1.0 for Windows
 
-Aug 28, 2015
-* Released nunn library 1.45 (Added winttt demo)
-
-Aug 30, 2015
-* Released nunn library 1.46 (Bug-fixing, add dynamic learing to winttt)
-
-Sep 1, 2015
-* Released nunn library 1.47 (Bug-fixing, improved dynamic learing in winttt)
-
-Sep 2, 2015
-* Released nunn library 1.48 (Add cross entropy cost function support, bug-fixing)
-
-Sep 4, 2015
-* Released nunn library 1.48.1 (Add xor function sample)

@@ -9,16 +9,17 @@ You give the algorithm examples of what you want the network to do and it
 changes the network's weights. When training is finished, it will give you 
 the required output for a particular input.
 
+
+
 -------------------------------------------------------------------------------
 Features
 -------------------------------------------------------------------------------
-
-- Free open source neural network library
-- Implements multilayer artificial neural networks (C++11)
-- Supports for fully connected networks
+- Free open source artificial neural network library
+- Implements perceptron and MLP (C++11)
+- Supports fully connected networks
 - Easy to use and understand
-- Versatile
 - Easy to save and load entire ANNs
+- Ready for 32/64 bit Linux/Windows 
 
 
 
@@ -100,12 +101,15 @@ Completed 22.8%
 
 BER          : 2.31%
 
+
+
 -------------------------------------------------------------------------------
 Handwritten Digit OCR Demo (ocr_test)
 -------------------------------------------------------------------------------
 This is an interactive demo which uses MNIST trained neural network created 
 by using nunn library.
 nunn status files (.net) have been created by mnist_test application
+
 
 
 -------------------------------------------------------------------------------
@@ -194,6 +198,7 @@ Please, give me a number within the range [1..9]: 1
 ...
 
 
+
 -------------------------------------------------------------------------------
 TicTacToe Demo for Windows (winttt)
 -------------------------------------------------------------------------------
@@ -202,8 +207,9 @@ Interactive TicTacToe game for Windows which uses trained neural networks
 created by using tictactoe program
 
 
+
 -------------------------------------------------------------------------------
-A solution to the XOR Problem (xorfunc)
+XOR Problem sample (xorfunc)
 -------------------------------------------------------------------------------
 A typical example of non-linealy separable function is the XOR.
 Implementing the XOR function is a classic problem in neural networks.
@@ -222,3 +228,26 @@ only if the two inputs have different values.
 So, this classification can not be solved with linear separation, 
 but is very easy for a neural network to generate a non-linear solution to.
  
+
+
+-------------------------------------------------------------------------------
+Perceptron AND sample (perceptron_and)
+-------------------------------------------------------------------------------
+
+AND function implemented using a perceptron
+A typical example of linearly separable function is the AND. This type
+of function can be learned by a single preceptron neural net
+
+AND takes two input arguments with values in [0,1] 
+and returns one output in [0,1], as specified in the following table:
+
+ x1 x2 |  y   
+---+---+----
+0 | 0 |  0
+0 | 1 |  0
+1 | 0 |  0
+1 | 1 |  1
+
+AND computes the logical-AND, which yields 1 if and 
+only if the two inputs have 1 values.
+
