@@ -67,6 +67,7 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
+//! This class represents a MLP neural net
 class mlp_neural_net_t
 {
 public:
@@ -78,10 +79,11 @@ public:
    static const char* ID_TOPOLOGY;
    static const char* ID_INPUTS;
 
-private:
+protected:
    using actfunc_t = sigmoid_t;
-   using neuron_t = neuron_data_t< double >;
-   using neuron_layer_t = std::vector < neuron_t > ;
+
+   //! This class represents a neuron layer of a neural net.
+   using neuron_layer_t = std::vector < neuron_t< double > >;
 
 public:
    using topology_t = vector_t < size_t > ;
@@ -99,11 +101,13 @@ public:
       size_mismatch,
       invalid_sstream_format
    };
+   
 
-
+   //! default ctor
    mlp_neural_net_t() = default;
 
 
+   //! ctor
    mlp_neural_net_t(
       const topology_t& topology, 
       double learning_rate = 0.2,
@@ -117,9 +121,11 @@ public:
       load(ss);
    }
 
-
+   //! copy-ctor
    mlp_neural_net_t(const mlp_neural_net_t& nn) = default;
 
+
+   //! move-ctor
    mlp_neural_net_t(mlp_neural_net_t&& nn) :
       _topology(std::move(nn._topology)),
       _learning_rate(std::move(nn._learning_rate)),
@@ -148,7 +154,7 @@ public:
    }
    
 
-   //! Select error cost function
+   //! Selects the error cost function
    void select_error_cost_function(err_cost_t ec) throw( )
    {
       _err_cost_selector = ec;

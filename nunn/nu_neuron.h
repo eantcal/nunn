@@ -41,8 +41,9 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
+//! This class represents a neuron of a neural net's neuron layer
 template<class T>
-struct neuron_data_t
+struct neuron_t
 {
    vector_t < T > weights;
    vector_t < T > delta_weights;
@@ -51,7 +52,7 @@ struct neuron_data_t
    T error = T(0);
 
    friend std::stringstream& 
-   operator<<( std::stringstream& ss, neuron_data_t<T>& n )
+   operator<<( std::stringstream& ss, neuron_t<T>& n )
    {
       ss << n.bias << std::endl;
       ss << n.weights << std::endl;
@@ -61,7 +62,7 @@ struct neuron_data_t
    }
 
    friend std::stringstream& 
-   operator>>( std::stringstream& ss, neuron_data_t<T>& n )
+   operator>>( std::stringstream& ss, neuron_t<T>& n )
    {
       ss >> n.bias;
       ss >> n.weights;

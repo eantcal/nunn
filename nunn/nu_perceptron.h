@@ -50,6 +50,7 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
+//! This class represents a Perceptron neural net
 class perceptron_t
 {
 public:
@@ -60,7 +61,6 @@ public:
    static const char* ID_INPUTS;
 
 private:
-   using  neuron_t = neuron_data_t<double>;
    step_func_t _step_f;
 
 public:
@@ -133,14 +133,14 @@ public:
    }
 
 
-   //! Change the learning rate of the net
+   //! Changes net learning rate
    void set_learning_rate(double new_rate)
    {
       _learning_rate = new_rate;
    }
 
 
-   //! Set net inputs
+   //! Sets net inputs
    void set_inputs(const rvector_t& inputs)
    {
       if (inputs.size() != _inputs.size())
@@ -242,13 +242,13 @@ private:
    size_t _inputs_count;
    double _learning_rate = 0.1;
    rvector_t _inputs;
-   neuron_t _neuron;
+   neuron_t<double> _neuron;
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-//! The perceptron trainer class is a helper class for training
+//! The perceptron trainer class is a helper class for training perceptrons
 class perceptron_trainer_t : 
    public nn_trainer_t<perceptron_t, nu::vector_t<double>, double>
 {

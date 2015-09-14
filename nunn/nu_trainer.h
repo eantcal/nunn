@@ -34,7 +34,7 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-//! The trainer class is a helper class for network training
+//! The trainer class is a helper class for neural networks training
 template< class Net, class Input, class Target >
 class nn_trainer_t
 {
@@ -42,6 +42,8 @@ class nn_trainer_t
 
 public:
    using type_t = nn_trainer_t<Net, Input, Target>;
+   using cost_func_t = std::function<double(Net&, const Target&)>;
+   using progress_cbk_t = std::function<void(Net&, const Input&, const Target&, size_t)>;
 
    struct iterator
    {
@@ -174,10 +176,12 @@ public:
       return _err;
    }
 
+
+   //! Trains the net using a single sample
    bool train(
-      const Input& input,
-      const Target& target,
-      std::function<double(Net&, const Target&)> err_cost_f)
+      const Input& input, 
+      const Target& target, 
+      cost_func_t err_cost_f)
    {
       _nn.set_inputs(input);
       _nn.back_propagate(target);
@@ -186,6 +190,31 @@ public:
       _err = err_cost_f(_nn, target);
 
       return _err < _min_err;
+   }
+
+
+   //! Trains the net using a training set of samples
+   template <class TSet>
+   size_t train(
+      const TSet& training_set, 
+      cost_func_t err_cost_f,
+      progress_cbk_t * progress_cbk = nullptr)
+   {
+      size_t epoch = 0;
+
+      for (; epoch < _epochs; ++epoch )
+      {
+         for ( const auto & sample : training_set )
+         {
+            if ( progress_cbk )
+               ( *progress_cbk )( _nn, sample.first, sample.second, epoch );
+
+            if ( train(sample.first, sample.second, err_cost_f) == true )
+               return epoch;
+         }
+      }
+
+      return epoch;
    }
 
    protected:

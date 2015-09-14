@@ -51,6 +51,7 @@
 
 #include "nu_mlpnn.h"
 #include <iostream>
+#include <map>
 
 
 /* -------------------------------------------------------------------------- */
@@ -89,7 +90,7 @@ int main(int argc, char* argv[])
 
       nu::mlp_nn_trainer_t trainer(
          nn, 
-         200000,  // Max number of epochs
+         20000,  // Max number of epochs
          0.01   // Min error 
       );
 
@@ -98,40 +99,35 @@ int main(int argc, char* argv[])
          << " Minimum error=" << trainer.get_min_err() << " )"
          << std::endl;
 
-      size_t epoch_n = 0;
+      // Create a training set
+      using training_set_t = std::map< std::vector<double>, std::vector<double> >;
+      training_set_t traing_set;
 
-      for ( auto & training_epoch : trainer )
+      for ( int a = 0; a < 2; ++a )
       {
-         bool training_completed = false;
-
-         for ( int a = 0; a < 2; ++a )
+         for ( int b = 0; b < 2; ++b )
          {
-            for ( int b = 0; b < 2; ++b )
-            {
-               training_completed = 
-                  training_epoch.train(
-                     { double(a), double(b) }, // input
-                     { double(xor(a, b)) },    // target
-
-                     // cost function
-                     [](
-                     nu::mlp_neural_net_t& net,
-                     const nu::mlp_neural_net_t::rvector_t & target) 
-                     { return net.mean_squared_error(target); }
-                  );
-            }
+            const std::vector<double> v{ double(a), double(b) };
+            const std::vector<double> t{ double(xor(a, b)) };
+            traing_set.insert(std::make_pair(v, t));
          }
-
-         if ( epoch_n++ % 100 == 0 )
-            std::cout
-            << "Epoch #" << epoch_n
-            << " Err = " << training_epoch.get_error() 
-            << std::endl;
-
-         if ( training_completed )
-            break;
       }
 
+      // Train the net
+      trainer.train<training_set_t>(
+         traing_set, 
+         [](
+            nu::mlp_neural_net_t& net,
+            const nu::mlp_neural_net_t::rvector_t & target) -> double
+            { 
+               static size_t i = 0;
+
+               if (i++ % 200 == 0 )
+                  std::cout << ">";
+
+               return net.mean_squared_error(target); 
+            }
+      );
 
       // Perform final XOR test
       //
