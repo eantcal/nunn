@@ -63,6 +63,11 @@ public:
 
    vector_t(const vector_t&) = default;
 
+   vector_t(const double* v, size_t v_len) : _v(v_len)
+   {
+      memcpy(_v.data(), v, v_len);
+   }
+
    vector_t& operator=(const vector_t&) = default;
 
    vector_t& operator=( const T& value )
@@ -393,6 +398,16 @@ public:
       return std::sqrt(euclidean_norm2());
    }
 
+
+   const std::vector<T>& to_stdvec() const throw()
+   {
+      return _v;
+   }
+
+   std::vector<T>& to_stdvec() throw( )
+   {
+      return _v;
+   }
 
 private:
    vr_t _v;

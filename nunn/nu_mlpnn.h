@@ -110,7 +110,7 @@ public:
    //! ctor
    mlp_neural_net_t(
       const topology_t& topology, 
-      double learning_rate = 0.2,
+      double learning_rate = 0.1,
       double momentum = 0.5,
       err_cost_t ec = err_cost_t::MSE);
    
@@ -136,8 +136,12 @@ public:
    {
    }
 
+
+   //! copy-assignment operator
    mlp_neural_net_t& operator=( const mlp_neural_net_t& nn ) = default;
 
+
+   //! move-assignment operator
    mlp_neural_net_t& operator=( mlp_neural_net_t&& nn ) 
    {
       if ( this != &nn )
@@ -330,6 +334,20 @@ public:
       return cross_entropy(output, target);
    }
 
+
+   //! Calculate error cost
+   double calc_error_cost(const rvector_t& target)
+   {
+      switch ( _err_cost_selector )
+      {
+         case err_cost_t::CROSSENTROPY:
+            return cross_entropy(target);
+
+         case err_cost_t::MSE:
+         default:
+            return mean_squared_error(target);
+      }
+   }
 
    //! Reset all net weights using new random values
    void reshuffle_weights() throw();
