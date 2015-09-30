@@ -3,6 +3,11 @@ Author - Antonino Calderone - antonino.calderone@ericsson.com - (c) 2015
 
 Please send nunn bug reports to <acaldmail@gmail.com>.
 
+Sep 30, 2015
+* Released nunn library 1.51
+- Add recurrent MLP network
+- Rebuild using VS2015 (you may need VS2015 redist)
+
 Sep 11, 2015
 * Released nunn library 1.50 
 - Add perceptron

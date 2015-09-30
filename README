@@ -10,12 +10,17 @@ changes the network's weights. When training is finished, it will give you
 the required output for a particular input.
 
 
+Binaries for Windows have been built by using Microsoft Visual C++ 2015, 
+so you may need to install Visual C++ Redistributable Packages 2015.
+To do this, search for "Visual C++ Redistributable Packages for Visual Studio 2015" 
+or use the link https://www.microsoft.com/en-us/download/details.aspx?id=48145
+
 
 -------------------------------------------------------------------------------
 Features
 -------------------------------------------------------------------------------
 - Free open source artificial neural network library
-- Implements perceptron and MLP (C++11)
+- Implements perceptron, MLP and Recurrent MLP nets
 - Supports fully connected networks
 - Easy to use and understand
 - Easy to save and load entire ANNs
