@@ -47,7 +47,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define PROG_VERSION "1.50"
+#define PROG_VERSION "1.51"
 #define TICTACTOE_SIDE 3
 #define TICTACTOE_CELLS (TICTACTOE_SIDE*TICTACTOE_SIDE)
 
@@ -79,7 +79,7 @@ public:
    }
 
 
-   size_t size() const throw( )
+   size_t size() const NU_NOEXCEPT
    {
       return TICTACTOE_SIDE*TICTACTOE_SIDE;
    }
@@ -151,7 +151,7 @@ public:
       return result;
    }
 
-   bool operator<( const grid_t& other ) const throw( )
+   bool operator<( const grid_t& other ) const NU_NOEXCEPT
    {
       if ( this == &other )
          return false;
@@ -401,7 +401,7 @@ public:
       nu::vector_t<double> inputs;
       nu::vector_t<double> outputs;
 
-      bool operator<( const sample_t& other ) const throw( )
+      bool operator<( const sample_t& other ) const NU_NOEXCEPT
       {
          return inputs<other.inputs || 
             (inputs==other.inputs && outputs<other.outputs);
@@ -876,7 +876,7 @@ public:
       renderer_t & renderer,
       nu::mlp_neural_net_t & nn,
       bool computer_alone = false)
-      throw( ) :
+      NU_NOEXCEPT :
       _renderer(renderer),
       _nn(nn),
       _computer_alone(computer_alone)
@@ -1322,7 +1322,10 @@ int main(int argc, char* argv[])
       ss << nf.rdbuf();
       nf.close();
 
-      net = std::unique_ptr<nu::mlp_neural_net_t>(new nu::mlp_neural_net_t(ss));
+      net = std::make_unique<nu::mlp_neural_net_t>();
+
+      if (net)
+         net->load(ss);
    }
 
 
@@ -1429,12 +1432,10 @@ int main(int argc, char* argv[])
 
             net->set_inputs(sample.inputs);
 
-            net->back_propagate(
-               target, 
-               outputs);
+            net->back_propagate( target, outputs);
 
-            err += nu::mlp_neural_net_t::mean_squared_error(outputs, target);
-            cross_err += nu::mlp_neural_net_t::cross_entropy(outputs, target);
+            err += nu::cf::mean_squared_error(outputs, target);
+            cross_err += nu::cf::cross_entropy(outputs, target);
          }
 
          double mean_err = err / samples.size();

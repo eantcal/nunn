@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([nunn], [1.50], [acaldmail@gmail.com])
+AC_INIT([nunn], [1.51], [acaldmail@gmail.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
 

@@ -19,15 +19,10 @@
 *
 */
 
-#ifndef __NU_SIGMOID_H__
-#define __NU_SIGMOID_H__
-
 
 /* -------------------------------------------------------------------------- */
 
-#include <cmath>
-#include "nu_vector.h"
-#include "nu_noexcept.h"
+#include "nu_costfuncs.h"
 
 
 /* -------------------------------------------------------------------------- */
@@ -38,25 +33,48 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-class sigmoid_t
+namespace cf
 {
-public:
-   double operator()(double x) const NU_NOEXCEPT
-   {
-      return (1 / (1 + exp(-x)));
-   }
 
-   static inline double derive(double y) NU_NOEXCEPT
-   {
-      return (1 - y) * y;
-   }
+/* -------------------------------------------------------------------------- */
 
-};
+double cross_entropy(vector_t<double> output, const vector_t<double>& target)
+{
+   auto log_output = output;
+
+   for ( auto & i : log_output )
+      if ( i == 0.0 )
+         i = 0.000001;
+
+   log_output.log();
+
+   vector_t<double> inv_target(target.size(), 1.0);
+   inv_target -= target;
+
+   vector_t<double> log_inv_output(output.size(), 1.0);
+   log_inv_output -= output;
+
+   for ( auto & i : log_inv_output )
+      if ( i == 0.0 )
+         i = 0.000001;
+
+   log_inv_output.log();
+
+   auto res = target;
+   res *= log_output;
+
+   inv_target *= log_inv_output;
+   res += inv_target;
+
+   return -res.sum() / double(res.size());
+}
 
 
 /* -------------------------------------------------------------------------- */
 
-} // namespace
+} // namespace cf
 
 
-#endif // __NU_SIGMOID_H__
+/* -------------------------------------------------------------------------- */
+
+} // namespace nu

@@ -40,6 +40,7 @@
 #include "nu_neuron.h"
 #include "nu_stepf.h"
 #include "nu_trainer.h"
+#include "nu_noexcept.h"
 
 
 /* -------------------------------------------------------------------------- */
@@ -120,14 +121,14 @@ public:
 
 
    //! Returns the number of inputs 
-   size_t get_inputs_count() const throw()
+   size_t get_inputs_count() const NU_NOEXCEPT
    {
       return _inputs.size();
    }
 
 
    //! Returns current learning rate
-   double get_learning_rate() const throw( )
+   double get_learning_rate() const NU_NOEXCEPT
    {
       return _learning_rate;
    }
@@ -151,21 +152,21 @@ public:
 
 
    //! Get the net inputs
-   void  get_inputs(rvector_t& inputs) const throw( )
+   void  get_inputs(rvector_t& inputs) const NU_NOEXCEPT
    {
       inputs = _inputs;
    }
 
 
    //! Get the net outputs 
-   double get_output() const throw( )
+   double get_output() const NU_NOEXCEPT
    {
       return _neuron.output;
    }
 
 
    //! Get the net outputs 
-   double get_sharp_output() const throw( )
+   double get_sharp_output() const NU_NOEXCEPT
    {
       return _step_f(_neuron.output);
    }
@@ -190,7 +191,7 @@ public:
 
 
    //! Compute global error
-   double error(const double& target) const throw( )
+   double error(const double& target) const NU_NOEXCEPT
    {
       return std::abs(target - get_output());
    }
@@ -234,7 +235,7 @@ public:
 
 
    //! Reset all net weights using new random values
-   void reshuffle_weights() throw();
+   void reshuffle_weights() NU_NOEXCEPT;
 
 private:
    void _back_propagate(const double_t & target, const double_t& output);

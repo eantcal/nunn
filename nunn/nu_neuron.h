@@ -52,7 +52,7 @@ struct neuron_t
    T error = T(0);
 
    friend std::stringstream& 
-   operator<<( std::stringstream& ss, neuron_t<T>& n )
+   operator<<( std::stringstream& ss, const neuron_t<T>& n )
    {
       ss << n.bias << std::endl;
       ss << n.weights << std::endl;
@@ -69,6 +69,12 @@ struct neuron_t
       ss >> n.delta_weights;
 
       return ss;
+   }
+   
+   void resize(size_t size)
+   {
+      weights.resize(size);
+      delta_weights.resize(size);
    }
 
 };

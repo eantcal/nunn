@@ -19,34 +19,35 @@
 *
 */
 
-/* 
-  This is an implementation of a Artificial Neural Network which learns by example
-  by using Back Propagation algorithm.
-  You can give it examples of what you want the network to do and the algorithm 
-  changes the network's weights. When training is finished, the net will give you 
-  the required output for a particular input.
+/*
+This is an implementation of a Artificial Recurrent Neural Network 
+which learns by example by using Back Propagation Through Time 
+learning algorithm.
 
-  Back Propagation algorithm
-  1) Initializes the net by setting up all its weights to be small random
-    numbers between -1 and +1. 
-  2) Applies input and calculates the output (forward pass).
-  3) Calculates the Error of each neuron which is essentially Target-Output
-  4) Changes the weights in such a way that the Error will get smaller
-  
-  Steps from 2 to 4 are repeated again and again until the Error is minimal
+You can give it examples of what you want the network to do and the algorithm
+changes the network's weights. When training is finished, the net will give you
+the required output for a particular input.
+
+BPTT algorithm is s the natural extension of
+standard back-propagation used with MLP, which performs gradient descent 
+on a complete unfolded network.
+
+The network training sequence starts at time t0 and ends at time t1, 
+the total cost function is simply the sum over time of the standard error 
+function at each time-step
 */
 
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __NU_MLPNN_H__
-#define __NU_MLPNN_H__
+#ifndef __NU_RMLPNN_H__
+#define __NU_RMLPNN_H__
 
 
 /* -------------------------------------------------------------------------- */
 
 #include "nu_xmlpnn.h"
-#include "nu_neuron.h"
+#include "nu_rneuron.h"
 
 #include <utility>
 
@@ -59,11 +60,11 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-//! This class represents a MLP neural net
-class mlp_neural_net_t : public xmlp_neural_net_t< neuron_t<double> >
+//! This class represents a RMLP neural net
+class rmlp_neural_net_t : public xmlp_neural_net_t< rneuron_t<double> >
 {
 protected:
-   using super_t = xmlp_neural_net_t< neuron_t<double> >;
+   using super_t = xmlp_neural_net_t< rneuron_t<double> >;
 
 public:
    static const char* ID_ANN;
@@ -99,92 +100,90 @@ public:
    }
 
    //! default ctor
-   mlp_neural_net_t() = default;
+   rmlp_neural_net_t() = default;
 
 
    //! ctor
-   mlp_neural_net_t(
-      const topology_t& topology, 
+   rmlp_neural_net_t(
+      const topology_t& topology,
       double learning_rate = 0.1,
       double momentum = 0.5,
       err_cost_t ec = err_cost_t::MSE);
 
    
    //! copy-ctor
-   mlp_neural_net_t(const mlp_neural_net_t& nn) = default;
+   rmlp_neural_net_t(const rmlp_neural_net_t& nn) = default;
 
 
    //! move-ctor
-   mlp_neural_net_t(mlp_neural_net_t&& nn) : super_t(nn)
+   rmlp_neural_net_t(rmlp_neural_net_t&& nn) : super_t(nn)
    {
    }
 
 
    //! copy-assignment operator
-   mlp_neural_net_t& operator=( const mlp_neural_net_t& nn ) = default;
+   rmlp_neural_net_t& operator=( const rmlp_neural_net_t& nn ) = default;
 
 
    //! move-assignment operator
-   mlp_neural_net_t& operator=( mlp_neural_net_t&& nn ) 
+   rmlp_neural_net_t& operator=( rmlp_neural_net_t&& nn )
    {
       super_t::operator=( std::move(nn) );
       return *this;
    }
 
 
+
    //! Build the net by using data of the given string stream
-   friend std::stringstream& operator>>( 
-      std::stringstream& ss, 
-      mlp_neural_net_t& net )
+   friend std::stringstream& operator>>(std::stringstream& ss, rmlp_neural_net_t& net )
    {
       return net.load(ss);
    }
 
 
    //! Save net status into the given string stream
-   friend std::stringstream& operator<<( 
-      std::stringstream& ss, 
-      mlp_neural_net_t& net )
+   friend std::stringstream& operator<<(std::stringstream& ss, rmlp_neural_net_t& net )
    {
       return net.save(ss);
-   } 
+   }
 
 
    //! Print the net state out to the given ostream
-   friend std::ostream& operator<<( std::ostream& os, mlp_neural_net_t& net )
+   friend std::ostream& operator<<( std::ostream& os, rmlp_neural_net_t& net )
    {
       return net.dump(os);
    }
+
 
    //! Reset all net weights using new random values
    void reshuffle_weights() NU_NOEXCEPT;
 
 protected:
-   void _update_neuron_weights(
-      neuron_t< double >& neuron,
-      size_t layer_idx) override;
+   void _update_neuron_weights(rneuron_t<double>& neuron, size_t layer_idx) override;
+
+   std::stringstream& _load(std::stringstream& ss);
 };
 
 
 /* -------------------------------------------------------------------------- */
 
 //! The trainer class is a helper class for network training
-class mlp_nn_trainer_t : 
-   public nn_trainer_t< 
-      mlp_neural_net_t, 
-      mlp_neural_net_t::rvector_t,
-      mlp_neural_net_t::rvector_t >
+class rmlp_nn_trainer_t :
+   public nn_trainer_t<
+   rmlp_neural_net_t,
+   rmlp_neural_net_t::rvector_t,
+   rmlp_neural_net_t::rvector_t >
 {
 public:
 
-   mlp_nn_trainer_t(
-      mlp_neural_net_t & nn,
+   rmlp_nn_trainer_t(
+      rmlp_neural_net_t & nn,
       size_t epochs,
       double min_err) :
       nn_trainer_t<
-         mlp_neural_net_t, 
-         mlp_neural_net_t::rvector_t,
-         mlp_neural_net_t::rvector_t>(nn, epochs, min_err)
+      rmlp_neural_net_t,
+      rmlp_neural_net_t::rvector_t,
+      rmlp_neural_net_t::rvector_t>(nn, epochs, min_err)
    {}
 };
 
@@ -196,4 +195,4 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-#endif // __NU_MLPNN_H__
+#endif // __NU_RMLPNN_H__

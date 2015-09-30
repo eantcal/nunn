@@ -46,7 +46,7 @@ The corresponding desired output is a 10-dimensional vector.
 
 
 #include "mnist.h"
-#include "nu_mlpnn.h"
+#include "nu_rmlpnn.h"
 
 #include <list>
 #include <iostream>
@@ -63,6 +63,8 @@ The corresponding desired output is a 10-dimensional vector.
 #include <Windows.h>
 #endif
 
+
+using neural_net_t = nu::rmlp_neural_net_t;
 
 /* -------------------------------------------------------------------------- */
 
@@ -344,7 +346,7 @@ static void usage(const char* appname)
 /* -------------------------------------------------------------------------- */
 
 static double test_net(
-   std::unique_ptr<nu::mlp_neural_net_t> & net,
+   std::unique_ptr<neural_net_t> & net,
    const training_data_t::data_t & test_data,
    double & mean_square_error,
    double & entropy_cost)
@@ -370,10 +372,10 @@ static double test_net(
       net->get_outputs(outputs);
 
       mean_square_error += 
-         nu::mlp_neural_net_t::mean_squared_error(outputs, target);
+         nu::cf::mean_squared_error(outputs, target);
 
       entropy_cost +=
-         nu::mlp_neural_net_t::cross_entropy(outputs, target);
+         nu::cf::cross_entropy(outputs, target);
 
       if ( ( *i )->get_label() != outputs.max_item_index() )
          ++err_cnt;
@@ -398,7 +400,7 @@ static double test_net(
 
 /* -------------------------------------------------------------------------- */
 
-bool save_the_net(const std::string& filename, nu::mlp_neural_net_t & net)
+bool save_the_net(const std::string& filename, neural_net_t & net)
 {
    // Save the net status if needed //
 
@@ -508,7 +510,7 @@ int main(int argc, char* argv[])
       std::cout
          << "Training images : " << training_images_fn << std::endl;
 
-      std::unique_ptr<nu::mlp_neural_net_t> net;
+      std::unique_ptr<neural_net_t> net;
       training_data_t training_set(training_labels_fn, training_images_fn);
 
       const std::string testing_labels_fn = files_path + TEST_LABELS_FN;
@@ -540,7 +542,7 @@ int main(int argc, char* argv[])
          auto input_size = (*data.cbegin())->get_dx()*(*data.cbegin())->get_dy();
 
          // Set up the topology
-         nu::mlp_neural_net_t::topology_t topology;
+         neural_net_t::topology_t topology;
          
          topology.push_back(input_size);
 
@@ -549,8 +551,8 @@ int main(int argc, char* argv[])
 
          topology.push_back(OUTPUT_LAYER_SIZE);
 
-         net = std::unique_ptr<nu::mlp_neural_net_t> (
-            new nu::mlp_neural_net_t(topology, learning_rate, momentum));
+         net = std::unique_ptr<neural_net_t> (
+            new neural_net_t(topology, learning_rate, momentum));
       }
 
       if ( !load_file_name.empty() )
@@ -566,7 +568,9 @@ int main(int argc, char* argv[])
          ss << nf.rdbuf();
          nf.close();
 
-         net = std::unique_ptr<nu::mlp_neural_net_t>(new nu::mlp_neural_net_t(ss));
+         net = std::make_unique<neural_net_t>();
+         if ( net )
+            net->load(ss);
       }
       
       if ( net == nullptr )
@@ -616,8 +620,8 @@ int main(int argc, char* argv[])
 
             net->select_error_cost_function(
                use_ce ?
-                  nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY :
-                  nu::mlp_neural_net_t::err_cost_t::MSE);
+                  neural_net_t::err_cost_t::CROSSENTROPY :
+                  neural_net_t::err_cost_t::MSE);
 
             for ( auto i = data.begin(); i != data.end(); ++i )
             {

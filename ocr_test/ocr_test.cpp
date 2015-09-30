@@ -37,7 +37,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define PROG_VERSION "1.50"
+#define PROG_VERSION "1.51"
 #define ABOUT_TEXT "Nunn Library and OCR Test by A. Calderone (c) - 2015"
 #define ABOUT_INFO "OCR Test Version " PROG_VERSION
 #define PROG_WINXRES 800
@@ -277,11 +277,11 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
       current_file_name = open_file_name.data();
 
-      auto nn = std::unique_ptr< nu::mlp_neural_net_t >();
+      auto nn = std::make_unique< nu::mlp_neural_net_t >();
 
       try {
-         nn = std::move(std::unique_ptr< nu::mlp_neural_net_t >( 
-            new nu::mlp_neural_net_t(ss) ));
+         if ( nn )
+			 nn->load(ss);
 
          if (! nn || 
             nn->get_inputs_count() != NN_INPUTS ||
@@ -296,6 +296,8 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
             return false;
          }
+
+         
       }
       catch ( ... )
       {
@@ -429,11 +431,12 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 
    for ( int i = 0; i < TRAINING_NET_EPOCHS; ++i )
    {
-      nu::vector_t<double> target(10, 0.0);
+	  nu::vector_t<double> target(10, 0.0);
+	  nu::vector_t<double> output(10, 0.0);
       target[digit] = 1.0;
 
       neural_net->set_inputs(g_hwdigit);
-      neural_net->back_propagate(target);
+      neural_net->back_propagate(target, output);
 
       err = neural_net->mean_squared_error(target);
 

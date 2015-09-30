@@ -49,7 +49,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_mlpnn.h"
+#include "nu_rmlpnn.h"
 #include <iostream>
 #include <map>
 
@@ -58,7 +58,7 @@
 
 int main(int argc, char* argv[])
 {
-   using vect_t = nu::mlp_neural_net_t::rvector_t;
+   using vect_t = nu::rmlp_neural_net_t::rvector_t;
 
    // Topology is a vector of positive integers
    // First one represents the input layer size
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
    // All other values represent the hidden layers from input to output
    // The topology vector must be at least of 3 items and all of them must be
    // non-zero positive integer values
-   nu::mlp_neural_net_t::topology_t topology =
+   nu::rmlp_neural_net_t::topology_t topology =
    {
       2, // input layer takes a two dimensional vector as input
       2, // hidden layer size
@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
 
       // Construct the network using given topology and 
       // learning rate and momentum 
-      nu::mlp_neural_net_t nn
+      nu::rmlp_neural_net_t nn
       {
          topology,
          0.4, // learing rate
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
       // This is the bipolar-xor function used for the training
       auto xor = [](int a, int b) { return a ^ b; };
 
-      nu::mlp_nn_trainer_t trainer(
+      nu::rmlp_nn_trainer_t trainer(
          nn, 
          20000,  // Max number of epochs
          0.01   // Min error 
@@ -117,8 +117,8 @@ int main(int argc, char* argv[])
       trainer.train<training_set_t>(
          traing_set, 
          [](
-            nu::mlp_neural_net_t& net,
-            const nu::mlp_neural_net_t::rvector_t & target) -> double
+            nu::rmlp_neural_net_t& net,
+            const nu::rmlp_neural_net_t::rvector_t & target) -> double
             { 
                static size_t i = 0;
 
@@ -130,7 +130,6 @@ int main(int argc, char* argv[])
       );
 
       // Perform final XOR test
-      //
       auto step_f = [](double x) { return x < 0.5 ? 0 : 1; };
 
       std::cout << " XOR Test " << std::endl;
@@ -177,7 +176,7 @@ int main(int argc, char* argv[])
 
       std::cout << "Test completed successfully" << std::endl;
    }
-   catch ( nu::mlp_neural_net_t::exception_t & e )
+   catch ( nu::rmlp_neural_net_t::exception_t & e )
    {
       std::cerr 
          << "nu::mlp_neural_net_t::exception_t n# " << int(e) << std::endl;

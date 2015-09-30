@@ -28,6 +28,8 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "nu_noexcept.h"
+
 #include <vector>
 #include <ostream>
 #include <sstream>
@@ -78,13 +80,13 @@ public:
       return *this;
    }
 
-   vector_t(const std::initializer_list<T> l) throw() :
+   vector_t(const std::initializer_list<T> l) NU_NOEXCEPT :
       _v(l) {}
 
-   vector_t(vector_t&& other) throw() :
+   vector_t(vector_t&& other) NU_NOEXCEPT :
       _v(std::move(other._v)) {}
 
-   vector_t& operator=(vector_t&& other) throw()
+   vector_t& operator=(vector_t&& other) NU_NOEXCEPT
    {
       if (this != &other)
          _v = std::move(other._v);
@@ -92,61 +94,61 @@ public:
       return *this;
    }
 
-   vector_t(const size_t & size, item_t v = 0.0) throw()
+   vector_t(const size_t & size, item_t v = 0.0) NU_NOEXCEPT
       : _v(size, v) {}
 
-   vector_t(const vr_t& v) throw()
+   vector_t(const vr_t& v) NU_NOEXCEPT
       : _v(v){}
 
 
-   size_t size() const throw()
+   size_t size() const NU_NOEXCEPT
    {
       return _v.size();
    }
 
 
-   bool empty() const throw( )
+   bool empty() const NU_NOEXCEPT
    {
       return _v.empty();
    }
 
-   void resize(const size_t & size, item_t v = 0.0) throw()
+   void resize(const size_t & size, item_t v = 0.0) NU_NOEXCEPT
    {
       _v.resize(size, v);
    }
 
 
-   iterator begin() throw()
+   iterator begin() NU_NOEXCEPT
    {
       return _v.begin();
    }
 
 
-   const_iterator cbegin() const throw()
+   const_iterator cbegin() const NU_NOEXCEPT
    {
       return _v.cbegin();
    }
 
 
-   iterator end() throw()
+   iterator end() NU_NOEXCEPT
    {
       return _v.end();
    }
 
 
-   const_iterator cend() const throw()
+   const_iterator cend() const NU_NOEXCEPT
    {
       return _v.cend();
    }
 
 
-   item_t operator[](size_t idx) const throw()
+   item_t operator[](size_t idx) const NU_NOEXCEPT
    {
       return _v[idx];
    }
 
 
-   item_t& operator[](size_t idx) throw()
+   item_t& operator[](size_t idx) NU_NOEXCEPT
    {
       return _v[idx];
    }
@@ -158,7 +160,7 @@ public:
    }
 
 
-   size_t max_item_index() throw( )
+   size_t max_item_index() NU_NOEXCEPT
    {
       if ( empty() )
          return size_t(-1);
@@ -204,25 +206,25 @@ public:
    }
 
 
-   const vector_t& abs() throw()
+   const vector_t& abs() NU_NOEXCEPT
    {
       return apply(::abs);
    }
 
 
-   const vector_t& log() throw( )
+   const vector_t& log() NU_NOEXCEPT
    {
       return apply([](double x) { return std::log(x); });
    }
 
 
-   const vector_t& negate() throw( )
+   const vector_t& negate() NU_NOEXCEPT
    {
       return apply([](double x) { return -x; });
    }
 
 
-   T sum() const throw( )
+   T sum() const NU_NOEXCEPT
    {
       T res = T(0);
       for ( auto & i : _v )
@@ -232,38 +234,38 @@ public:
    }
 
 
-   bool operator==(const vector_t& other) const throw()
+   bool operator==(const vector_t& other) const NU_NOEXCEPT
    {
       return (this == &other) || _v == other._v;
    }
 
 
-   bool operator!=(const vector_t& other) const throw()
+   bool operator!=(const vector_t& other) const NU_NOEXCEPT
    {
       return (this != &other) && _v != other._v;
    }
 
 
-   bool operator<(const vector_t& other) const throw()
+   bool operator<(const vector_t& other) const NU_NOEXCEPT
    {
       return _v < other._v;
    }
 
 
-   bool operator<=(const vector_t& other) const throw()
+   bool operator<=(const vector_t& other) const NU_NOEXCEPT
    {
       return _v <= other._v;
    }
 
 
 
-   bool operator>=(const vector_t& other) const throw()
+   bool operator>=(const vector_t& other) const NU_NOEXCEPT
    {
       return _v >= other._v;
    }
 
 
-   bool operator>(const vector_t& other) const throw()
+   bool operator>(const vector_t& other) const NU_NOEXCEPT
    {
       return _v > other._v;
    }
@@ -322,7 +324,7 @@ public:
    }
 
 
-   void get_vector(vr_t & d) throw()
+   void get_vector(vr_t & d) NU_NOEXCEPT
    {
       d = _v;
    }
@@ -382,7 +384,7 @@ public:
    }
 
 
-   item_t euclidean_norm2() const throw( )
+   item_t euclidean_norm2() const NU_NOEXCEPT
    {
       item_t res = 0.0;
 
@@ -393,18 +395,18 @@ public:
    }
 
 
-   item_t euclidean_norm() const throw( )
+   item_t euclidean_norm() const NU_NOEXCEPT
    {
       return std::sqrt(euclidean_norm2());
    }
 
 
-   const std::vector<T>& to_stdvec() const throw()
+   const std::vector<T>& to_stdvec() const NU_NOEXCEPT
    {
       return _v;
    }
 
-   std::vector<T>& to_stdvec() throw( )
+   std::vector<T>& to_stdvec() NU_NOEXCEPT
    {
       return _v;
    }

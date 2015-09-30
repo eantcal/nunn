@@ -19,15 +19,18 @@
 *
 */
 
-#ifndef __NU_SIGMOID_H__
-#define __NU_SIGMOID_H__
+
+/* -------------------------------------------------------------------------- */
+
+#ifndef __NU_RNEURON_H__
+#define __NU_RNEURON_H__
 
 
 /* -------------------------------------------------------------------------- */
 
-#include <cmath>
-#include "nu_vector.h"
-#include "nu_noexcept.h"
+#include "nu_neuron.h"
+#include <sstream>
+#include <iostream>
 
 
 /* -------------------------------------------------------------------------- */
@@ -38,25 +41,46 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-class sigmoid_t
+//! This class represents a neuron of a Recurrent NN layer
+template<class T>
+struct rneuron_t : public neuron_t<T>
 {
-public:
-   double operator()(double x) const NU_NOEXCEPT
+   vector_t < T > delta_weights_tm1;
+
+   friend std::stringstream& 
+   operator<<( std::stringstream& ss, const rneuron_t<T>& n )
    {
-      return (1 / (1 + exp(-x)));
+      const neuron_t<T>& bn = n;
+      ss << bn;
+      ss << n.delta_weights_tm1 << std::endl;
+
+      return ss;
    }
 
-   static inline double derive(double y) NU_NOEXCEPT
+   friend std::stringstream& 
+   operator>>( std::stringstream& ss, rneuron_t<T>& n )
    {
-      return (1 - y) * y;
+      neuron_t<T>& bn = n;
+      ss >> bn;
+      ss >> n.delta_weights_tm1;
+
+      return ss;
    }
 
+   void resize(size_t size)
+   {
+      neuron_t<T>::resize(size);
+      delta_weights_tm1.resize(size);
+   }
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-} // namespace
+}
 
 
-#endif // __NU_SIGMOID_H__
+/* -------------------------------------------------------------------------- */
+
+#endif // __NU_RNEURON_H__
+

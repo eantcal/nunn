@@ -49,7 +49,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define PROG_VERSION "1.50"
+#define PROG_VERSION "1.51"
 #define ABOUT_TEXT "TicTacToe for Windows by A. Calderone (c) - 2015"
 #define ABOUT_INFO "WinTTT " PROG_VERSION
 #define PROG_WINXRES 664
@@ -115,7 +115,7 @@ struct sample_t
    nu::vector_t<double> inputs;
    nu::vector_t<double> outputs;
 
-   bool operator<( const sample_t& other ) const throw( )
+   bool operator<( const sample_t& other ) const NU_NOEXCEPT
    {
       return inputs<other.inputs ||
          ( inputs == other.inputs && outputs<other.outputs );
@@ -318,7 +318,7 @@ void UpdateStatusBar(HWND hWnd)
 
    static int cyVScroll = GetSystemMetrics(SM_CYVSCROLL);
 
-   RECT r = { 0, PROG_WINYRES - cyVScroll, PROG_WINXRES, PROG_WINYRES };
+   RECT r = { 0, PROG_WINYRES - cyVScroll*2, PROG_WINXRES, PROG_WINYRES };
    InvalidateRect(hWnd, &r, TRUE);
    UpdateWindow(hWnd);
 }
@@ -369,7 +369,9 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
       g_current_file_name = open_file_name.data();
 
       try {
-         g_neural_net = std::make_unique< nu::mlp_neural_net_t >(ss);
+         g_neural_net = std::make_unique< nu::mlp_neural_net_t >();
+         if ( g_neural_net )
+            g_neural_net->load(ss);
       }
       catch ( ... )
       {
@@ -438,7 +440,6 @@ void Training(HWND hWnd, HWND hwndPB)
 }
 
 
-
 /* -------------------------------------------------------------------------- */
 
 void TrainingThread()
@@ -473,7 +474,7 @@ void TrainingThread()
                g_neural_net_copy->back_propagate(sample.outputs, outputs);
             }
 
-            err += nu::mlp_neural_net_t::cross_entropy(outputs, sample.outputs);
+            err += nu::cf::cross_entropy(outputs, sample.outputs);
          }
 
          err /= samples.size();
@@ -482,6 +483,8 @@ void TrainingThread()
       g_last_mse = err;
 
       g_tsync_mtx.unlock();
+
+	  Sleep(100);
    }
 }
 
@@ -593,22 +596,22 @@ private:
    int _tmp_grid[TICTACTOE_SIDE][TICTACTOE_SIDE];
 
 
-   inline int & _at(int x, int y) throw()
+   inline int & _at(int x, int y) NU_NOEXCEPT
    {
       return _grid[x][y];
    }
 
-   inline const int & _at(int x, int y) const throw( )
+   inline const int & _at(int x, int y) const NU_NOEXCEPT
    {
       return _grid[x][y];
    }
 
-   inline static int _pos2y(int pos) throw( )
+   inline static int _pos2y(int pos) NU_NOEXCEPT
    {
       return pos / TICTACTOE_SIDE;
    }
 
-   inline static int _pos2x(int pos) throw( )
+   inline static int _pos2x(int pos) NU_NOEXCEPT
    {
       return pos % TICTACTOE_SIDE;
    }
@@ -651,7 +654,7 @@ public:
       }
    }
    
-   size_t size() const throw( )
+   size_t size() const NU_NOEXCEPT
    {
       return TICTACTOE_SIDE*TICTACTOE_SIDE;
    }
@@ -711,6 +714,7 @@ public:
       }
    }
 
+
    friend grid_t operator-( const grid_t& g1, const grid_t& g2 )
    {
       auto result = g1;
@@ -723,7 +727,8 @@ public:
       return result;
    }
 
-   bool operator<( const grid_t& other ) const throw( )
+
+   bool operator<( const grid_t& other ) const NU_NOEXCEPT
    {
       if ( this == &other )
          return false;
@@ -742,25 +747,30 @@ public:
       return this == &other || memcmp(_grid, other._grid, sizeof(_grid)) == 0;
    }
 
+
    bool operator!=( const grid_t& other )
    {
       return !this->operator==( other );
    }
+
 
    const int& operator[](size_t i) const
    {
       return at(int(i));
    }
 
+
    int& operator[](size_t i)
    {
       return at(int(i));
    }
 
+
    void clear()
    {
       memset(_grid, 0, sizeof(_grid));
    }
+
 
    const int& at(int x, int y) const
    {
@@ -1309,6 +1319,7 @@ static void ExpertAlgo(grid_t & new_grid, grid_t::symbol_t symbol)
 }
 
 
+/* -------------------------------------------------------------------------- */
 
 static void NetAnswer(
    nu::mlp_neural_net_t & nn,
@@ -1527,6 +1538,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
          
          SendMessage(hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
          SetTimer(hWnd, 0, 1000, 0);
+
          {
             std::thread trainer(TrainingThread);
             trainer.detach();
@@ -1545,7 +1557,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                if ( g_neural_net )
                {
                   g_neural_net->set_learning_rate(
-                     wmId == IDM_LR_30 ? 0.030 : ( wmId == IDM_LR_35 ? 0.035 : 0.040 ));
+                     wmId == IDM_LR_30 ? 0.030 : 
+					    ( wmId == IDM_LR_35 ? 0.035 : 0.040 ));
+
                   g_learing_rate = g_neural_net->get_learning_rate();
                }
 
@@ -1703,7 +1717,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                   std::pair<int, int> start;
                   std::pair<int, int> end;
                   game_board.get_winner_line_points(start, end);
-
 
                   static HPEN hpenO = CreatePen(PS_SOLID, PENSIZE, RGB(255, 0, 255));
                   static HPEN hpenX = CreatePen(PS_SOLID, PENSIZE, RGB(0, 128, 255));

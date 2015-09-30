@@ -52,20 +52,20 @@ public:
       size_t _epoch = 0;
 
    private:
-      iterator(type_t & trainer, size_t epoch) throw( )
+      iterator(type_t & trainer, size_t epoch) NU_NOEXCEPT
          : _trainer(&trainer),
          _epoch(epoch)
       {
       }
 
    public:
-      iterator(iterator & it) throw( ) :
+      iterator(iterator & it) NU_NOEXCEPT :
          _trainer(it._trainer),
          _epoch(it._epoch)
       {
       }
 
-      iterator& operator=( iterator & it ) throw( )
+      iterator& operator=( iterator & it ) NU_NOEXCEPT
       {
          if ( &it != this )
          {
@@ -76,13 +76,13 @@ public:
          return *this;
       }
 
-      iterator(iterator && it) throw( ) :
+      iterator(iterator && it) NU_NOEXCEPT :
          _trainer(std::move(it._trainer)),
          _epoch(std::move(it._epoch))
       {
       }
 
-      iterator& operator=( iterator && it ) throw( )
+      iterator& operator=( iterator && it ) NU_NOEXCEPT
       {
          if ( &it != this )
          {
@@ -93,42 +93,42 @@ public:
          return *this;
       }
 
-      size_t get_epoch() const throw( )
+      size_t get_epoch() const NU_NOEXCEPT
       {
          return _epoch;
       }
 
-      type_t& operator*( ) const throw( )
+      type_t& operator*( ) const NU_NOEXCEPT
       {
          return *_trainer;
       }
 
-      type_t* operator->( ) const throw( )
+      type_t* operator->( ) const NU_NOEXCEPT
       {
          return _trainer;
       }
 
-      iterator operator++( ) throw( )
+      iterator operator++( ) NU_NOEXCEPT
       {
          ++_epoch;
          return *this;
       }
 
-      iterator operator++( int ) throw( ) // post
+      iterator operator++( int ) NU_NOEXCEPT // post
       {
          iterator ret = *this;
          ++_epoch;
          return ret;
       }
 
-      bool operator==( iterator & other ) const throw( )
+      bool operator==( iterator & other ) const NU_NOEXCEPT
       {
          return ( 
             _trainer == other._trainer && 
             _epoch == other._epoch );
       }
 
-      bool operator!=( iterator & other ) const throw( )
+      bool operator!=( iterator & other ) const NU_NOEXCEPT
       {
          return !this->operator==( other );
       }
@@ -159,19 +159,19 @@ public:
    {}
 
 
-   size_t get_epochs() const throw()
+   size_t get_epochs() const NU_NOEXCEPT
    {
       return _epochs;
    }
 
 
-   double get_min_err() const throw( )
+   double get_min_err() const NU_NOEXCEPT
    {
       return _min_err;
    }
 
 
-   double get_error() const throw()
+   double get_error() const NU_NOEXCEPT
    {
       return _err;
    }

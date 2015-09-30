@@ -60,7 +60,7 @@ private:
 public:
 
    //! ctor
-   digit_data_t(size_t dx, size_t dy, int label, const data_t& data) throw( ) :
+   digit_data_t(size_t dx, size_t dy, int label, const data_t& data) NU_NOEXCEPT :
       _dx(dx),
       _dy(dy),
       _label(label),
@@ -77,7 +77,7 @@ public:
 
 
    //! move ctor
-   digit_data_t(digit_data_t&& other) throw( ) :
+   digit_data_t(digit_data_t&& other) NU_NOEXCEPT :
       _dx(std::move(_dx)),
       _dy(std::move(_dy)),
       _label(std::move(_label)),
@@ -87,7 +87,7 @@ public:
 
 
    //! move assign operator
-   digit_data_t& operator=( digit_data_t&& other ) throw( )
+   digit_data_t& operator=( digit_data_t&& other ) NU_NOEXCEPT
    {
       if ( this != &other )
       {
@@ -102,28 +102,28 @@ public:
    
 
    //! Returns the digit width in pixels
-   size_t get_dx() const throw( )
+   size_t get_dx() const NU_NOEXCEPT
    {
       return _dx;
    }
 
 
    //! Returns the digit height in pixels
-   size_t get_dy() const throw( )
+   size_t get_dy() const NU_NOEXCEPT
    {
       return _dy;
    }
 
 
    //! Returns the digit classification
-   int get_label() const throw( )
+   int get_label() const NU_NOEXCEPT
    {
       return _label;
    }
 
 
    //! Returns a reference to internal data
-   const data_t& data() const throw( )
+   const data_t& data() const NU_NOEXCEPT
    {
       return _data;
    }
@@ -131,18 +131,18 @@ public:
 
    //! Converts the image data into a vector normalizing each item
    //! within the range [0.0, 1.0]
-   void to_vect(nu::vector_t < double > & v) const throw( );
+   void to_vect(nu::vector_t < double > & v) const NU_NOEXCEPT;
 
 
    //! Converts a label into a vector where the items are all zeros
    //! except for the item with index corrisponding to the label value
    //! its self (which is within range [0, 9]
-   void label_to_target(nu::vector_t < double > & v) const throw( );
+   void label_to_target(nu::vector_t < double > & v) const NU_NOEXCEPT;
 
 
 #ifdef _WIN32
    //! Draw the digit image on the window
-   void paint(int xoff, int yoff, HWND hwnd = nullptr) const throw( );
+   void paint(int xoff, int yoff, HWND hwnd = nullptr) const NU_NOEXCEPT;
 #endif
 
 };
@@ -159,7 +159,7 @@ public:
    using data_t = std::list< std::unique_ptr<digit_data_t> >;
 
    //! Return a reference to a list of digit_data_t objects
-   const data_t & data() const throw( )
+   const data_t & data() const NU_NOEXCEPT
    {
       return _data;
    }

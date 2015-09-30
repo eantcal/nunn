@@ -36,12 +36,33 @@
     <ClInclude Include="nu_stepf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nu_rneuron.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nu_rmlpnn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nu_xmlpnn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nu_noexcept.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nu_costfuncs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nu_mlpnn.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="nu_perceptron.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nu_costfuncs.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nu_rmlpnn.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

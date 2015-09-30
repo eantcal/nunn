@@ -148,7 +148,7 @@ std::stringstream& perceptron_t::save(std::stringstream& ss)
 
 /* -------------------------------------------------------------------------- */
 
-void perceptron_t::reshuffle_weights() throw( )
+void perceptron_t::reshuffle_weights() NU_NOEXCEPT
 {
    double weights_cnt = double(_neuron.weights.size());
 

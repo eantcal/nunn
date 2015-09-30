@@ -19,44 +19,22 @@
 *
 */
 
-#ifndef __NU_SIGMOID_H__
-#define __NU_SIGMOID_H__
+
+/* -------------------------------------------------------------------------- */
+
+#ifndef __NU_NOEXCEPT_H__
+#define __NU_NOEXCEPT_H__
 
 
 /* -------------------------------------------------------------------------- */
 
-#include <cmath>
-#include "nu_vector.h"
-#include "nu_noexcept.h"
+#if (defined(_MSC_VER) && _MSC_VER<=1800)
+#define NU_NOEXCEPT throw()
+#else
+#define NU_NOEXCEPT noexcept
+#endif
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
-
-
-/* -------------------------------------------------------------------------- */
-
-class sigmoid_t
-{
-public:
-   double operator()(double x) const NU_NOEXCEPT
-   {
-      return (1 / (1 + exp(-x)));
-   }
-
-   static inline double derive(double y) NU_NOEXCEPT
-   {
-      return (1 - y) * y;
-   }
-
-};
-
-
-/* -------------------------------------------------------------------------- */
-
-} // namespace
-
-
-#endif // __NU_SIGMOID_H__
+#endif //__NU_NOEXCEPT_H__
