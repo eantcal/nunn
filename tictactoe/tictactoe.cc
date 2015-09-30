@@ -1322,7 +1322,7 @@ int main(int argc, char* argv[])
       ss << nf.rdbuf();
       nf.close();
 
-      net = std::make_unique<nu::mlp_neural_net_t>();
+      net = std::unique_ptr<nu::mlp_neural_net_t>(new nu::mlp_neural_net_t);
 
       if (net)
          net->load(ss);

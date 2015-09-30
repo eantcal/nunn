@@ -122,7 +122,8 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libnunn_la_LIBADD =
-am_libnunn_la_OBJECTS = nu_mlpnn.lo nu_perceptron.lo
+am_libnunn_la_OBJECTS = nu_costfuncs.lo nu_mlpnn.lo nu_rmlpnn.lo \
+	nu_perceptron.lo
 libnunn_la_OBJECTS = $(am_libnunn_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -333,15 +334,21 @@ AM_CPPFLAGS =
 lib_LTLIBRARIES = libnunn.la
 libnunn_la_LDFLAGS = -version-info 1:0:0
 libnunn_la_SOURCES = \
+   nu_costfuncs.cc \
    nu_mlpnn.cc \
+   nu_rmlpnn.cc \
    nu_perceptron.cc \
-   nu_bpnn.h \
+   nu_costfuncs.h \
+   nu_xmlpnn.h \
    nu_mlpnn.h \
+   nu_rmlpnn.h \
    nu_sigmoid.h \
    nu_vector.h \
    nu_neuron.h \
+   nu_rneuron.h \
    nu_perceptron.h \
    nu_stepf.h \
+   nu_noexcept.h \
    nu_trainer.h 
 
 AM_CXXFLAGS = $(INTI_CFLAGS) -std=c++11 
@@ -424,8 +431,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nu_costfuncs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nu_mlpnn.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nu_perceptron.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nu_rmlpnn.Plo@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

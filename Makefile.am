@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS=-I m4
 
-SUBDIRS = nunn mnist mnist_test tictactoe perceptron_and
+SUBDIRS = nunn mnist mnist_test tictactoe perceptron_and xorfunc
 
 EXTRA_DIST= \
    ocr_test \

@@ -122,7 +122,8 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libnunn_la_LIBADD =
-am_libnunn_la_OBJECTS = nu_mlpnn.lo nu_perceptron.lo
+am_libnunn_la_OBJECTS = nu_costfuncs.lo nu_mlpnn.lo nu_rmlpnn.lo \
+	nu_perceptron.lo
 libnunn_la_OBJECTS = $(am_libnunn_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
@@ -265,17 +266,17 @@ OTOOL64 =
 PACKAGE = nunn
 PACKAGE_BUGREPORT = acaldmail@gmail.com
 PACKAGE_NAME = nunn
-PACKAGE_STRING = nunn 1.50
+PACKAGE_STRING = nunn 1.51
 PACKAGE_TARNAME = nunn
 PACKAGE_URL = 
-PACKAGE_VERSION = 1.50
+PACKAGE_VERSION = 1.51
 PATH_SEPARATOR = :
 RANLIB = ranlib
 SED = /bin/sed
 SET_MAKE = 
 SHELL = /bin/bash
 STRIP = strip
-VERSION = 1.50
+VERSION = 1.51
 abs_builddir = /home/eantcal/github/nunn/nunn
 abs_srcdir = /home/eantcal/github/nunn/nunn
 abs_top_builddir = /home/eantcal/github/nunn
@@ -333,15 +334,21 @@ AM_CPPFLAGS =
 lib_LTLIBRARIES = libnunn.la
 libnunn_la_LDFLAGS = -version-info 1:0:0
 libnunn_la_SOURCES = \
+   nu_costfuncs.cc \
    nu_mlpnn.cc \
+   nu_rmlpnn.cc \
    nu_perceptron.cc \
-   nu_bpnn.h \
+   nu_costfuncs.h \
+   nu_xmlpnn.h \
    nu_mlpnn.h \
+   nu_rmlpnn.h \
    nu_sigmoid.h \
    nu_vector.h \
    nu_neuron.h \
+   nu_rneuron.h \
    nu_perceptron.h \
    nu_stepf.h \
+   nu_noexcept.h \
    nu_trainer.h 
 
 AM_CXXFLAGS = $(INTI_CFLAGS) -std=c++11 
@@ -424,8 +431,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+include ./$(DEPDIR)/nu_costfuncs.Plo
 include ./$(DEPDIR)/nu_mlpnn.Plo
 include ./$(DEPDIR)/nu_perceptron.Plo
+include ./$(DEPDIR)/nu_rmlpnn.Plo
 
 .cc.o:
 	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

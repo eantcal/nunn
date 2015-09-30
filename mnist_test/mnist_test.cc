@@ -568,7 +568,7 @@ int main(int argc, char* argv[])
          ss << nf.rdbuf();
          nf.close();
 
-         net = std::make_unique<neural_net_t>();
+         net = std::unique_ptr<neural_net_t>(new neural_net_t);
          if ( net )
             net->load(ss);
       }

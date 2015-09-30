@@ -85,9 +85,6 @@ int main(int argc, char* argv[])
       };
 
 
-      // This is the bipolar-xor function used for the training
-      auto xor = [](int a, int b) { return a ^ b; };
-
       nu::rmlp_nn_trainer_t trainer(
          nn, 
          20000,  // Max number of epochs
@@ -108,7 +105,7 @@ int main(int argc, char* argv[])
          for ( int b = 0; b < 2; ++b )
          {
             const std::vector<double> v{ double(a), double(b) };
-            const std::vector<double> t{ double(xor(a, b)) };
+            const std::vector<double> t{ double(a ^ b) };
             traing_set.insert(std::make_pair(v, t));
          }
       }
@@ -155,7 +152,7 @@ int main(int argc, char* argv[])
             std::cout
                << a << " xor " << b << " = " << net_res << std::endl;
 
-            auto xor_res = xor(a, b);
+            auto xor_res = a ^ b;
 
             // In case you play with configuration parameters 
             // and break the code :-)
