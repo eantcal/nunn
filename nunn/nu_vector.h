@@ -50,7 +50,7 @@ class vector_t
 {
 public:
    using item_t = T;
-   using vr_t = std::vector < item_t > ;
+   using vr_t = std::vector < item_t >;
 
    using iterator = typename vr_t::iterator;
    using const_iterator = typename vr_t::const_iterator;
@@ -72,16 +72,16 @@ public:
 
    vector_t& operator=(const vector_t&) = default;
 
-   vector_t& operator=( const T& value )
+   vector_t& operator=(const T& value)
    {
-      if ( !_v.empty() )
+      if (!_v.empty())
          std::fill(_v.begin(), _v.end(), value);
 
       return *this;
    }
 
    vector_t(const std::initializer_list<T> l) NU_NOEXCEPT :
-      _v(l) {}
+   _v(l) {}
 
    vector_t(vector_t&& other) NU_NOEXCEPT :
       _v(std::move(other._v)) {}
@@ -98,7 +98,7 @@ public:
       : _v(size, v) {}
 
    vector_t(const vr_t& v) NU_NOEXCEPT
-      : _v(v){}
+      : _v(v) {}
 
 
    size_t size() const NU_NOEXCEPT
@@ -162,16 +162,16 @@ public:
 
    size_t max_item_index() NU_NOEXCEPT
    {
-      if ( empty() )
+      if (empty())
          return size_t(-1);
-      
+
       item_t max = _v[0];
 
       size_t idx = 1;
       size_t max_idx = 0;
 
-      for (; idx<size(); ++idx )
-         if ( max < _v[idx] )
+      for (; idx < size(); ++idx)
+         if (max < _v[idx])
          {
             max_idx = idx;
             max = _v[idx];
@@ -199,7 +199,7 @@ public:
 
    const vector_t& apply(const std::function<T(T)> & f)
    {
-      for ( auto & i : _v )
+      for (auto & i : _v)
          i = f(i);
 
       return *this;
@@ -227,7 +227,7 @@ public:
    T sum() const NU_NOEXCEPT
    {
       T res = T(0);
-      for ( auto & i : _v )
+      for (auto & i : _v)
          res += i;
 
       return res;
@@ -334,7 +334,7 @@ public:
    {
       ss << v.size() << std::endl;
 
-      for ( auto i = v.cbegin(); i != v.cend(); ++i )
+      for (auto i = v.cbegin(); i != v.cend(); ++i)
          ss << *i << std::endl;
 
       return ss;
@@ -359,7 +359,7 @@ public:
    {
       os << "[ ";
 
-      for (auto i = v.cbegin(); i!=v.cend();++i)
+      for (auto i = v.cbegin(); i != v.cend(); ++i)
          os << *i << " ";
 
       os << " ]";
@@ -368,7 +368,7 @@ public:
    }
 
 
-   friend vector_t operator +( const vector_t& v1, const vector_t& v2 )
+   friend vector_t operator +(const vector_t& v1, const vector_t& v2)
    {
       auto vr = v1;
       vr += v2;
@@ -376,7 +376,7 @@ public:
    }
 
 
-   friend vector_t operator -( const vector_t& v1, const vector_t& v2 )
+   friend vector_t operator -(const vector_t& v1, const vector_t& v2)
    {
       auto vr = v1;
       vr -= v2;
@@ -388,7 +388,7 @@ public:
    {
       item_t res = 0.0;
 
-      for ( size_t i = 0; i < _v.size(); ++i )
+      for (size_t i = 0; i < _v.size(); ++i)
          res += _v[i] * _v[i];
 
       return res;

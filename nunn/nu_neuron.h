@@ -51,8 +51,8 @@ struct neuron_t
    T output = T(0);
    T error = T(0);
 
-   friend std::stringstream& 
-   operator<<( std::stringstream& ss, const neuron_t<T>& n )
+   friend std::stringstream&
+      operator<<(std::stringstream& ss, const neuron_t<T>& n)
    {
       ss << n.bias << std::endl;
       ss << n.weights << std::endl;
@@ -61,8 +61,8 @@ struct neuron_t
       return ss;
    }
 
-   friend std::stringstream& 
-   operator>>( std::stringstream& ss, neuron_t<T>& n )
+   friend std::stringstream&
+      operator>>(std::stringstream& ss, neuron_t<T>& n)
    {
       ss >> n.bias;
       ss >> n.weights;
@@ -70,7 +70,7 @@ struct neuron_t
 
       return ss;
    }
-   
+
    void resize(size_t size)
    {
       weights.resize(size);

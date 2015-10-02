@@ -28,20 +28,20 @@
  * A typical example of non-linearly separable function is the XOR.
  * Implementing the XOR function is a classic problem in neural networks.
  *
- * This function takes two input arguments with values in [0,1] 
+ * This function takes two input arguments with values in [0,1]
  * and returns one output in [0,1], as specified in the following table:
  *
- *  x1 x2 |  y   
+ *  x1 x2 |  y
  * ---+---+----
  *  0 | 0 |  0
  *  0 | 1 |  1
  *  1 | 0 |  1
  *  1 | 1 |  0
  *
- * XOR computes the logical exclusive-or, which yields 1 if and 
+ * XOR computes the logical exclusive-or, which yields 1 if and
  * only if the two inputs have different values.
  *
- * So, this classification can not be solved with linear separation, 
+ * So, this classification can not be solved with linear separation,
  * but is very easy for an MLP to generate a non-linear solution to.
  *
  */
@@ -86,10 +86,10 @@ int main(int argc, char* argv[])
 
 
       nu::rmlp_nn_trainer_t trainer(
-         nn, 
+         nn,
          20000,  // Max number of epochs
          0.01   // Min error 
-      );
+         );
 
       std::cout
          << "XOR training start ( Max epochs count=" << trainer.get_epochs()
@@ -100,9 +100,9 @@ int main(int argc, char* argv[])
       using training_set_t = std::map< std::vector<double>, std::vector<double> >;
       training_set_t traing_set;
 
-      for ( int a = 0; a < 2; ++a )
+      for (int a = 0; a < 2; ++a)
       {
-         for ( int b = 0; b < 2; ++b )
+         for (int b = 0; b < 2; ++b)
          {
             const std::vector<double> v{ double(a), double(b) };
             const std::vector<double> t{ double(a ^ b) };
@@ -112,18 +112,18 @@ int main(int argc, char* argv[])
 
       // Train the net
       trainer.train<training_set_t>(
-         traing_set, 
+         traing_set,
          [](
             nu::rmlp_neural_net_t& net,
             const nu::rmlp_neural_net_t::rvector_t & target) -> double
-            { 
-               static size_t i = 0;
+         {
+            static size_t i = 0;
 
-               if (i++ % 200 == 0 )
-                  std::cout << ">";
+            if (i++ % 200 == 0)
+               std::cout << ">";
 
-               return net.mean_squared_error(target); 
-            }
+            return net.mean_squared_error(target);
+         }
       );
 
       // Perform final XOR test
@@ -131,9 +131,9 @@ int main(int argc, char* argv[])
 
       std::cout << " XOR Test " << std::endl;
 
-      for ( int a = 0; a < 2; ++a )
+      for (int a = 0; a < 2; ++a)
       {
-         for ( int b = 0; b < 2; ++b )
+         for (int b = 0; b < 2; ++b)
          {
             vect_t output_vec{ 0.0 };
             vect_t input_vec{ double(a), double(b) };
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
             // In case you play with configuration parameters 
             // and break the code :-)
 
-            if ( xor_res != net_res )
+            if (xor_res != net_res)
             {
                std::cerr
                   << "ERROR!: xor(" << a << "," << b << ") !="
@@ -173,20 +173,20 @@ int main(int argc, char* argv[])
 
       std::cout << "Test completed successfully" << std::endl;
    }
-   catch ( nu::rmlp_neural_net_t::exception_t & e )
+   catch (nu::rmlp_neural_net_t::exception_t & e)
    {
-      std::cerr 
+      std::cerr
          << "nu::mlp_neural_net_t::exception_t n# " << int(e) << std::endl;
-      
+
       std::cerr
          << "Check for configuration parameters and retry" << std::endl;
 
       return 1;
    }
-   catch ( ... )
+   catch (...)
    {
       std::cerr
-         << "Fatal error. Check for configuration parameters and retry" 
+         << "Fatal error. Check for configuration parameters and retry"
          << std::endl;
 
       return 1;

@@ -20,8 +20,8 @@
 */
 
 /*
-This is an implementation of a Artificial Recurrent Neural Network 
-which learns by example by using Back Propagation Through Time 
+This is an implementation of a Artificial Recurrent Neural Network
+which learns by example by using Back Propagation Through Time
 learning algorithm.
 
 You can give it examples of what you want the network to do and the algorithm
@@ -29,11 +29,11 @@ changes the network's weights. When training is finished, the net will give you
 the required output for a particular input.
 
 BPTT algorithm is s the natural extension of
-standard back-propagation used with MLP, which performs gradient descent 
+standard back-propagation used with MLP, which performs gradient descent
 on a complete unfolded network.
 
-The network training sequence starts at time t0 and ends at time t1, 
-the total cost function is simply the sum over time of the standard error 
+The network training sequence starts at time t0 and ends at time t1,
+the total cost function is simply the sum over time of the standard error
 function at each time-step
 */
 
@@ -72,7 +72,7 @@ public:
    static const char* ID_NEURON_LAYER;
    static const char* ID_TOPOLOGY;
    static const char* ID_INPUTS;
-   
+
    // Called for serializing network status
    const char* get_id_ann() const NU_NOEXCEPT override
    {
@@ -110,7 +110,7 @@ public:
       double momentum = 0.5,
       err_cost_t ec = err_cost_t::MSE);
 
-   
+
    //! copy-ctor
    rmlp_neural_net_t(const rmlp_neural_net_t& nn) = default;
 
@@ -122,34 +122,34 @@ public:
 
 
    //! copy-assignment operator
-   rmlp_neural_net_t& operator=( const rmlp_neural_net_t& nn ) = default;
+   rmlp_neural_net_t& operator=(const rmlp_neural_net_t& nn) = default;
 
 
    //! move-assignment operator
-   rmlp_neural_net_t& operator=( rmlp_neural_net_t&& nn )
+   rmlp_neural_net_t& operator=(rmlp_neural_net_t&& nn)
    {
-      super_t::operator=( std::move(nn) );
+      super_t::operator=(std::move(nn));
       return *this;
    }
 
 
 
    //! Build the net by using data of the given string stream
-   friend std::stringstream& operator>>(std::stringstream& ss, rmlp_neural_net_t& net )
+   friend std::stringstream& operator>>(std::stringstream& ss, rmlp_neural_net_t& net)
    {
       return net.load(ss);
    }
 
 
    //! Save net status into the given string stream
-   friend std::stringstream& operator<<(std::stringstream& ss, rmlp_neural_net_t& net )
+   friend std::stringstream& operator<<(std::stringstream& ss, rmlp_neural_net_t& net)
    {
       return net.save(ss);
    }
 
 
    //! Print the net state out to the given ostream
-   friend std::ostream& operator<<( std::ostream& os, rmlp_neural_net_t& net )
+   friend std::ostream& operator<<(std::ostream& os, rmlp_neural_net_t& net)
    {
       return net.dump(os);
    }
@@ -168,8 +168,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 //! The trainer class is a helper class for network training
-class rmlp_nn_trainer_t :
-   public nn_trainer_t<
+class rmlp_nn_trainer_t : public nn_trainer_t<
    rmlp_neural_net_t,
    rmlp_neural_net_t::rvector_t,
    rmlp_neural_net_t::rvector_t >

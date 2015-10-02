@@ -42,9 +42,9 @@ double cross_entropy(vector_t<double> output, const vector_t<double>& target)
 {
    auto log_output = output;
 
-   for ( auto & i : log_output )
-      if ( i == 0.0 )
-         i = 0.000001;
+   for (auto & i : log_output)
+      if (i == 0.0)
+         i = 0.00000001;
 
    log_output.log();
 
@@ -54,9 +54,9 @@ double cross_entropy(vector_t<double> output, const vector_t<double>& target)
    vector_t<double> log_inv_output(output.size(), 1.0);
    log_inv_output -= output;
 
-   for ( auto & i : log_inv_output )
-      if ( i == 0.0 )
-         i = 0.000001;
+   for (auto & i : log_inv_output)
+      if (i == 0.0)
+         i = 0.00000001;
 
    log_inv_output.log();
 

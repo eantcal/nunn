@@ -51,6 +51,9 @@
     <ClInclude Include="nu_costfuncs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nu_hopfieldnn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nu_mlpnn.cc">

@@ -65,9 +65,9 @@ public:
       {
       }
 
-      iterator& operator=( iterator & it ) NU_NOEXCEPT
+      iterator& operator=(iterator & it) NU_NOEXCEPT
       {
-         if ( &it != this )
+         if (&it != this)
          {
             _trainer = it._trainer;
             _epoch = it._epoch;
@@ -77,14 +77,14 @@ public:
       }
 
       iterator(iterator && it) NU_NOEXCEPT :
-         _trainer(std::move(it._trainer)),
+      _trainer(std::move(it._trainer)),
          _epoch(std::move(it._epoch))
       {
       }
 
-      iterator& operator=( iterator && it ) NU_NOEXCEPT
+      iterator& operator=(iterator && it) NU_NOEXCEPT
       {
-         if ( &it != this )
+         if (&it != this)
          {
             _trainer = std::move(it._trainer);
             _epoch = std::move(it._epoch);
@@ -98,39 +98,39 @@ public:
          return _epoch;
       }
 
-      type_t& operator*( ) const NU_NOEXCEPT
+      type_t& operator*() const NU_NOEXCEPT
       {
          return *_trainer;
       }
 
-      type_t* operator->( ) const NU_NOEXCEPT
+      type_t* operator->() const NU_NOEXCEPT
       {
          return _trainer;
       }
 
-      iterator operator++( ) NU_NOEXCEPT
+      iterator operator++() NU_NOEXCEPT
       {
          ++_epoch;
          return *this;
       }
 
-      iterator operator++( int ) NU_NOEXCEPT // post
+      iterator operator++(int) NU_NOEXCEPT // post
       {
          iterator ret = *this;
          ++_epoch;
          return ret;
       }
 
-      bool operator==( iterator & other ) const NU_NOEXCEPT
+      bool operator==(iterator & other) const NU_NOEXCEPT
       {
-         return ( 
-            _trainer == other._trainer && 
-            _epoch == other._epoch );
+         return (
+            _trainer == other._trainer &&
+            _epoch == other._epoch);
       }
 
-      bool operator!=( iterator & other ) const NU_NOEXCEPT
+      bool operator!=(iterator & other) const NU_NOEXCEPT
       {
-         return !this->operator==( other );
+         return !this->operator==(other);
       }
    };
 
@@ -179,8 +179,8 @@ public:
 
    //! Trains the net using a single sample
    bool train(
-      const Input& input, 
-      const Target& target, 
+      const Input& input,
+      const Target& target,
       cost_func_t err_cost_f)
    {
       _nn.set_inputs(input);
@@ -196,20 +196,20 @@ public:
    //! Trains the net using a training set of samples
    template <class TSet>
    size_t train(
-      const TSet& training_set, 
+      const TSet& training_set,
       cost_func_t err_cost_f,
       progress_cbk_t * progress_cbk = nullptr)
    {
       size_t epoch = 0;
 
-      for (; epoch < _epochs; ++epoch )
+      for (; epoch < _epochs; ++epoch)
       {
-         for ( const auto & sample : training_set )
+         for (const auto & sample : training_set)
          {
-            if ( progress_cbk )
-               ( *progress_cbk )( _nn, sample.first, sample.second, epoch );
+            if (progress_cbk)
+               (*progress_cbk)(_nn, sample.first, sample.second, epoch);
 
-            if ( train(sample.first, sample.second, err_cost_f) == true )
+            if (train(sample.first, sample.second, err_cost_f) == true)
                return epoch;
          }
       }
@@ -217,11 +217,11 @@ public:
       return epoch;
    }
 
-   protected:
-      Net & _nn;
-      size_t _epochs;
-      double _min_err;
-      double _err;
+protected:
+   Net & _nn;
+   size_t _epochs;
+   double _min_err;
+   double _err;
 
 };
 

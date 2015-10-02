@@ -47,8 +47,8 @@ struct rneuron_t : public neuron_t<T>
 {
    vector_t < T > delta_weights_tm1;
 
-   friend std::stringstream& 
-   operator<<( std::stringstream& ss, const rneuron_t<T>& n )
+   friend std::stringstream&
+      operator<<(std::stringstream& ss, const rneuron_t<T>& n)
    {
       const neuron_t<T>& bn = n;
       ss << bn;
@@ -57,8 +57,8 @@ struct rneuron_t : public neuron_t<T>
       return ss;
    }
 
-   friend std::stringstream& 
-   operator>>( std::stringstream& ss, rneuron_t<T>& n )
+   friend std::stringstream&
+      operator>>(std::stringstream& ss, rneuron_t<T>& n)
    {
       neuron_t<T>& bn = n;
       ss >> bn;

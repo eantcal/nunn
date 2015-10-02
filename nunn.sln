@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2013 for Windows Desktop
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nunn", "nunn\nunn.vcxproj", "{E44C4C52-77B2-4B16-80CF-6D66F59D468F}"
 EndProject
@@ -38,6 +38,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xorfunc", "xorfunc\xorfunc.
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "perceptron_and", "perceptron_and\perceptron_and.vcxproj", "{FD34AD60-F177-4396-A917-E7C4FF81D4BA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hopfield_test", "hopfield_test\hopfield_test.vcxproj", "{FB611738-A485-445A-88BD-9DCB3B94323B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 	EndProjectSection
@@ -236,6 +241,30 @@ Global
 		{FD34AD60-F177-4396-A917-E7C4FF81D4BA}.Release64|Win32.Build.0 = Release64|Win32
 		{FD34AD60-F177-4396-A917-E7C4FF81D4BA}.Release64|x64.ActiveCfg = Release64|x64
 		{FD34AD60-F177-4396-A917-E7C4FF81D4BA}.Release64|x64.Build.0 = Release64|x64
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug|Win32.Build.0 = Debug|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug|x64.ActiveCfg = Debug|x64
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug|x64.Build.0 = Debug|x64
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug64|Mixed Platforms.ActiveCfg = Debug64|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug64|Mixed Platforms.Build.0 = Debug64|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug64|Win32.ActiveCfg = Debug64|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug64|Win32.Build.0 = Debug64|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug64|x64.ActiveCfg = Debug64|x64
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Debug64|x64.Build.0 = Debug64|x64
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release|Win32.ActiveCfg = Release|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release|Win32.Build.0 = Release|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release|x64.ActiveCfg = Release|x64
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release|x64.Build.0 = Release|x64
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release64|Mixed Platforms.ActiveCfg = Release64|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release64|Mixed Platforms.Build.0 = Release64|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release64|Win32.ActiveCfg = Release64|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release64|Win32.Build.0 = Release64|Win32
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release64|x64.ActiveCfg = Release64|x64
+		{FB611738-A485-445A-88BD-9DCB3B94323B}.Release64|x64.Build.0 = Release64|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

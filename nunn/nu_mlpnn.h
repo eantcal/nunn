@@ -19,20 +19,20 @@
 *
 */
 
-/* 
+/*
   This is an implementation of a Artificial Neural Network which learns by example
   by using Back Propagation algorithm.
-  You can give it examples of what you want the network to do and the algorithm 
-  changes the network's weights. When training is finished, the net will give you 
+  You can give it examples of what you want the network to do and the algorithm
+  changes the network's weights. When training is finished, the net will give you
   the required output for a particular input.
 
   Back Propagation algorithm
   1) Initializes the net by setting up all its weights to be small random
-    numbers between -1 and +1. 
+    numbers between -1 and +1.
   2) Applies input and calculates the output (forward pass).
   3) Calculates the Error of each neuron which is essentially Target-Output
   4) Changes the weights in such a way that the Error will get smaller
-  
+
   Steps from 2 to 4 are repeated again and again until the Error is minimal
 */
 
@@ -71,7 +71,7 @@ public:
    static const char* ID_NEURON_LAYER;
    static const char* ID_TOPOLOGY;
    static const char* ID_INPUTS;
-   
+
    // Called for serializing network status
    const char* get_id_ann() const NU_NOEXCEPT override
    {
@@ -104,12 +104,12 @@ public:
 
    //! ctor
    mlp_neural_net_t(
-      const topology_t& topology, 
+      const topology_t& topology,
       double learning_rate = 0.1,
       double momentum = 0.5,
       err_cost_t ec = err_cost_t::MSE);
 
-   
+
    //! copy-ctor
    mlp_neural_net_t(const mlp_neural_net_t& nn) = default;
 
@@ -121,37 +121,37 @@ public:
 
 
    //! copy-assignment operator
-   mlp_neural_net_t& operator=( const mlp_neural_net_t& nn ) = default;
+   mlp_neural_net_t& operator=(const mlp_neural_net_t& nn) = default;
 
 
    //! move-assignment operator
-   mlp_neural_net_t& operator=( mlp_neural_net_t&& nn ) 
+   mlp_neural_net_t& operator=(mlp_neural_net_t&& nn)
    {
-      super_t::operator=( std::move(nn) );
+      super_t::operator=(std::move(nn));
       return *this;
    }
 
 
    //! Build the net by using data of the given string stream
-   friend std::stringstream& operator>>( 
-      std::stringstream& ss, 
-      mlp_neural_net_t& net )
+   friend std::stringstream& operator>>(
+      std::stringstream& ss,
+      mlp_neural_net_t& net)
    {
       return net.load(ss);
    }
 
 
    //! Save net status into the given string stream
-   friend std::stringstream& operator<<( 
-      std::stringstream& ss, 
-      mlp_neural_net_t& net )
+   friend std::stringstream& operator<<(
+      std::stringstream& ss,
+      mlp_neural_net_t& net)
    {
       return net.save(ss);
-   } 
+   }
 
 
    //! Print the net state out to the given ostream
-   friend std::ostream& operator<<( std::ostream& os, mlp_neural_net_t& net )
+   friend std::ostream& operator<<(std::ostream& os, mlp_neural_net_t& net)
    {
       return net.dump(os);
    }
@@ -169,11 +169,10 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 //! The trainer class is a helper class for network training
-class mlp_nn_trainer_t : 
-   public nn_trainer_t< 
-      mlp_neural_net_t, 
-      mlp_neural_net_t::rvector_t,
-      mlp_neural_net_t::rvector_t >
+class mlp_nn_trainer_t : public nn_trainer_t<
+   mlp_neural_net_t,
+   mlp_neural_net_t::rvector_t,
+   mlp_neural_net_t::rvector_t >
 {
 public:
 
@@ -182,9 +181,9 @@ public:
       size_t epochs,
       double min_err) :
       nn_trainer_t<
-         mlp_neural_net_t, 
-         mlp_neural_net_t::rvector_t,
-         mlp_neural_net_t::rvector_t>(nn, epochs, min_err)
+      mlp_neural_net_t,
+      mlp_neural_net_t::rvector_t,
+      mlp_neural_net_t::rvector_t>(nn, epochs, min_err)
    {}
 };
 

@@ -60,7 +60,7 @@ void perceptron_t::feed_forward()
    double sum = 0.0;
 
    // Sum of all the weights * input value
-   for ( size_t i = 0; i<_inputs.size(); ++i )
+   for (size_t i = 0; i < _inputs.size(); ++i)
       sum += _inputs[i] * _neuron.weights[i];
 
    sum += _neuron.bias;
@@ -75,7 +75,7 @@ void perceptron_t::back_propagate(const double & target, double & output)
 {
    // Calculate and get the outputs
    feed_forward();
-   
+
    output = get_output();
 
    // Apply back_propagate algo
@@ -86,13 +86,13 @@ void perceptron_t::back_propagate(const double & target, double & output)
 /* -------------------------------------------------------------------------- */
 
 void perceptron_t::_back_propagate(
-   const double & target, 
+   const double & target,
    const double & output)
 {
-   _neuron.error = ( target - output );
+   _neuron.error = (target - output);
    const double e = _learning_rate * _neuron.error;
 
-   for ( size_t i = 0; i<_inputs.size(); ++i )
+   for (size_t i = 0; i < _inputs.size(); ++i)
       _neuron.weights[i] += e * _inputs[i];
 
    _neuron.bias += e;
@@ -105,19 +105,19 @@ std::stringstream& perceptron_t::load(std::stringstream& ss)
 {
    std::string s;
    ss >> s;
-   if ( s != perceptron_t::ID_ANN )
+   if (s != perceptron_t::ID_ANN)
       throw exception_t::invalid_sstream_format;
 
    ss >> _learning_rate;
 
    ss >> s;
-   if ( s != perceptron_t::ID_INPUTS )
+   if (s != perceptron_t::ID_INPUTS)
       throw exception_t::invalid_sstream_format;
 
    ss >> _inputs;
 
    ss >> s;
-   if ( s != perceptron_t::ID_NEURON )
+   if (s != perceptron_t::ID_NEURON)
       throw exception_t::invalid_sstream_format;
 
    ss >> _neuron;
@@ -156,13 +156,13 @@ void perceptron_t::reshuffle_weights() NU_NOEXCEPT
 
    // Initialize all the network weights 
    // using random numbers within the range [-1,1]
-   for ( auto & w : _neuron.weights )
+   for (auto & w : _neuron.weights)
    {
       auto random_n = -1.0 + 2 * double(rand()) / double(RAND_MAX);
       w = random_n / weights_cnt;
    }
 
-   for ( auto & dw : _neuron.delta_weights )
+   for (auto & dw : _neuron.delta_weights)
       dw = 0;
 
    _neuron.bias = double(rand()) / double(RAND_MAX);
@@ -176,7 +176,7 @@ std::ostream& perceptron_t::dump(std::ostream& os)
 {
    os << "Perceptron " << std::endl;
 
-   for ( size_t in_idx = 0; in_idx < _neuron.weights.size(); ++in_idx )
+   for (size_t in_idx = 0; in_idx < _neuron.weights.size(); ++in_idx)
    {
       os << "\t\tInput  [" << in_idx << "] = "
          << _inputs[in_idx] << std::endl;

@@ -68,7 +68,7 @@ using neural_net_t = nu::rmlp_neural_net_t;
 
 /* -------------------------------------------------------------------------- */
 
-const size_t HIDDEN_LAYER_SIZE = 125; // neurons
+const size_t HIDDEN_LAYER_SIZE = 300; // neurons
 const size_t OUTPUT_LAYER_SIZE = 10;  // neurons
 const double NET_LEARING_RATE = 0.025;
 const double NET_MOMENTUM = 0.50;
@@ -84,8 +84,8 @@ const int TRAINING_EPOCH_NUMBER = 100;
 /* -------------------------------------------------------------------------- */
 
 static bool process_cl(
-   int argc, 
-   char* argv[], 
+   int argc,
+   char* argv[],
    std::string & files_path,
    std::string & load_file_name,
    std::string & save_file_name,
@@ -101,18 +101,18 @@ static bool process_cl(
 {
    int pidx = 1;
 
-   for ( ; pidx < argc; ++pidx )
+   for (; pidx < argc; ++pidx)
    {
       std::string arg = argv[pidx];
 
       if (
-         ( arg == "--help" || arg == "-h" ) )
+         (arg == "--help" || arg == "-h"))
       {
          return false;
       }
 
       if (
-         ( arg == "--version" || arg == "-v" ) )
+         (arg == "--version" || arg == "-v"))
       {
          std::cout
             << "nunnlib MNIST Test 1.01 (c) acaldmail@gmail.com"
@@ -121,14 +121,14 @@ static bool process_cl(
       }
 
       if (
-         ( arg == "--training_files_path" || arg == "-p" ) &&
-         ( pidx + 1 ) < argc )
+         (arg == "--training_files_path" || arg == "-p") &&
+         (pidx + 1) < argc)
       {
          files_path = argv[++pidx];
 
-         if ( !files_path.empty() )
+         if (!files_path.empty())
          {
-            if ( files_path.c_str()[files_path.size() - 1] != '/' )
+            if (files_path.c_str()[files_path.size() - 1] != '/')
                files_path += "/";
          }
 
@@ -136,32 +136,32 @@ static bool process_cl(
       }
 
       if (
-         ( arg == "--training_imgsfn" || arg == "-tri" ) &&
-         ( pidx + 1 ) < argc )
+         (arg == "--training_imgsfn" || arg == "-tri") &&
+         (pidx + 1) < argc)
       {
          TRAINING_IMAGES_FN = argv[++pidx];
          continue;
       }
 
       if (
-         ( arg == "--training_lblsfn" || arg == "-trl" ) &&
-         ( pidx + 1 ) < argc )
+         (arg == "--training_lblsfn" || arg == "-trl") &&
+         (pidx + 1) < argc)
       {
          TRAINING_LABELS_FN = argv[++pidx];
          continue;
       }
 
       if (
-         ( arg == "--test_imgsfn" || arg == "-ti" ) &&
-         ( pidx + 1 ) < argc )
+         (arg == "--test_imgsfn" || arg == "-ti") &&
+         (pidx + 1) < argc)
       {
          TEST_IMAGES_FN = argv[++pidx];
          continue;
       }
 
       if (
-         ( arg == "--test_lblsfn" || arg == "-tl" ) &&
-         ( pidx + 1 ) < argc )
+         (arg == "--test_lblsfn" || arg == "-tl") &&
+         (pidx + 1) < argc)
       {
          TEST_LABELS_FN = argv[++pidx];
          continue;
@@ -169,80 +169,80 @@ static bool process_cl(
 
 
       if (
-         ( arg == "--skip_training" || arg == "-n" ) )
+         (arg == "--skip_training" || arg == "-n"))
       {
          skip_training = true;
          continue;
       }
 
-      if ( ( arg == "--load" || arg == "-l" ) &&
-         ( pidx + 1 ) < argc )
+      if ((arg == "--load" || arg == "-l") &&
+         (pidx + 1) < argc)
       {
          load_file_name = argv[++pidx];
          continue;
       }
 
-      if ( ( arg == "--save" || arg == "-s" ) &&
-         ( pidx + 1 ) < argc )
+      if ((arg == "--save" || arg == "-s") &&
+         (pidx + 1) < argc)
       {
          save_file_name = argv[++pidx];
          continue;
       }
 
-      if ( ( arg == "--learning_rate" || arg == "-r" ) &&
-         ( pidx + 1 ) < argc )
+      if ((arg == "--learning_rate" || arg == "-r") &&
+         (pidx + 1) < argc)
       {
          try {
             learning_rate = std::stod(argv[++pidx]);
             change_lr = true;
          }
-         catch ( ... )
+         catch (...)
          {
             return false;
          }
          continue;
       }
 
-      if ( ( arg == "--momentun" || arg == "-m" ) &&
-         ( pidx + 1 ) < argc )
+      if ((arg == "--momentun" || arg == "-m") &&
+         (pidx + 1) < argc)
       {
          try {
             momentum = std::stod(argv[++pidx]);
             change_m = true;
          }
-         catch ( ... )
+         catch (...)
          {
             return false;
          }
          continue;
       }
 
-      if ( ( arg == "--use_cross_entropy" || arg == "-c" ))
+      if ((arg == "--use_cross_entropy" || arg == "-c"))
       {
          use_cross_entropy = true;
          continue;
       }
 
-      if ( ( arg == "--epoch_num" || arg == "-e" ) &&
-         ( pidx + 1 ) < argc )
+      if ((arg == "--epoch_num" || arg == "-e") &&
+         (pidx + 1) < argc)
       {
          try {
             epoch = std::stoi(argv[++pidx]);
          }
-         catch ( ... )
+         catch (...)
          {
             return false;
          }
          continue;
       }
 
-      if ( ( arg == "--hidden_layer" || arg == "-hl" ) &&
-         ( pidx + 1 ) < argc )
+      if ((arg == "--hidden_layer" || arg == "-hl") &&
+         (pidx + 1) < argc)
       {
          try {
             hidden_layer.push_back(std::stoi(argv[++pidx]));
          }
-         catch ( ... )
+         catch (...)
          {
             return false;
          }
@@ -261,7 +261,7 @@ static bool process_cl(
 static int get_y_pos()
 {
 #ifdef _WIN32
-   CONSOLE_SCREEN_BUFFER_INFO info = {0};
+   CONSOLE_SCREEN_BUFFER_INFO info = { 0 };
    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
 
    return info.dwCursorPosition.Y;
@@ -274,11 +274,11 @@ static int get_y_pos()
 
 static void locate(int x, int y = 0)
 {
-   if ( y == 0 )
+   if (y == 0)
       y = get_y_pos();
 
 #ifdef _WIN32
-   COORD c = { short(( x - 1 ) & 0xffff), short(( y - 1 ) & 0xffff) };
+   COORD c = { short((x - 1) & 0xffff), short((y - 1) & 0xffff) };
    ::SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
 #else
    printf("%c[%d;%df", 0x1B, y, x);
@@ -293,7 +293,7 @@ static void usage(const char* appname)
    std::cerr
       << "Usage:" << std::endl
       << appname << std::endl
-      << "\t[--version|-v] " << std::endl 
+      << "\t[--version|-v] " << std::endl
       << "\t[--help|-h] " << std::endl
       << "\t[--training_files_path|-p <path>] " << std::endl
       << "\t[--training_imgsfn|-tri <filename>] (default " << TRAINING_IMAGES_FN << ")" << std::endl
@@ -312,9 +312,9 @@ static void usage(const char* appname)
       << "Where:" << std::endl
       << "--version or -v " << std::endl
       << "\tshows the program version" << std::endl
-      << "--help or -h " << std::endl 
+      << "--help or -h " << std::endl
       << "\tgenerates just this 'Usage' text " << std::endl
-      << "--training_files_path or -p " << std::endl 
+      << "--training_files_path or -p " << std::endl
       << "\tset training/test files set path" << std::endl
       << "--training_imgsfn or -tri " << std::endl
       << "\tset training images file name" << std::endl
@@ -324,7 +324,7 @@ static void usage(const char* appname)
       << "\tset test images file name" << std::endl
       << "--test_lblsfn or -tl " << std::endl
       << "\tset test labels file name" << std::endl
-      << "--save or -s" << std::endl 
+      << "--save or -s" << std::endl
       << "\tsave net data to file" << std::endl
       << "--load or -l" << std::endl
       << "\tload net data from file" << std::endl
@@ -357,13 +357,13 @@ static double test_net(
    mean_square_error = 0.0;
    entropy_cost = 0.0;
 
-   for ( auto i = test_data.begin(); i != test_data.end(); ++i )
+   for (auto i = test_data.begin(); i != test_data.end(); ++i)
    {
       nu::vector_t<double> inputs;
-      ( *i )->to_vect(inputs);
+      (*i)->to_vect(inputs);
 
       nu::vector_t<double> target;
-      ( *i )->label_to_target(target);
+      (*i)->label_to_target(target);
 
       net->set_inputs(inputs);
       net->feed_forward();
@@ -371,20 +371,20 @@ static double test_net(
       nu::vector_t<double> outputs;
       net->get_outputs(outputs);
 
-      mean_square_error += 
+      mean_square_error +=
          nu::cf::mean_squared_error(outputs, target);
 
       entropy_cost +=
          nu::cf::cross_entropy(outputs, target);
 
-      if ( ( *i )->get_label() != outputs.max_item_index() )
+      if ((*i)->get_label() != outputs.max_item_index())
          ++err_cnt;
 
       ++cnt;
 
 #ifdef _WIN32
-      if ( ( cnt % 100 ) == 0 )
-         ( *i )->paint(0, 0);
+      if ((cnt % 100) == 0)
+         (*i)->paint(0, 0);
 #endif
 
    }
@@ -393,7 +393,7 @@ static double test_net(
    entropy_cost /= cnt;
 
    double err_rate = double(err_cnt) / double(cnt);
-   
+
    return err_rate;
 }
 
@@ -404,13 +404,13 @@ bool save_the_net(const std::string& filename, neural_net_t & net)
 {
    // Save the net status if needed //
 
-   if ( !filename.empty() )
+   if (!filename.empty())
    {
       std::stringstream ss;
       ss << net;
 
       std::ofstream nf(filename);
-      if ( nf.is_open() )
+      if (nf.is_open())
       {
          nf << ss.str() << std::endl;
          nf.close();
@@ -447,13 +447,13 @@ int main(int argc, char* argv[])
    bool change_lr = false;
    bool change_m = false;
 
-   if ( argc > 1 )
+   if (argc > 1)
    {
-      if ( !process_cl(
-         argc, argv, 
-         files_path, 
-         load_file_name, 
-         save_file_name, 
+      if (!process_cl(
+         argc, argv,
+         files_path,
+         load_file_name,
+         save_file_name,
          skip_training,
          learning_rate,
          change_lr,
@@ -461,7 +461,7 @@ int main(int argc, char* argv[])
          change_m,
          epoch_cnt,
          hidden_layer,
-         use_ce) )
+         use_ce))
       {
          usage(argv[0]);
          return 1;
@@ -469,26 +469,26 @@ int main(int argc, char* argv[])
 
    }
 
-   if ( hidden_layer.empty() )
+   if (hidden_layer.empty())
       hidden_layer.push_back(HIDDEN_LAYER_SIZE);
 
 #ifdef _WIN32
    ::system("cls");
 #else
    int dummy = ::system("clear");
-   (void) dummy;
+   (void)dummy;
 #endif
 
    std::cout << std::endl << std::endl << std::endl << std::endl << std::endl;
 
    int hl_cnt = 0;
-   for ( const auto & hl : hidden_layer )
+   for (const auto & hl : hidden_layer)
    {
       std::cout
-         << "NN hidden neurons L" 
+         << "NN hidden neurons L"
          << hl_cnt + 1;
 
-      std::cout 
+      std::cout
          << "       : "
          << hidden_layer[hl_cnt++] << std::endl;
    }
@@ -500,7 +500,7 @@ int main(int argc, char* argv[])
       << "Net Momentum       ( M )   : " << momentum << std::endl;
 
 
-   try 
+   try
    {
       const std::string training_labels_fn = files_path + TRAINING_LABELS_FN;
       const std::string training_images_fn = files_path + TRAINING_IMAGES_FN;
@@ -523,7 +523,7 @@ int main(int argc, char* argv[])
       const auto & test_data = test_set.data();
 
 
-      if ( !skip_training )
+      if (!skip_training)
       {
          // Start Training ... //
 
@@ -543,23 +543,23 @@ int main(int argc, char* argv[])
 
          // Set up the topology
          neural_net_t::topology_t topology;
-         
+
          topology.push_back(input_size);
 
-         for ( auto hl : hidden_layer )
+         for (auto hl : hidden_layer)
             topology.push_back(hl);
 
          topology.push_back(OUTPUT_LAYER_SIZE);
 
-         net = std::unique_ptr<neural_net_t> (
+         net = std::unique_ptr<neural_net_t>(
             new neural_net_t(topology, learning_rate, momentum));
       }
 
-      if ( !load_file_name.empty() )
+      if (!load_file_name.empty())
       {
          std::ifstream nf(load_file_name);
          std::stringstream ss;
-         if ( !nf.is_open() )
+         if (!nf.is_open())
          {
             std::cerr << "Cannot open '" << load_file_name << "'" << std::endl;
             return 1;
@@ -569,47 +569,47 @@ int main(int argc, char* argv[])
          nf.close();
 
          net = std::unique_ptr<neural_net_t>(new neural_net_t);
-         if ( net )
+         if (net)
             net->load(ss);
       }
-      
-      if ( net == nullptr )
+
+      if (net == nullptr)
       {
-         std::cerr 
-            << "Error: net not initialized... change parameters and retry" 
+         std::cerr
+            << "Error: net not initialized... change parameters and retry"
             << std::endl;
          return 1;
       }
 
-      if ( change_lr )
+      if (change_lr)
          net->set_learning_rate(learning_rate);
 
-      if ( change_m )
+      if (change_m)
          net->set_momentum(momentum);
 
 
       size_t cnt = 0;
-      
+
       const int max_epoch_number = epoch_cnt;
       double best_performance = 100.0;
       int best_epoch = 0;
 
 
-      if ( !skip_training )
+      if (!skip_training)
       {
          std::cout << std::endl;
 
-         for ( int epoch = 0; epoch < max_epoch_number; ++epoch )
+         for (int epoch = 0; epoch < max_epoch_number; ++epoch)
          {
             locate(1);
-         
+
             double mean_squared_error = 0.0;
             double cross_entropy = 0.0;
-            
+
             std::cout
                << "Learning epoch " << epoch + 1
-               << " of " << max_epoch_number 
-               << " ( LR = " << net->get_learning_rate() 
+               << " of " << max_epoch_number
+               << " ( LR = " << net->get_learning_rate()
                << ", M = " << net->get_momentum() << " )"
                << std::endl
                << std::endl;
@@ -620,17 +620,17 @@ int main(int argc, char* argv[])
 
             net->select_error_cost_function(
                use_ce ?
-                  neural_net_t::err_cost_t::CROSSENTROPY :
-                  neural_net_t::err_cost_t::MSE);
+               neural_net_t::err_cost_t::CROSSENTROPY :
+               neural_net_t::err_cost_t::MSE);
 
-            for ( auto i = data.begin(); i != data.end(); ++i )
+            for (auto i = data.begin(); i != data.end(); ++i)
             {
                nu::vector_t<double> inputs;
 
-               ( *i )->to_vect(inputs);
+               (*i)->to_vect(inputs);
 
                nu::vector_t<double> target;
-               ( *i )->label_to_target(target);
+               (*i)->label_to_target(target);
 
                net->set_inputs(inputs);
                net->back_propagate(target);
@@ -638,24 +638,24 @@ int main(int argc, char* argv[])
                ++cnt;
 
                // Use cnt to show progress
-               if ( cnt % 120 == 0 )
+               if (cnt % 120 == 0)
                {
                   locate(1);
                   std::cout
-                     << "Completed " << ( double(cnt) / data.size() )*100.0
+                     << "Completed " << (double(cnt) / data.size())*100.0
                      << "%   " << std::endl;
 
 #ifdef _WIN32
-                  if ( cnt % 600 )
-                     ( *i )->paint(0, 0);
+                  if (cnt % 600)
+                     (*i)->paint(0, 0);
 #endif
                }
             }
 
-            auto err_rate = 
+            auto err_rate =
                test_net(net, test_data, mean_squared_error, cross_entropy);
 
-            std::cout << "Error rate   : " 
+            std::cout << "Error rate   : "
                << err_rate * 100.0 << "%     " << std::endl;
 
             std::cout << "MS Error rate: "
@@ -664,50 +664,50 @@ int main(int argc, char* argv[])
             std::cout << "Cross entropy: "
                << cross_entropy * 100.0 << "%     " << std::endl;
 
-            std::cout << "Success rate : " 
-               << ( 1.0 - err_rate ) * 100.0 << "%    " << std::endl;
+            std::cout << "Success rate : "
+               << (1.0 - err_rate) * 100.0 << "%    " << std::endl;
 
 
-            if ( err_rate < best_performance )
+            if (err_rate < best_performance)
             {
                best_performance = err_rate;
                best_epoch = epoch;
                save_the_net(save_file_name, *net);
             }
 
-            std::cout << "BER          : " 
+            std::cout << "BER          : "
                << best_performance * 100.0 << "%    " << std::endl;
-            std::cout << "Epoch BER    : " 
+            std::cout << "Epoch BER    : "
                << best_epoch + 1 << "    " << std::endl << std::endl;
          }
       }
 
    }
-   catch ( training_data_t::exception_t e )
+   catch (training_data_t::exception_t e)
    {
-      switch ( e )
+      switch (e)
       {
-         case training_data_t::exception_t::imgs_file_not_found:
-            std::cerr << "Images file not found";
-            break;
-         case training_data_t::exception_t::imgs_file_read_error:
-            std::cerr << "Error reading images file";
-            break;
-         case training_data_t::exception_t::lbls_file_not_found:
-            std::cerr << "Labels file not found";
-            break;
-         case training_data_t::exception_t::lbls_file_read_error:
-            std::cerr << "Error reading labels file";
-            break;
-         case training_data_t::exception_t::imgs_file_wrong_magic:
-            std::cerr << "Cannot recognize images file";
-            break;
-         case training_data_t::exception_t::lbls_file_wrong_magic:
-            std::cerr << "Cannot recognize labels file";
-            break;
-         case training_data_t::exception_t::n_of_items_mismatch:
-            std::cerr << "Images and labels count mismatch";
-            break;
+      case training_data_t::exception_t::imgs_file_not_found:
+         std::cerr << "Images file not found";
+         break;
+      case training_data_t::exception_t::imgs_file_read_error:
+         std::cerr << "Error reading images file";
+         break;
+      case training_data_t::exception_t::lbls_file_not_found:
+         std::cerr << "Labels file not found";
+         break;
+      case training_data_t::exception_t::lbls_file_read_error:
+         std::cerr << "Error reading labels file";
+         break;
+      case training_data_t::exception_t::imgs_file_wrong_magic:
+         std::cerr << "Cannot recognize images file";
+         break;
+      case training_data_t::exception_t::lbls_file_wrong_magic:
+         std::cerr << "Cannot recognize labels file";
+         break;
+      case training_data_t::exception_t::n_of_items_mismatch:
+         std::cerr << "Images and labels count mismatch";
+         break;
       }
 
       std::cerr << std::endl << "Error Code " << int(e) << std::endl;

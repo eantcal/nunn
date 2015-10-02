@@ -224,6 +224,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="nu_costfuncs.h" />
+    <ClInclude Include="nu_hopfieldnn.h" />
     <ClInclude Include="nu_mlpnn.h" />
     <ClInclude Include="nu_neuron.h" />
     <ClInclude Include="nu_noexcept.h" />

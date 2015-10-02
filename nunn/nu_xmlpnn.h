@@ -57,14 +57,16 @@ template <class Neuron >
 class xmlp_neural_net_t
 {
 public:
-   using rvector_t = vector_t < double > ;
+   using rvector_t = vector_t < double >;
 
-   using errv_func_t = 
-      std::function< 
-         void(const rvector_t& /* target */, 
-              const rvector_t& /* output */, 
-              rvector_t&       /* result */) >;
-     
+   using errv_func_t =
+      std::function<
+      void(const rvector_t& /* target */,
+         const rvector_t&   /* output */,
+         rvector_t&         /* result */) >;
+
+   using cost_func_t = std::function<cf::costfunc_t>;
+
 
 protected:
    using actfunc_t = sigmoid_t;
@@ -72,22 +74,26 @@ protected:
    //! This class represents a neuron layer of a neural net.
    using neuron_layer_t = std::vector < Neuron >;
 
+   cost_func_t _userdef_costf = nullptr;
+
 public:
-   using topology_t = vector_t < size_t > ;
+   using topology_t = vector_t < size_t >;
 
    enum class err_cost_t
    {
       MSE,          //! mean square error cost function
-      CROSSENTROPY  //! cross entropy cost function
+      CROSSENTROPY, //! cross entropy cost function
+      USERDEF
    };
 
 
    enum class exception_t
    {
       size_mismatch,
-      invalid_sstream_format
+      invalid_sstream_format,
+      userdef_costf_not_defined
    };
-   
+
 
    // Called for serializing network status
    virtual const char* get_id_ann() const NU_NOEXCEPT = 0;
@@ -95,7 +101,7 @@ public:
    virtual const char* get_id_neuron_layer() const NU_NOEXCEPT = 0;
    virtual const char* get_id_topology() const NU_NOEXCEPT = 0;
    virtual const char* get_id_inputs() const NU_NOEXCEPT = 0;
-   
+
 
    //! default ctor
    xmlp_neural_net_t() = default;
@@ -132,13 +138,13 @@ public:
 
 
    //! copy-assignment operator
-   xmlp_neural_net_t& operator=( const xmlp_neural_net_t<Neuron>& nn ) = default;
+   xmlp_neural_net_t& operator=(const xmlp_neural_net_t<Neuron>& nn) = default;
 
 
    //! move-assignment operator
-   xmlp_neural_net_t& operator=( xmlp_neural_net_t<Neuron>&& nn )
+   xmlp_neural_net_t& operator=(xmlp_neural_net_t<Neuron>&& nn)
    {
-      if ( this != &nn )
+      if (this != &nn)
       {
          _topology = std::move(nn._topology);
          _learning_rate = std::move(nn._learning_rate);
@@ -150,12 +156,21 @@ public:
 
       return *this;
    }
-   
+
 
    //! Selects the error cost function
    void select_error_cost_function(err_cost_t ec) NU_NOEXCEPT
    {
       _err_cost_selector = ec;
+   }
+   
+
+   //! Set a user defined cost function, selector is automatically  
+   //! set to err_cost_t::USERDEF;
+   void set_error_cost_function(cost_func_t cf) NU_NOEXCEPT
+   {
+      _err_cost_selector = err_cost_t::USERDEF;
+      _userdef_costf = cf;
    }
 
 
@@ -165,7 +180,7 @@ public:
       return _err_cost_selector;
    }
 
-   
+
    //! Returns the number of inputs 
    size_t get_inputs_count() const NU_NOEXCEPT
    {
@@ -176,12 +191,12 @@ public:
    //! Returns the number of outputs 
    size_t get_outputs_count() const NU_NOEXCEPT
    {
-      if ( _topology.empty() )
+      if (_topology.empty())
          return 0;
 
-      return _topology[_topology.size()-1];
+      return _topology[_topology.size() - 1];
    }
-   
+
 
    //! Returns a const reference to topology vector
    const topology_t& get_topology() const NU_NOEXCEPT
@@ -242,7 +257,7 @@ public:
       outputs.resize(last_layer.size());
 
       size_t idx = 0;
-      for ( const auto & neuron : last_layer )
+      for (const auto & neuron : last_layer)
          outputs[idx++] = neuron.output;
    }
 
@@ -251,14 +266,14 @@ public:
    void feed_forward()
    {
       // For each layer (excluding input one) of neurons do...
-      for ( size_t layer_idx = 0; layer_idx < _neuron_layers.size(); ++layer_idx )
+      for (size_t layer_idx = 0; layer_idx < _neuron_layers.size(); ++layer_idx)
       {
          auto & neuron_layer = _neuron_layers[layer_idx];
 
          const auto & size = neuron_layer.size();
 
          // Fire all neurons of this hidden / output layer
-         for ( size_t out_idx = 0; out_idx < size; ++out_idx )
+         for (size_t out_idx = 0; out_idx < size; ++out_idx)
             _fire_neuron(neuron_layer, layer_idx, out_idx);
       }
    }
@@ -275,20 +290,20 @@ public:
       // Apply back_propagate algo
       _back_propagate(target_v, output_v);
    }
-   
+
 
    //! Fire all neurons of the net and calculate the outputs
    //! and then apply the Back Propagation Algorithm to the net
    virtual void back_propagate(const rvector_t & target_v)
    {
-	   rvector_t output_v;
+      rvector_t output_v;
 
-	   // Calculate and get the outputs
-	   feed_forward();
-	   get_outputs(output_v);
+      // Calculate and get the outputs
+      feed_forward();
+      get_outputs(output_v);
 
-	   // Apply back_propagate algo
-	   _back_propagate(target_v, output_v);
+      // Apply back_propagate algo
+      _back_propagate(target_v, output_v);
    }
 
 
@@ -297,36 +312,36 @@ public:
    {
       std::string s;
       ss >> s;
-      if ( s != get_id_ann() )
+      if (s != get_id_ann())
          throw exception_t::invalid_sstream_format;
 
       ss >> _learning_rate;
       ss >> _momentum;
 
       ss >> s;
-      if ( s != get_id_inputs() )
+      if (s != get_id_inputs())
          throw exception_t::invalid_sstream_format;
 
       ss >> _inputs;
 
       ss >> s;
-      if ( s != get_id_topology() )
+      if (s != get_id_topology())
          throw exception_t::invalid_sstream_format;
 
       ss >> _topology;
 
       _build(_topology, _neuron_layers, _inputs);
 
-      for ( auto & nl : _neuron_layers )
+      for (auto & nl : _neuron_layers)
       {
          ss >> s;
-         if ( s != get_id_neuron_layer() )
+         if (s != get_id_neuron_layer())
             throw exception_t::invalid_sstream_format;
 
-         for ( auto & neuron : nl )
+         for (auto & neuron : nl)
          {
             ss >> s;
-            if ( s != get_id_neuron() )
+            if (s != get_id_neuron())
                throw exception_t::invalid_sstream_format;
 
             ss >> neuron;
@@ -336,7 +351,7 @@ public:
       return ss;
    }
 
-   
+
    //! Save net status into the given string stream
    virtual std::stringstream& save(std::stringstream& ss)
    {
@@ -353,11 +368,11 @@ public:
       ss << get_id_topology() << std::endl;
       ss << _topology << std::endl;
 
-      for ( auto & nl : _neuron_layers )
+      for (auto & nl : _neuron_layers)
       {
          ss << get_id_neuron_layer() << std::endl;
 
-         for ( auto & neuron : nl )
+         for (auto & neuron : nl)
          {
             ss << get_id_neuron() << std::endl;
             ss << neuron << std::endl;
@@ -373,25 +388,25 @@ public:
    {
       os << "Net Inputs" << std::endl;
       size_t idx = 0;
-      for ( const auto & val : _inputs )
+      for (const auto & val : _inputs)
          os << "\t[" << idx++ << "] = " << val << std::endl;
 
       size_t layer_idx = 0;
 
-      for ( const auto & layer : _neuron_layers )
+      for (const auto & layer : _neuron_layers)
       {
          os << "\nNeuron layer " << layer_idx
             << " "
-            << ( layer_idx >= ( _topology.size() - 2 ) ? "Output" : "Hidden" )
+            << (layer_idx >= (_topology.size() - 2) ? "Output" : "Hidden")
             << std::endl;
 
          size_t neuron_idx = 0;
 
-         for ( const auto & neuron : layer )
+         for (const auto & neuron : layer)
          {
             os << "\tNeuron " << neuron_idx++ << std::endl;
 
-            for ( size_t in_idx = 0; in_idx < neuron.weights.size(); ++in_idx )
+            for (size_t in_idx = 0; in_idx < neuron.weights.size(); ++in_idx)
             {
                os << "\t\tInput  [" << in_idx << "] = "
                   << _get_input(layer_idx, in_idx) << std::endl;
@@ -438,14 +453,23 @@ public:
    //! Calculate error cost
    virtual double calc_error_cost(const rvector_t& target)
    {
-      switch ( _err_cost_selector )
-      {
-         case err_cost_t::CROSSENTROPY:
-            return cross_entropy(target);
+      rvector_t output;
+      get_outputs(output);
 
-         case err_cost_t::MSE:
-         default:
-            return mean_squared_error(target);
+      switch (_err_cost_selector)
+      {
+      case err_cost_t::USERDEF:
+         if (!_userdef_costf)
+            throw exception_t::userdef_costf_not_defined;
+
+         return _userdef_costf(output,target);
+
+      case err_cost_t::CROSSENTROPY:
+         return cf::cross_entropy(output,target);
+
+      case err_cost_t::MSE:
+      default:
+         return cf::mean_squared_error(output,target);
       }
    }
 
@@ -453,14 +477,14 @@ public:
    //! Return error vector function
    virtual errv_func_t get_errv_func()
    {
-      switch ( _err_cost_selector )
+      switch (_err_cost_selector)
       {
-         case err_cost_t::CROSSENTROPY:
-            return _calc_xentropy_err_v;
+      case err_cost_t::CROSSENTROPY:
+         return _calc_xentropy_err_v;
 
-         case err_cost_t::MSE:
-         default:
-            return _calc_mse_err_v;
+      case err_cost_t::MSE:
+      default:
+         return _calc_mse_err_v;
       }
    }
 
@@ -491,20 +515,20 @@ protected:
 
       // Sum of all the weights * input value
       size_t idx = 0;
-      for ( const auto & wi : neuron.weights )
+      for (const auto & wi : neuron.weights)
          sum += _get_input(layer_idx, idx++) * wi;
 
       sum += neuron.bias;
 
-      neuron.output = actfunc_t()( sum );
+      neuron.output = actfunc_t()(sum);
    }
 
 
    virtual void _update_neuron_weights(Neuron&, size_t) = 0;
-   
+
 
    virtual void _back_propagate(
-      const rvector_t & target_v, 
+      const rvector_t & target_v,
       const rvector_t & output_v)
    {
       // -------- Calculate error for output neurons --------------------------
@@ -518,7 +542,7 @@ protected:
 
       // Copy error values into the output neurons
       size_t i = 0;
-      for ( auto & neuron : *_neuron_layers.rbegin() )
+      for (auto & neuron : *_neuron_layers.rbegin())
          neuron.error = error_v[i++];
 
 
@@ -527,7 +551,7 @@ protected:
       auto layer_idx = _topology.size() - 1;
       auto & layer = _neuron_layers[layer_idx - 1];
 
-      for ( size_t nidx = 0; nidx < layer.size(); ++nidx )
+      for (size_t nidx = 0; nidx < layer.size(); ++nidx)
       {
          auto & neuron = layer[nidx];
          _update_neuron_weights(neuron, layer_idx);
@@ -558,19 +582,19 @@ protected:
       // - Wn is the weight of connection between H and next layers neuron (Nn)
       // - errors are related to the next layer neurons output (Ex)
 
-      while ( layer_idx > 1 )
+      while (layer_idx > 1)
       {
          --layer_idx;
 
          auto & h_layer = _neuron_layers[layer_idx - 1];
 
          // For each neuron of hidden layer
-         for ( size_t nidx = 0; nidx < h_layer.size(); ++nidx )
+         for (size_t nidx = 0; nidx < h_layer.size(); ++nidx)
          {
             auto & neuron = h_layer[nidx];
 
             // Calculate error as output*(1-output)*s 
-            neuron.error = neuron.output*( 1 - neuron.output );
+            neuron.error = neuron.output*(1 - neuron.output);
 
             // where s = sum of w[nidx]*error of next layer neurons 
             double sum = 0.0;
@@ -578,9 +602,9 @@ protected:
             const auto & nlsize = _neuron_layers[layer_idx].size();
 
             // For each neuron of next layer...
-            for ( size_t nnidx = 0; nnidx < nlsize; ++nnidx )
+            for (size_t nnidx = 0; nnidx < nlsize; ++nnidx)
             {
-               auto & next_layer_neuron = ( _neuron_layers[layer_idx] )[nnidx];
+               auto & next_layer_neuron = (_neuron_layers[layer_idx])[nnidx];
 
                // ... add to the sum the product of its output error 
                //     (as previusly computed)
@@ -589,7 +613,7 @@ protected:
                sum += next_layer_neuron.error * next_layer_neuron.weights[nidx];
 
                //Add also bias-error rate
-               if ( nnidx == ( nlsize - 1 ) )
+               if (nnidx == (nlsize - 1))
                   sum += next_layer_neuron.error * next_layer_neuron.bias;
             }
 
@@ -600,23 +624,23 @@ protected:
       }
    }
 
-   
+
    static void _build(
       topology_t& topology,
       std::vector< neuron_layer_t >& neuron_layers,
-      rvector_t & inputs )
+      rvector_t & inputs)
    {
-      if ( topology.size() < 3 )
-         throw( exception_t::size_mismatch );
+      if (topology.size() < 3)
+         throw(exception_t::size_mismatch);
 
       const size_t size = topology.size() - 1;
 
       neuron_layers.resize(size);
 
       size_t idx = 0;
-      for ( const auto & n_of_neurons : topology )
+      for (const auto & n_of_neurons : topology)
       {
-         if ( idx < 1 )
+         if (idx < 1)
          {
             inputs.resize(n_of_neurons);
          }
@@ -628,7 +652,7 @@ protected:
             // weights vector has more items than inputs
             // because ther is one implicit input used to
             // hold the bias 
-            for ( auto & neuron : nl )
+            for (auto & neuron : nl)
             {
                const auto size = topology[idx - 1];
                neuron.resize(size);
@@ -646,7 +670,7 @@ protected:
       const rvector_t & outputs_v,
       rvector_t & res_v)
    {
-      if ( target_v.size() != outputs_v.size() )
+      if (target_v.size() != outputs_v.size())
          throw exception_t::size_mismatch;
 
       // res = (1 - out) * out 
@@ -669,7 +693,7 @@ protected:
       const rvector_t & outputs_v,
       rvector_t & res_v)
    {
-      if ( target_v.size() != outputs_v.size() )
+      if (target_v.size() != outputs_v.size())
          throw exception_t::size_mismatch;
 
       // Error vector = target - out
