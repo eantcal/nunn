@@ -39,5 +39,6 @@ AC_CONFIG_FILES([
   tictactoe/Makefile
   xorfunc/Makefile
   perceptron_and/Makefile
+  hopfield_test/Makefile
 ])
 AC_OUTPUT

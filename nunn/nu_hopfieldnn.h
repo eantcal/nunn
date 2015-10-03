@@ -50,8 +50,8 @@ public:
    using rvector_t = vector_t < double >;
 
    static const char* ID_ANN;
-   static const char* ID_NEURON;
-   static const char* ID_INPUTS;
+   static const char* ID_WEIGHTS;
+   static const char* ID_NEURON_ST;
 
 private:
    step_func_t step_f = step_func_t(0, -1, 1);
@@ -91,44 +91,20 @@ public:
 
 
    //! Adds specified pattern 
-   void add_pattern(const rvector_t& input_pattern)
-   {
-      const auto size = get_inputs_count();
-
-      if (size != input_pattern.size())
-         throw exception_t::size_mismatch;
-
-      for (size_t i = 0; i < size; ++i)
-         for (size_t j = 0; j < size; ++j)
-         {
-            if (i != j)
-               _w[i * size + j] += 
-                  input_pattern[i] * input_pattern[j];
-         }
-   }
+   void add_pattern(const rvector_t& input_pattern);
 
 
    //! Recall a pattern using as key the input one (it must be a vector
    //! containing [-1,1] values
-   void recall(const rvector_t& input_pattern, rvector_t& output_pattern)
-   {
-      if (get_inputs_count() != input_pattern.size())
-         throw exception_t::size_mismatch;
+   void recall(const rvector_t& input_pattern, rvector_t& output_pattern);
 
-      _s = input_pattern;
-      _propagate();
 
-      output_pattern = _s;
-   }
-
-#if 0
    //! Create a perceptron using data serialized into 
    //! the given stream
    hopfieldnn_t(std::stringstream& ss)
    {
       load(ss);
    }
-#endif // TODO
 
    //! copy-ctor
    hopfieldnn_t(const hopfieldnn_t& nn) = default;
@@ -148,17 +124,7 @@ public:
 
 
    //! default assignement-move operator
-   hopfieldnn_t& operator=(hopfieldnn_t&& nn)
-   {
-      if (this != &nn)
-      {
-         _s = std::move(nn._s);
-         _w = std::move(nn._w);
-         _pattern_size = std::move(_pattern_size);
-      }
-
-      return *this;
-   }
+   hopfieldnn_t& operator=(hopfieldnn_t&& nn);
 
 
    //! Returns the number of inputs 
@@ -166,8 +132,6 @@ public:
    {
       return _s.size();
    }
-
-#if 0 // TODO
 
    //! Build the net by using data of the given string stream
    std::stringstream& load(std::stringstream& ss);
@@ -204,55 +168,19 @@ public:
    {
       return net.dump(os);
    }
-#endif
+
+
+   //! Reset the net status
+   void clear() NU_NOEXCEPT
+   {
+      for (auto & item : _s) item = 0;
+      for (auto & item : _w) item = 0;
+      _pattern_size = 0;
+   }
 
 private:
-   void _propagate()
-   {
-      size_t it = 0;
-      size_t last_it = 0;
-
-      do
-      {
-         ++it;
-         size_t rnd_idx = rand() % get_inputs_count();
-
-         if (_propagate_neuron(rnd_idx))
-            last_it = it;
-
-      } while (it - last_it < 10 * get_inputs_count());
-   }
-
-
-   bool _propagate_neuron(size_t i) NU_NOEXCEPT
-   {
-      bool changed = false;
-      double sum = 0;
-
-      const auto size = get_inputs_count();
-
-      for (size_t j = 0; j < size; ++j)
-         sum += _w[i*size + j] * _s[j];
-
-      double state = 0.0;
-
-      if (sum != 0.0)
-      {
-         if (sum < 0.0)
-            state = -1;
-
-         if (sum > 0.0)
-            state = 1;
-
-         if (state != _s[i])
-         {
-            changed = true;
-            _s[i] = state;
-         }
-      }
-
-      return changed;
-   }
+   void _propagate();
+   bool _propagate_neuron(size_t i) NU_NOEXCEPT;
 
    rvector_t _s; // neuron states
    rvector_t _w; // weights matrix

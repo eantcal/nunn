@@ -68,5 +68,8 @@
     <ClCompile Include="nu_rmlpnn.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="nu_hopfieldnn.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
