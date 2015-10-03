@@ -20,7 +20,7 @@ or use the link https://www.microsoft.com/en-us/download/details.aspx?id=48145
 Features
 -------------------------------------------------------------------------------
 - Free open source artificial neural network library
-- Implements perceptron, MLP and Recurrent MLP nets
+- Implements perceptron, MLP and Recurrent MLP, Hopfield neural nets
 - Supports fully connected networks
 - Easy to use and understand
 - Easy to save and load entire ANNs
@@ -256,3 +256,121 @@ and returns one output in [0,1], as specified in the following table:
 AND computes the logical-AND, which yields 1 if and 
 only if the two inputs have 1 values.
 
+
+-------------------------------------------------------------------------------
+Hopfield Test (hopfield_test)
+-------------------------------------------------------------------------------
+
+The Hopfield networks may be used to solve the recall problem of matching cues 
+for an input pattern to an associated pre-learned pattern.
+They are form of recurrent artificial neural networks, which
+serve as content-addressable memory systems with binary threshold nodes.
+
+This test show an use-case of hopfield net used as autoassociative memory
+In this example we recognize 100-pixel picture with the 100-neuron neural 
+network.
+
+Star '*' pixel is represented by 1 and empty ' ' is represented by -1.
+In this way we obtained test vectors that have 100 components.
+
+When the test vector, which is passed to input of the network, 
+is identical with one of the pattern vectors, 
+the net does not change its state. 
+It recognizes also test vectors that are similar to patterns.
+
+Sometimes we can see another feature of Hopfield network – 
+remembering relations between neighboring pixels without their values. 
+As a result of network activity we get the picture that is the reversed 
+pattern.
+
+The net learns the following images:
++----------+ +----------+ +----------+ +----------+ +----------+
+|   ***    | |**********| |*****     | |**********| |**********|
+|  ****    | |**********| |*****     | |**********| |*        *|
+| *****    | |**********| |*****     | |**      **| |* ****** *|
+|   ***    | |**********| |*****     | |**      **| |* *    * *|
+|   ***    | |**********| |*****     | |**      **| |* * ** * *|
+|   ***    | |          | |     *****| |**********| |* * ** * *|
+|   ***    | |          | |     *****| |**********| |* *    * *|
+|   ***    | |          | |     *****| |**      **| |* ****** *|
+| *******  | |          | |     *****| |**      **| |*        *|
+| *******  | |          | |     *****| |**      **| |**********|
++----------+ +----------+ +----------+ +----------+ +----------+
+
+Then for each test image it recalls the most similar of images learnt, 
+as shown in the following example:
+
+ THIS IMAGE      RECALLS
++----------+  +----------+
+|   ***    |  |   ***    |
+|   ***    |  |  ****    |
+|   ***    |  | *****    |
+|   ***    |  |   ***    |
+|   ***    |  |   ***    |
+|   ***    |  |   ***    |
+|   ***    |  |   ***    |
+|   ***    |  |   ***    |
+|   ***    |  | *******  |
+|   ***    |  | *******  |
++----------+  +----------+
+
+
+ THIS IMAGE      RECALLS
++----------+  +----------+
+|**********|  |**********|
+|**********|  |**********|
+|          |  |**********|
+|          |  |**********|
+|          |  |**********|
+|          |  |          |
+|          |  |          |
+|          |  |          |
+|          |  |          |
+|          |  |          |
++----------+  +----------+
+
+
+ THIS IMAGE      RECALLS
++----------+  +----------+
+|          |  |*****     |
+|          |  |*****     |
+|*****     |  |*****     |
+|*****     |  |*****     |
+|*****     |  |*****     |
+|     *****|  |     *****|
+|     *****|  |     *****|
+|     *****|  |     *****|
+|          |  |     *****|
+|          |  |     *****|
++----------+  +----------+
+
+
+ THIS IMAGE
++----------+  +----------+
+|**********|  |**********|
+|*        *|  |**********|
+|*        *|  |**      **|
+|*        *|  |**      **|
+|*        *|  |**      **|
+|**********|  |**********|
+|**********|  |**********|
+|*        *|  |**      **|
+|*        *|  |**      **|
+|*        *|  |**      **|
++----------+  +----------+
+
+
+ THIS IMAGE      RECALLS
++----------+  +----------+
+|**********|  |**********|
+|*        *|  |*        *|
+|* ****** *|  |* ****** *|
+|* *    * *|  |* *    * *|
+|* *    * *|  |* * ** * *|
+|* *    * *|  |* * ** * *|
+|* *    * *|  |* *    * *|
+|* ****** *|  |* ****** *|
+|*        *|  |*        *|
+|**********|  |**********|
++----------+  +----------+
+ 
