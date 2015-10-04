@@ -32,12 +32,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winttt", "winttt\winttt.vcx
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xorfunc", "xorfunc\xorfunc.vcxproj", "{A88C4575-D641-4089-BD1C-E9CE99443755}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xor_test", "xor_test\xor_test.vcxproj", "{A88C4575-D641-4089-BD1C-E9CE99443755}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "perceptron_and", "perceptron_and\perceptron_and.vcxproj", "{FD34AD60-F177-4396-A917-E7C4FF81D4BA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "and_test", "and_test\and_test.vcxproj", "{FD34AD60-F177-4396-A917-E7C4FF81D4BA}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 	EndProjectSection

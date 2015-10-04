@@ -5,19 +5,19 @@ AM_CPPFLAGS = \
    -g \
    -I../nunn
 
-xorfunc_CXXFLAGS = \
+xor_test_CXXFLAGS = \
    -std=c++11 \
    -g 
 
-xorfunc_SOURCES = \
-   xorfunc.cc
+xor_test_SOURCES = \
+   xor_test.cc
 
-AM_CXXFLAGS = ${xorfunc_CXXFLAGS}
+AM_CXXFLAGS = ${xor_test_CXXFLAGS}
 
-xorfunc_LDADD = \
+xor_test_LDADD = \
    -lnunn 
 
 sbin_PROGRAMS += \
-   xorfunc 
+   xor_test 
 
 

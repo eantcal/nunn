@@ -23,10 +23,10 @@
 /* -------------------------------------------------------------------------- */
 
 /*
- * AND function implemented using a perceptron
+ * AND function implemented using a Perceptron neural net
  *
- * A typical example of linearly separable function is the AND. This type
- * of function can be learned by a single preceptron neural net
+ * AND is a typical example of linearly separable function. This type
+ * of function can be learned by a single Perceptron neural net
  *
  * AND takes two input arguments with values in [0,1] 
  * and returns one output in [0,1], as specified in the following table:
@@ -38,8 +38,8 @@
  *  1 | 0 |  0
  *  1 | 1 |  1
  *
- * AND computes the logical-AND, which yields 1 if and 
- * only if the two inputs have 1 values.
+ * It computes the logical-AND, which yields 1 if and only if the two 
+ * inputs have 1 values.
  *
  */
 
@@ -114,8 +114,8 @@ int main(int argc, char* argv[])
             << " Err = " << err 
             << std::endl;
 
-         //if ( err < trainer.get_min_err() )
-         //   break;
+         if ( err < trainer.get_min_err() )
+            break;
       }
 
       // ---- TEST -------------------------------------------------------------
@@ -143,9 +143,8 @@ int main(int argc, char* argv[])
 
             auto and_res = and_function(a, b);
 
-            // In case you play with configuration parameters 
+            // In case you'd play with configuration parameters 
             // and break the code :-)
-
             if ( int(and_res) != int(output) )
             {
                std::cerr

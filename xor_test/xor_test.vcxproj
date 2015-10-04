@@ -37,7 +37,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A88C4575-D641-4089-BD1C-E9CE99443755}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>xorfunc</RootNamespace>
+    <RootNamespace>xor_test</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -289,7 +289,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="xorfunc.cc" />
+    <ClCompile Include="xor_test.cc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

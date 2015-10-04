@@ -20,19 +20,20 @@ or use the link https://www.microsoft.com/en-us/download/details.aspx?id=48145
 Features
 -------------------------------------------------------------------------------
 - Free open source artificial neural network library
-- Implements perceptron, MLP and Recurrent MLP, Hopfield neural nets
+- Implements Perceptron, MLP, RMLP and Hopfield neural nets
 - Supports fully connected networks
 - Easy to use and understand
 - Easy to save and load entire ANNs
-- Ready for 32/64 bit Linux/Windows 
+- Ready for 32/64 bit Linux/Windows (and maybe others)
 
 
+The library source and bin is provided with following samples:
 
 -------------------------------------------------------------------------------
 MNIST Test Demo (mnist_test)
 -------------------------------------------------------------------------------
 
-This demo trains and tests nunn neural network against the MNIST.
+This demo trains and tests (R)MLP neural network against the MNIST.
 The test is performed by using the MNIST data set, which contains 60K + 10K 
 scanned images of handwritten digits with their correct classifications
 The images are greyscale and 28 by 28 pixels in size.
@@ -49,15 +50,21 @@ You may obtain info about MNIST at link http://yann.lecun.com/exdb/mnist/
 mnist_test - Usage:
 
 mnist_test
-        [--version|-v]
-        [--help|-h]
-        [--training_files_path|-p <path>]
-        [--save|-s <net_description_file_name>]
-        [--load|-l <net_description_file_name>]
-        [--skip_training|-n]
-        [--learning_rate|-r <rate>]
-        [--epoch_cnt|-e <count>]
-        [[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]
+    [--version|-v]
+    [--help|-h]
+    [--training_files_path|-p <path>]
+    [--training_imgsfn|-tri <filename>] (default train-images.idx3-ubyte)
+    [--training_lblsfn|-trl <filename>] (default train-labels.idx1-ubyte)
+    [--test_imgsfn|-ti <filename>] (default t10k-images.idx3-ubyte)
+    [--test_lblsfn|-tl <filename>] (default t10k-images.idx3-ubyte)
+    [--save|-s <net_description_file_name>]
+    [--load|-l <net_description_file_name>]
+    [--skip_training|-n]
+    [--use_cross_entropy|-c]
+    [--learning_rate|-r <rate>]
+    [--momentum|-m <value>]
+    [--epoch_cnt|-e <count>]
+    [[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]
 
 Where:
 --version or -v
@@ -65,19 +72,31 @@ Where:
 --help or -h
         generates just this 'Usage' text
 --training_files_path or -p
-        specify training/test files set path
+        set training/test files set path
+--training_imgsfn or -tri
+        set training images file name
+--training_lblsfn or -trl
+        set training labels file name
+--test_imgsfn or -ti
+        set test images file name
+--test_lblsfn or -tl
+        set test labels file name
 --save or -s
         save net data to file
 --load or -l
         load net data from file
 --skip_training or -n
         skip net training
+--use_cross_entropy or -c
+        use the cross entropy cost function instead of MSE
 --learning_rate or -r
         set learning rate (default 0.10)
 --epoch_cnt or -e
-        set epoch count (defualt 10)
---hidden_layer or -hl 
-        set hidden layer size (n. of neurons, default 100)
+        set epoch count (default 10)	 
+--momentum or -m
+        set momentum (default 0.5)
+--hidden_layer or -hl
+        set hidden layer size (n. of neurons, default 300)
 
 -------------------------------------------------------------------------------
 Example:
@@ -120,24 +139,18 @@ nunn status files (.net) have been created by mnist_test application
 -------------------------------------------------------------------------------
 TicTacToe Demo (tictactoe)
 -------------------------------------------------------------------------------
+Basic Tic Tac Toe game which uses neural networks. 
 
-Basic TicTacToe game which uses neural networks. 
-
-
-TicTacToe - Usage:
-
->tictactoe.exe -l tictactoe.net -h
-Usage:
-tictactoe.exe
-        [--version|-v]
-        [--help|-h]
-        [--save|-s <net_description_file_name>]
-        [--load|-l <net_description_file_name>]
-        [--skip_training|-n]
-        [--learning_rate|-r <rate>]
-        [--epoch_cnt|-e <count>]
-        [--stop_on_err_tr|-x <error rate>]
-        [[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]
+tictactoe - Usage:
+    [--version|-v]
+    [--help|-h]
+    [--save|-s <net_description_file_name>]
+    [--load|-l <net_description_file_name>]
+    [--skip_training|-n]
+    [--learning_rate|-r <rate>]
+    [--epoch_cnt|-e <count>]
+    [--stop_on_err_tr|-x <error rate>]
+    [[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]
 
 Where:
 --version or -v
@@ -208,13 +221,14 @@ Please, give me a number within the range [1..9]: 1
 TicTacToe Demo for Windows (winttt)
 -------------------------------------------------------------------------------
 
-Interactive TicTacToe game for Windows which uses trained neural networks 
-created by using tictactoe program
+Winttt is an interactive Tic Tac Toe version for Windows which may be dynamically 
+trained or may use trained neural networks, including those nets created by
+using tictactoe program.
 
 
 
 -------------------------------------------------------------------------------
-XOR Problem sample (xorfunc)
+XOR Problem sample (xor_test)
 -------------------------------------------------------------------------------
 A typical example of non-linealy separable function is the XOR.
 Implementing the XOR function is a classic problem in neural networks.
@@ -236,7 +250,7 @@ but is very easy for a neural network to generate a non-linear solution to.
 
 
 -------------------------------------------------------------------------------
-Perceptron AND sample (perceptron_and)
+Perceptron AND sample (and_test)
 -------------------------------------------------------------------------------
 
 AND function implemented using a perceptron
@@ -297,7 +311,7 @@ The net learns the following images:
 | *******  | |          | |     *****| |**      **| |**********|
 +----------+ +----------+ +----------+ +----------+ +----------+
 
-Then for each test image it recalls the most similar of images learnt, 
+Then for each test-image it recalls the most similar of those learnt, 
 as shown in the following example:
 
  THIS IMAGE      RECALLS
@@ -345,7 +359,7 @@ as shown in the following example:
 +----------+  +----------+
 
 
- THIS IMAGE
+ THIS IMAGE      RECALLS
 +----------+  +----------+
 |**********|  |**********|
 |*        *|  |**********|
@@ -373,4 +387,3 @@ as shown in the following example:
 |*        *|  |*        *|
 |**********|  |**********|
 +----------+  +----------+
- 

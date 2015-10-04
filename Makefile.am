@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS=-I m4
 
-SUBDIRS = nunn mnist mnist_test tictactoe perceptron_and xorfunc hopfield_test
+SUBDIRS = nunn mnist mnist_test tictactoe and_test xor_test hopfield_test
 
 EXTRA_DIST= \
    ocr_test \
@@ -13,7 +13,7 @@ EXTRA_DIST= \
    tictactoe/*.vcxproj* \
    tictactoe/*.net \
    tictactoe/*.sh \
-   xorfunc/*.vcxproj* \
+   xor_test/*.vcxproj* \
    hopfield_test/*.vcxproj* \
-   perceptron_and/*.vcxproj* \
+   and_test/*.vcxproj* \
    winttt

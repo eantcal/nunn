@@ -78,8 +78,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-sbin_PROGRAMS = xorfunc$(EXEEXT)
-subdir = xorfunc
+sbin_PROGRAMS = xor_test$(EXEEXT)
+subdir = xor_test
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -95,15 +95,15 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
-am_xorfunc_OBJECTS = xorfunc-xorfunc.$(OBJEXT)
-xorfunc_OBJECTS = $(am_xorfunc_OBJECTS)
-xorfunc_DEPENDENCIES =
+am_xor_test_OBJECTS = xor_test-xor_test.$(OBJEXT)
+xor_test_OBJECTS = $(am_xor_test_OBJECTS)
+xor_test_DEPENDENCIES =
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-xorfunc_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(xorfunc_CXXFLAGS) \
+xor_test_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(xor_test_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -139,8 +139,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(xorfunc_SOURCES)
-DIST_SOURCES = $(xorfunc_SOURCES)
+SOURCES = $(xor_test_SOURCES)
+DIST_SOURCES = $(xor_test_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -332,15 +332,15 @@ AM_CPPFLAGS = \
    -g \
    -I../nunn
 
-xorfunc_CXXFLAGS = \
+xor_test_CXXFLAGS = \
    -std=c++11 \
    -g 
 
-xorfunc_SOURCES = \
-   xorfunc.cc
+xor_test_SOURCES = \
+   xor_test.cc
 
-AM_CXXFLAGS = ${xorfunc_CXXFLAGS}
-xorfunc_LDADD = \
+AM_CXXFLAGS = ${xor_test_CXXFLAGS}
+xor_test_LDADD = \
    -lnunn 
 
 all: all-recursive
@@ -356,9 +356,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu xorfunc/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu xor_test/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu xorfunc/Makefile
+	  $(AUTOMAKE) --gnu xor_test/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -427,9 +427,9 @@ clean-sbinPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
-xorfunc$(EXEEXT): $(xorfunc_OBJECTS) $(xorfunc_DEPENDENCIES) $(EXTRA_xorfunc_DEPENDENCIES) 
-	@rm -f xorfunc$(EXEEXT)
-	$(AM_V_CXXLD)$(xorfunc_LINK) $(xorfunc_OBJECTS) $(xorfunc_LDADD) $(LIBS)
+xor_test$(EXEEXT): $(xor_test_OBJECTS) $(xor_test_DEPENDENCIES) $(EXTRA_xor_test_DEPENDENCIES) 
+	@rm -f xor_test$(EXEEXT)
+	$(AM_V_CXXLD)$(xor_test_LINK) $(xor_test_OBJECTS) $(xor_test_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -437,7 +437,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xorfunc-xorfunc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xor_test-xor_test.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -460,19 +460,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-xorfunc-xorfunc.o: xorfunc.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xorfunc_CXXFLAGS) $(CXXFLAGS) -MT xorfunc-xorfunc.o -MD -MP -MF $(DEPDIR)/xorfunc-xorfunc.Tpo -c -o xorfunc-xorfunc.o `test -f 'xorfunc.cc' || echo '$(srcdir)/'`xorfunc.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/xorfunc-xorfunc.Tpo $(DEPDIR)/xorfunc-xorfunc.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='xorfunc.cc' object='xorfunc-xorfunc.o' libtool=no @AMDEPBACKSLASH@
+xor_test-xor_test.o: xor_test.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xor_test_CXXFLAGS) $(CXXFLAGS) -MT xor_test-xor_test.o -MD -MP -MF $(DEPDIR)/xor_test-xor_test.Tpo -c -o xor_test-xor_test.o `test -f 'xor_test.cc' || echo '$(srcdir)/'`xor_test.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/xor_test-xor_test.Tpo $(DEPDIR)/xor_test-xor_test.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='xor_test.cc' object='xor_test-xor_test.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xorfunc_CXXFLAGS) $(CXXFLAGS) -c -o xorfunc-xorfunc.o `test -f 'xorfunc.cc' || echo '$(srcdir)/'`xorfunc.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xor_test_CXXFLAGS) $(CXXFLAGS) -c -o xor_test-xor_test.o `test -f 'xor_test.cc' || echo '$(srcdir)/'`xor_test.cc
 
-xorfunc-xorfunc.obj: xorfunc.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xorfunc_CXXFLAGS) $(CXXFLAGS) -MT xorfunc-xorfunc.obj -MD -MP -MF $(DEPDIR)/xorfunc-xorfunc.Tpo -c -o xorfunc-xorfunc.obj `if test -f 'xorfunc.cc'; then $(CYGPATH_W) 'xorfunc.cc'; else $(CYGPATH_W) '$(srcdir)/xorfunc.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/xorfunc-xorfunc.Tpo $(DEPDIR)/xorfunc-xorfunc.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='xorfunc.cc' object='xorfunc-xorfunc.obj' libtool=no @AMDEPBACKSLASH@
+xor_test-xor_test.obj: xor_test.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xor_test_CXXFLAGS) $(CXXFLAGS) -MT xor_test-xor_test.obj -MD -MP -MF $(DEPDIR)/xor_test-xor_test.Tpo -c -o xor_test-xor_test.obj `if test -f 'xor_test.cc'; then $(CYGPATH_W) 'xor_test.cc'; else $(CYGPATH_W) '$(srcdir)/xor_test.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/xor_test-xor_test.Tpo $(DEPDIR)/xor_test-xor_test.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='xor_test.cc' object='xor_test-xor_test.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xorfunc_CXXFLAGS) $(CXXFLAGS) -c -o xorfunc-xorfunc.obj `if test -f 'xorfunc.cc'; then $(CYGPATH_W) 'xorfunc.cc'; else $(CYGPATH_W) '$(srcdir)/xorfunc.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xor_test_CXXFLAGS) $(CXXFLAGS) -c -o xor_test-xor_test.obj `if test -f 'xor_test.cc'; then $(CYGPATH_W) 'xor_test.cc'; else $(CYGPATH_W) '$(srcdir)/xor_test.cc'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

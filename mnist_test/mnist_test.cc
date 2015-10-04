@@ -37,7 +37,7 @@ The training input is treated as a 28×28=784-dimensional vector.
 Each entry in the vector represents the grey value for a single pixel in the image.
 The corresponding desired output is a 10-dimensional vector.
 
-(See also http://yann.lecun.com/exdb/mnist/)
+See also http://yann.lecun.com/exdb/mnist/
 
 */
 
@@ -64,7 +64,10 @@ The corresponding desired output is a 10-dimensional vector.
 #endif
 
 
+/* -------------------------------------------------------------------------- */
+
 using neural_net_t = nu::rmlp_neural_net_t;
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -78,8 +81,8 @@ std::string TRAINING_IMAGES_FN = "train-images.idx3-ubyte";
 std::string TEST_LABELS_FN = "t10k-labels.idx1-ubyte";
 std::string TEST_IMAGES_FN = "t10k-images.idx3-ubyte";
 
-
 const int TRAINING_EPOCH_NUMBER = 100;
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -296,10 +299,14 @@ static void usage(const char* appname)
       << "\t[--version|-v] " << std::endl
       << "\t[--help|-h] " << std::endl
       << "\t[--training_files_path|-p <path>] " << std::endl
-      << "\t[--training_imgsfn|-tri <filename>] (default " << TRAINING_IMAGES_FN << ")" << std::endl
-      << "\t[--training_lblsfn|-trl <filename>] (default " << TRAINING_LABELS_FN << ")" << std::endl
-      << "\t[--test_imgsfn|-ti <filename>] (default " << TEST_IMAGES_FN << ")" << std::endl
-      << "\t[--test_lblsfn|-tl <filename>] (default " << TEST_IMAGES_FN << ")" << std::endl
+      << "\t[--training_imgsfn|-tri <filename>] (default " 
+      << TRAINING_IMAGES_FN << ")" << std::endl
+      << "\t[--training_lblsfn|-trl <filename>] (default " 
+      << TRAINING_LABELS_FN << ")" << std::endl
+      << "\t[--test_imgsfn|-ti <filename>] (default " 
+      << TEST_IMAGES_FN << ")" << std::endl
+      << "\t[--test_lblsfn|-tl <filename>] (default " 
+      << TEST_IMAGES_FN << ")" << std::endl
       << "\t[--save|-s <net_description_file_name>] " << std::endl
       << "\t[--load|-l <net_description_file_name>] " << std::endl
       << "\t[--skip_training|-n] " << std::endl
@@ -307,7 +314,8 @@ static void usage(const char* appname)
       << "\t[--learning_rate|-r <rate>] " << std::endl
       << "\t[--momentum|-m <value>] " << std::endl
       << "\t[--epoch_cnt|-e <count>] " << std::endl
-      << "\t[[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]  " << std::endl
+      << "\t[[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]  " 
+      << std::endl
       << std::endl
       << "Where:" << std::endl
       << "--version or -v " << std::endl
@@ -333,13 +341,15 @@ static void usage(const char* appname)
       << "--use_cross_entropy or -c" << std::endl
       << "\tuse the cross entropy cost function instead of MSE" << std::endl
       << "--learning_rate or -r" << std::endl
-      << "\tset learning rate (default 0.10)" << std::endl
-      << "--epoch_cnt or -e" << std::endl
+      << "\tset learning rate (default " << NET_LEARING_RATE << ")" << std::endl
       << "--momentum or -m" << std::endl
       << "\tset momentum (default " << NET_MOMENTUM << ")" << std::endl
-      << "\tset epoch count (default 10)" << std::endl
+      << "--epoch_cnt or -e" << std::endl
+      << "\tset epoch count (default "<< TRAINING_EPOCH_NUMBER << ")" 
+      << std::endl
       << "--hidden_layer or -hl" << std::endl
-      << "\tset hidden layer size (n. of neurons, default 100)" << std::endl;
+      << "\tset hidden layer size (n. of neurons, default "<< HIDDEN_LAYER_SIZE 
+      << ")" << std::endl;
 }
 
 
@@ -593,7 +603,6 @@ int main(int argc, char* argv[])
       const int max_epoch_number = epoch_cnt;
       double best_performance = 100.0;
       int best_epoch = 0;
-
 
       if (!skip_training)
       {
