@@ -280,7 +280,7 @@ for an input pattern to an associated pre-learned pattern.
 They are form of recurrent artificial neural networks, which
 serve as content-addressable memory systems with binary threshold nodes.
 
-This test show an use-case of hopfield net used as autoassociative memory
+This test shows an use-case of hopfield net used as auto-associative memory
 In this example we recognize 100-pixel picture with the 100-neuron neural 
 network.
 

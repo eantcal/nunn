@@ -57,14 +57,6 @@ class perceptron_t
 public:
    using rvector_t = vector_t < double >;
 
-   static const char* ID_ANN;
-   static const char* ID_NEURON;
-   static const char* ID_INPUTS;
-
-private:
-   step_func_t _step_f;
-
-public:
    enum class exception_t
    {
       size_mismatch,
@@ -101,11 +93,11 @@ public:
    }
 
 
-   //! default assignement operator
+   //! default assignment operator
    perceptron_t& operator=(const perceptron_t& nn) = default;
 
 
-   //! default assignement-move operator
+   //! default assignment-move operator
    perceptron_t& operator=(perceptron_t&& nn)
    {
       if (this != &nn)
@@ -120,28 +112,28 @@ public:
    }
 
 
-   //! Returns the number of inputs 
+   //! Return the number of inputs 
    size_t get_inputs_count() const NU_NOEXCEPT
    {
       return _inputs.size();
    }
 
 
-   //! Returns current learning rate
+   //! Return current learning rate
    double get_learning_rate() const NU_NOEXCEPT
    {
       return _learning_rate;
    }
 
 
-   //! Changes net learning rate
+   //! Change net learning rate
    void set_learning_rate(double new_rate)
    {
       _learning_rate = new_rate;
    }
 
 
-   //! Sets net inputs
+   //! Set net inputs
    void set_inputs(const rvector_t& inputs)
    {
       if (inputs.size() != _inputs.size())
@@ -151,39 +143,39 @@ public:
    }
 
 
-   //! Get the net inputs
+   //! Get net inputs
    void  get_inputs(rvector_t& inputs) const NU_NOEXCEPT
    {
       inputs = _inputs;
    }
 
 
-   //! Get the net outputs 
+   //! Get net output
    double get_output() const NU_NOEXCEPT
    {
       return _neuron.output;
    }
 
 
-   //! Get the net outputs 
+   //! Return f(get_output()), where f is the step function
    double get_sharp_output() const NU_NOEXCEPT
    {
-      return _step_f(_neuron.output);
+      return _step_f(get_output());
    }
 
 
    //! Fire all neurons of the net and calculate the outputs
-   void feed_forward();
+   void feed_forward() NU_NOEXCEPT;
 
 
    //! Fire the neuron, calculate the output
-   //! and then apply the learing algorithm to the net
-   void back_propagate(const double& target, double & output);
+   //! then apply the learning algorithm to the net
+   void back_propagate(const double& target, double & output) NU_NOEXCEPT;
 
 
    //! Fire the neuron, calculate the output
-   //! and then apply the learing algorithm to the net
-   void back_propagate(const double& target)
+   //! then apply the learning algorithm to the net
+   void back_propagate(const double& target) NU_NOEXCEPT
    {
       double output;
       back_propagate(target, output);
@@ -202,11 +194,11 @@ public:
 
 
    //! Save net status into the given string stream
-   std::stringstream& save(std::stringstream& ss);
+   std::stringstream& save(std::stringstream& ss) NU_NOEXCEPT;
 
 
    //! Print the net state out to the given ostream
-   std::ostream& dump(std::ostream& os);
+   std::ostream& dump(std::ostream& os) NU_NOEXCEPT;
 
 
    //! Build the net by using data of the given string stream
@@ -221,14 +213,16 @@ public:
    //! Save net status into the given string stream
    friend std::stringstream& operator<<(
       std::stringstream& ss,
-      perceptron_t& net)
+      perceptron_t& net) NU_NOEXCEPT
    {
       return net.save(ss);
    }
 
 
    //! Print the net state out to the given ostream
-   friend std::ostream& operator<<(std::ostream& os, perceptron_t& net)
+   friend std::ostream& operator<<(
+      std::ostream& os, 
+      perceptron_t& net) NU_NOEXCEPT
    {
       return net.dump(os);
    }
@@ -238,8 +232,15 @@ public:
    void reshuffle_weights() NU_NOEXCEPT;
 
 private:
-   void _back_propagate(const double_t & target, const double_t& output);
+   void _back_propagate(
+      const double_t & target, 
+      const double_t& output) NU_NOEXCEPT;
 
+   static const char* ID_ANN;
+   static const char* ID_NEURON;
+   static const char* ID_INPUTS;
+
+   step_func_t _step_f;
    size_t _inputs_count;
    double _learning_rate = 0.1;
    rvector_t _inputs;

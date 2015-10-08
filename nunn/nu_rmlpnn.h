@@ -66,39 +66,43 @@ class rmlp_neural_net_t : public xmlp_neural_net_t< rneuron_t<double> >
 protected:
    using super_t = xmlp_neural_net_t< rneuron_t<double> >;
 
-public:
-   static const char* ID_ANN;
-   static const char* ID_NEURON;
-   static const char* ID_NEURON_LAYER;
-   static const char* ID_TOPOLOGY;
-   static const char* ID_INPUTS;
 
-   // Called for serializing network status
-   const char* get_id_ann() const NU_NOEXCEPT override
+   //! Called for serializing network status, returns NN id string
+   const char* _get_id_ann() const NU_NOEXCEPT override
    {
       return ID_ANN;
    }
 
-   const char* get_id_neuron() const NU_NOEXCEPT override
+
+   //! Called for serializing network status, returns neuron id string
+   const char* _get_id_neuron() const NU_NOEXCEPT override
    {
       return ID_NEURON;
    }
 
-   const char* get_id_neuron_layer() const NU_NOEXCEPT override
+
+   //! Called for serializing network status, returns neuron-layer id string
+   const char* _get_id_neuron_layer() const NU_NOEXCEPT override
    {
       return ID_NEURON_LAYER;
    }
 
-   const char* get_id_topology() const NU_NOEXCEPT override
+
+   //! Called for serializing network status, returns topology id string
+   const char* _get_id_topology() const NU_NOEXCEPT override
    {
       return ID_TOPOLOGY;
    }
 
-   const char* get_id_inputs() const NU_NOEXCEPT override
+
+   //! Called for serializing network status, returns inputs id string
+   const char* _get_id_inputs() const NU_NOEXCEPT override
    {
       return ID_INPUTS;
    }
 
+
+public:
    //! default ctor
    rmlp_neural_net_t() = default;
 
@@ -133,16 +137,19 @@ public:
    }
 
 
-
    //! Build the net by using data of the given string stream
-   friend std::stringstream& operator>>(std::stringstream& ss, rmlp_neural_net_t& net)
+   friend std::stringstream& operator>>(
+      std::stringstream& ss, 
+      rmlp_neural_net_t& net)
    {
       return net.load(ss);
    }
 
 
    //! Save net status into the given string stream
-   friend std::stringstream& operator<<(std::stringstream& ss, rmlp_neural_net_t& net)
+   friend std::stringstream& operator<<(
+      std::stringstream& ss, 
+      rmlp_neural_net_t& net)
    {
       return net.save(ss);
    }
@@ -158,10 +165,23 @@ public:
    //! Reset all net weights using new random values
    void reshuffle_weights() NU_NOEXCEPT;
 
+
 protected:
-   void _update_neuron_weights(rneuron_t<double>& neuron, size_t layer_idx) override;
+   //! This method is implemented in order to update 
+   //! network weights according to BPTT learning algorithm
+   void _update_neuron_weights(
+      rneuron_t<double>& neuron, 
+      size_t layer_idx) override;
 
    std::stringstream& _load(std::stringstream& ss);
+
+
+private:
+   static const char* ID_ANN;
+   static const char* ID_NEURON;
+   static const char* ID_NEURON_LAYER;
+   static const char* ID_TOPOLOGY;
+   static const char* ID_INPUTS;
 };
 
 
@@ -180,9 +200,9 @@ public:
       size_t epochs,
       double min_err) :
       nn_trainer_t<
-      rmlp_neural_net_t,
-      rmlp_neural_net_t::rvector_t,
-      rmlp_neural_net_t::rvector_t>(nn, epochs, min_err)
+         rmlp_neural_net_t,
+         rmlp_neural_net_t::rvector_t,
+         rmlp_neural_net_t::rvector_t>(nn, epochs, min_err)
    {}
 };
 

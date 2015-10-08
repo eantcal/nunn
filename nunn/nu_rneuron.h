@@ -42,8 +42,7 @@ namespace nu
 /* -------------------------------------------------------------------------- */
 
 //! This class represents a neuron of a Recurrent NN layer
-template<class T>
-struct rneuron_t : public neuron_t<T>
+template<class T> struct rneuron_t : public neuron_t<T>
 {
    vector_t < T > delta_weights_tm1;
 

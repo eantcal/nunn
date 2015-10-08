@@ -49,14 +49,6 @@ class hopfieldnn_t
 public:
    using rvector_t = vector_t < double >;
 
-   static const char* ID_ANN;
-   static const char* ID_WEIGHTS;
-   static const char* ID_NEURON_ST;
-
-private:
-   step_func_t step_f = step_func_t(0, -1, 1);
-
-public:
    enum class exception_t
    {
       size_mismatch,
@@ -68,7 +60,7 @@ public:
    hopfieldnn_t() = default;
 
 
-   //! ctor
+   //! Create a net with pattern size equal to n_of_inputs
    hopfieldnn_t(const size_t& n_of_inputs) NU_NOEXCEPT :
       _s(n_of_inputs),
       _w(n_of_inputs * n_of_inputs)
@@ -111,7 +103,7 @@ public:
 
 
    //! move-ctor
-   hopfieldnn_t(hopfieldnn_t&& nn) :
+   hopfieldnn_t(hopfieldnn_t&& nn) NU_NOEXCEPT :
       _s(std::move(nn._s)),
       _w(std::move(nn._w)),
       _pattern_size(std::move(_pattern_size))
@@ -119,12 +111,12 @@ public:
    }
 
 
-   //! default assignement operator
+   //! default assignment operator
    hopfieldnn_t& operator=(const hopfieldnn_t& nn) = default;
 
 
-   //! default assignement-move operator
-   hopfieldnn_t& operator=(hopfieldnn_t&& nn);
+   //! default assignment-move operator
+   hopfieldnn_t& operator=(hopfieldnn_t&& nn) NU_NOEXCEPT;
 
 
    //! Returns the number of inputs 
@@ -138,11 +130,11 @@ public:
 
 
    //! Save net status into the given string stream
-   std::stringstream& save(std::stringstream& ss);
+   std::stringstream& save(std::stringstream& ss) NU_NOEXCEPT;
 
 
    //! Print the net state out to the given ostream
-   std::ostream& dump(std::ostream& os);
+   std::ostream& dump(std::ostream& os) NU_NOEXCEPT;
 
 
    //! Build the net by using data of the given string stream
@@ -157,14 +149,16 @@ public:
    //! Save net status into the given string stream
    friend std::stringstream& operator<<(
       std::stringstream& ss,
-      hopfieldnn_t& net)
+      hopfieldnn_t& net) NU_NOEXCEPT
    {
       return net.save(ss);
    }
 
 
    //! Print the net state out to the given ostream
-   friend std::ostream& operator<<(std::ostream& os, hopfieldnn_t& net)
+   friend std::ostream& operator<<(
+      std::ostream& os, 
+      hopfieldnn_t& net) NU_NOEXCEPT
    {
       return net.dump(os);
    }
@@ -179,7 +173,13 @@ public:
    }
 
 private:
-   void _propagate();
+   static const char* ID_ANN;
+   static const char* ID_WEIGHTS;
+   static const char* ID_NEURON_ST;
+
+   step_func_t step_f = step_func_t(0, -1, 1);
+
+   void _propagate() NU_NOEXCEPT;
    bool _propagate_neuron(size_t i) NU_NOEXCEPT;
 
    rvector_t _s; // neuron states

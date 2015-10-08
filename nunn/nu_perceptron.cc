@@ -43,6 +43,9 @@ perceptron_t::perceptron_t(
    _learning_rate(learning_rate),
    _step_f(step_f)
 {
+   if (n_of_inputs < 1)
+      throw exception_t::size_mismatch;
+
    _inputs.resize(n_of_inputs, 0.0);
    _neuron.delta_weights.resize(n_of_inputs, 0.0);
    _neuron.weights.resize(n_of_inputs, 0.0);
@@ -53,7 +56,7 @@ perceptron_t::perceptron_t(
 
 /* -------------------------------------------------------------------------- */
 
-void perceptron_t::feed_forward()
+void perceptron_t::feed_forward() NU_NOEXCEPT
 {
    // For each layer (excluding input one) of neurons do...
    auto & neuron = _neuron;
@@ -71,7 +74,7 @@ void perceptron_t::feed_forward()
 
 /* -------------------------------------------------------------------------- */
 
-void perceptron_t::back_propagate(const double & target, double & output)
+void perceptron_t::back_propagate(const double & target, double & output) NU_NOEXCEPT
 {
    // Calculate and get the outputs
    feed_forward();
@@ -85,9 +88,8 @@ void perceptron_t::back_propagate(const double & target, double & output)
 
 /* -------------------------------------------------------------------------- */
 
-void perceptron_t::_back_propagate(
-   const double & target,
-   const double & output)
+void perceptron_t::_back_propagate( 
+   const double & target,const double & output) NU_NOEXCEPT
 {
    _neuron.error = (target - output);
    const double e = _learning_rate * _neuron.error;
@@ -128,7 +130,7 @@ std::stringstream& perceptron_t::load(std::stringstream& ss)
 
 /* -------------------------------------------------------------------------- */
 
-std::stringstream& perceptron_t::save(std::stringstream& ss)
+std::stringstream& perceptron_t::save(std::stringstream& ss) NU_NOEXCEPT
 {
    ss.clear();
 
@@ -172,7 +174,7 @@ void perceptron_t::reshuffle_weights() NU_NOEXCEPT
 /* -------------------------------------------------------------------------- */
 
 //! Print the net state out to the given ostream
-std::ostream& perceptron_t::dump(std::ostream& os)
+std::ostream& perceptron_t::dump(std::ostream& os) NU_NOEXCEPT
 {
    os << "Perceptron " << std::endl;
 

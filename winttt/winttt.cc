@@ -140,7 +140,7 @@ static double g_last_mse = 1.0;
 static std::string g_current_file_name;
 static std::string g_net_desc;
 static nu::mlp_neural_net_t::topology_t g_topology({ 10, 30, 9 });
-static double g_learing_rate = 0.030;
+static double g_learning_rate = 0.030;
 static double g_momentum = 0.50;
 
 static std::mutex g_tsync_mtx;
@@ -1443,7 +1443,7 @@ static void NewNN(HWND hWnd)
 {
    g_neural_net =
       std::unique_ptr<nu::mlp_neural_net_t>(
-         new nu::mlp_neural_net_t(g_topology, g_learing_rate, g_momentum));
+         new nu::mlp_neural_net_t(g_topology, g_learning_rate, g_momentum));
 
    realignNNCopy();
    UpdateStatusBar(hWnd);
@@ -1560,7 +1560,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                wmId == IDM_LR_30 ? 0.030 :
                (wmId == IDM_LR_35 ? 0.035 : 0.040));
 
-            g_learing_rate = g_neural_net->get_learning_rate();
+            g_learning_rate = g_neural_net->get_learning_rate();
          }
 
          UpdateStatusBar(hWnd);

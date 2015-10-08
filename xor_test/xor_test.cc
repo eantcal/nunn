@@ -49,16 +49,18 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_rmlpnn.h"
+#include "nu_mlpnn.h"
 #include <iostream>
 #include <map>
 
+using neural_net_t = nu::mlp_neural_net_t;
+using trainer_t = nu::mlp_nn_trainer_t;
 
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char* argv[])
 {
-   using vect_t = nu::rmlp_neural_net_t::rvector_t;
+   using vect_t = neural_net_t::rvector_t;
 
    // Topology is a vector of positive integers
    // First one represents the input layer size
@@ -66,7 +68,7 @@ int main(int argc, char* argv[])
    // All other values represent the hidden layers from input to output
    // The topology vector must be at least of 3 items and all of them must be
    // non-zero positive integer values
-   nu::rmlp_neural_net_t::topology_t topology =
+   neural_net_t::topology_t topology =
    {
       2, // input layer takes a two dimensional vector as input
       2, // hidden layer size
@@ -75,26 +77,14 @@ int main(int argc, char* argv[])
 
    try {
 
-      // Construct the network using given topology and 
-      // learning rate and momentum 
-      nu::rmlp_neural_net_t nn
+      // Construct the network using topology, learning rate and momentum 
+      neural_net_t nn
       {
          topology,
-         0.4, // learing rate
+         0.4, // learning rate
          0.9, // momentum
       };
-
-
-      nu::rmlp_nn_trainer_t trainer(
-         nn,
-         20000,  // Max number of epochs
-         0.01   // Min error 
-         );
-
-      std::cout
-         << "XOR training start ( Max epochs count=" << trainer.get_epochs()
-         << " Minimum error=" << trainer.get_min_err() << " )"
-         << std::endl;
+            
 
       // Create a training set
       using training_set_t = std::map< std::vector<double>, std::vector<double> >;
@@ -110,12 +100,23 @@ int main(int argc, char* argv[])
          }
       }
 
+      trainer_t trainer(
+         nn,
+         20000,  // Max number of epochs
+         0.01   // Min error 
+         );
+
+      std::cout
+         << "XOR training start ( Max epochs count=" << trainer.get_epochs()
+         << " Minimum error=" << trainer.get_min_err() << " )"
+         << std::endl;
+
       // Train the net
       trainer.train<training_set_t>(
          traing_set,
          [](
-            nu::rmlp_neural_net_t& net,
-            const nu::rmlp_neural_net_t::rvector_t & target) -> double
+            neural_net_t& net,
+            const neural_net_t::rvector_t & target) -> double
          {
             static size_t i = 0;
 
@@ -173,7 +174,7 @@ int main(int argc, char* argv[])
 
       std::cout << "Test completed successfully" << std::endl;
    }
-   catch (nu::rmlp_neural_net_t::exception_t & e)
+   catch (neural_net_t::exception_t & e)
    {
       std::cerr
          << "nu::mlp_neural_net_t::exception_t n# " << int(e) << std::endl;

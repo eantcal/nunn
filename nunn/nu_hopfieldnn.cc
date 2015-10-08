@@ -68,8 +68,8 @@ void hopfieldnn_t::recall(const rvector_t& input_pattern, rvector_t& output_patt
 
 /* -------------------------------------------------------------------------- */
 
-//! default assignement-move operator
-hopfieldnn_t& hopfieldnn_t::operator=(hopfieldnn_t&& nn)
+//! default assignment-move operator
+hopfieldnn_t& hopfieldnn_t::operator=(hopfieldnn_t&& nn) NU_NOEXCEPT
 {
    if (this != &nn)
    {
@@ -84,7 +84,7 @@ hopfieldnn_t& hopfieldnn_t::operator=(hopfieldnn_t&& nn)
 
 /* -------------------------------------------------------------------------- */
 
-void hopfieldnn_t::_propagate()
+void hopfieldnn_t::_propagate() NU_NOEXCEPT
 {
    size_t it = 0;
    size_t last_it = 0;
@@ -164,7 +164,7 @@ std::stringstream& hopfieldnn_t::load(std::stringstream& ss)
 
 /* -------------------------------------------------------------------------- */
 
-std::stringstream& hopfieldnn_t::save(std::stringstream& ss)
+std::stringstream& hopfieldnn_t::save(std::stringstream& ss) NU_NOEXCEPT
 {
    ss.clear();
 
@@ -184,8 +184,7 @@ std::stringstream& hopfieldnn_t::save(std::stringstream& ss)
 
 /* -------------------------------------------------------------------------- */
 
-//! Print the net state out to the given ostream
-std::ostream& hopfieldnn_t::dump(std::ostream& os)
+std::ostream& hopfieldnn_t::dump(std::ostream& os) NU_NOEXCEPT
 {
    os << "Hopfield " << std::endl;
 

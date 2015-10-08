@@ -95,14 +95,6 @@ public:
    };
 
 
-   // Called for serializing network status
-   virtual const char* get_id_ann() const NU_NOEXCEPT = 0;
-   virtual const char* get_id_neuron() const NU_NOEXCEPT = 0;
-   virtual const char* get_id_neuron_layer() const NU_NOEXCEPT = 0;
-   virtual const char* get_id_topology() const NU_NOEXCEPT = 0;
-   virtual const char* get_id_inputs() const NU_NOEXCEPT = 0;
-
-
    //! default ctor
    xmlp_neural_net_t() = default;
 
@@ -112,7 +104,8 @@ public:
       const topology_t& topology,
       double learning_rate,
       double momentum,
-      err_cost_t ec) :
+      err_cost_t ec) NU_NOEXCEPT
+      :
       _topology(topology),
       _learning_rate(learning_rate),
       _momentum(momentum),
@@ -126,7 +119,8 @@ public:
 
 
    //! move-ctor
-   xmlp_neural_net_t(xmlp_neural_net_t<Neuron>&& nn) :
+   xmlp_neural_net_t(xmlp_neural_net_t<Neuron>&& nn) NU_NOEXCEPT
+      :
       _topology(std::move(nn._topology)),
       _learning_rate(std::move(nn._learning_rate)),
       _momentum(std::move(nn._momentum)),
@@ -142,7 +136,7 @@ public:
 
 
    //! move-assignment operator
-   xmlp_neural_net_t& operator=(xmlp_neural_net_t<Neuron>&& nn)
+   xmlp_neural_net_t& operator=(xmlp_neural_net_t<Neuron>&& nn) NU_NOEXCEPT
    {
       if (this != &nn)
       {
@@ -181,14 +175,14 @@ public:
    }
 
 
-   //! Returns the number of inputs 
+   //! Return the number of inputs 
    size_t get_inputs_count() const NU_NOEXCEPT
    {
       return _inputs.size();
    }
 
 
-   //! Returns the number of outputs 
+   //! Return the number of outputs 
    size_t get_outputs_count() const NU_NOEXCEPT
    {
       if (_topology.empty())
@@ -198,14 +192,14 @@ public:
    }
 
 
-   //! Returns a const reference to topology vector
+   //! Return a const reference to topology vector
    const topology_t& get_topology() const NU_NOEXCEPT
    {
       return _topology;
    }
 
 
-   //! Returns current learning rate
+   //! Return current learning rate
    double get_learning_rate() const NU_NOEXCEPT
    {
       return _learning_rate;
@@ -213,13 +207,13 @@ public:
 
 
    //! Change the learning rate of the net
-   void set_learning_rate(double new_rate)
+   void set_learning_rate(double new_rate) NU_NOEXCEPT
    {
       _learning_rate = new_rate;
    }
 
 
-   //! Returns current momentum
+   //! Return current momentum
    double get_momentum() const NU_NOEXCEPT
    {
       return _momentum;
@@ -227,7 +221,7 @@ public:
 
 
    //! Change the momentum of the net
-   void set_momentum(double new_momentum)
+   void set_momentum(double new_momentum) NU_NOEXCEPT
    {
       _momentum = new_momentum;
    }
@@ -263,7 +257,7 @@ public:
 
 
    //! Fire all neurons of the net and calculate the outputs
-   void feed_forward()
+   void feed_forward() NU_NOEXCEPT
    {
       // For each layer (excluding input one) of neurons do...
       for (size_t layer_idx = 0; layer_idx < _neuron_layers.size(); ++layer_idx)
@@ -312,20 +306,20 @@ public:
    {
       std::string s;
       ss >> s;
-      if (s != get_id_ann())
+      if (s != _get_id_ann())
          throw exception_t::invalid_sstream_format;
 
       ss >> _learning_rate;
       ss >> _momentum;
 
       ss >> s;
-      if (s != get_id_inputs())
+      if (s != _get_id_inputs())
          throw exception_t::invalid_sstream_format;
 
       ss >> _inputs;
 
       ss >> s;
-      if (s != get_id_topology())
+      if (s != _get_id_topology())
          throw exception_t::invalid_sstream_format;
 
       ss >> _topology;
@@ -335,13 +329,13 @@ public:
       for (auto & nl : _neuron_layers)
       {
          ss >> s;
-         if (s != get_id_neuron_layer())
+         if (s != _get_id_neuron_layer())
             throw exception_t::invalid_sstream_format;
 
          for (auto & neuron : nl)
          {
             ss >> s;
-            if (s != get_id_neuron())
+            if (s != _get_id_neuron())
                throw exception_t::invalid_sstream_format;
 
             ss >> neuron;
@@ -353,28 +347,28 @@ public:
 
 
    //! Save net status into the given string stream
-   virtual std::stringstream& save(std::stringstream& ss)
+   virtual std::stringstream& save(std::stringstream& ss) NU_NOEXCEPT
    {
       ss.clear();
 
-      ss << get_id_ann() << std::endl;
+      ss << _get_id_ann() << std::endl;
 
       ss << _learning_rate << std::endl;
       ss << _momentum << std::endl;
 
-      ss << get_id_inputs() << std::endl;
+      ss << _get_id_inputs() << std::endl;
       ss << _inputs << std::endl;
 
-      ss << get_id_topology() << std::endl;
+      ss << _get_id_topology() << std::endl;
       ss << _topology << std::endl;
 
       for (auto & nl : _neuron_layers)
       {
-         ss << get_id_neuron_layer() << std::endl;
+         ss << _get_id_neuron_layer() << std::endl;
 
          for (auto & neuron : nl)
          {
-            ss << get_id_neuron() << std::endl;
+            ss << _get_id_neuron() << std::endl;
             ss << neuron << std::endl;
          }
       }
@@ -384,7 +378,7 @@ public:
 
 
    //! Print the net state out to the given ostream
-   virtual std::ostream& dump(std::ostream& os)
+   virtual std::ostream& dump(std::ostream& os) NU_NOEXCEPT
    {
       os << "Net Inputs" << std::endl;
       size_t idx = 0;
@@ -431,21 +425,29 @@ public:
    }
 
 
-   //! Calculate the mean squared error of net 'output vector' - 'target vector'
+   //! Calculate mean squared error
    double mean_squared_error(const rvector_t& target)
    {
       rvector_t output;
       get_outputs(output);
+
+      if (target.size() != output.size())
+         throw exception_t::size_mismatch;
+
       return cf::mean_squared_error(output, target);
    }
 
 
-   //! Calculate the cross-entropy cost defined as
-   //! C=Sum(target*Log(output)+(1-target)*Log(1-output))/output.size()
-   double cross_entropy(const rvector_t& target)
+   //! Calculate cross-entropy cost defined as
+   //! C=(target*Log(output)+(1-target)*Log(1-output))/output.size()
+   double cross_entropy(const rvector_t& target) NU_NOEXCEPT
    {
       rvector_t output;
       get_outputs(output);
+
+      if (target.size() != output.size())
+         throw exception_t::size_mismatch;
+
       return cf::cross_entropy(output, target);
    }
 
@@ -475,7 +477,7 @@ public:
 
 
    //! Return error vector function
-   virtual errv_func_t get_errv_func()
+   virtual errv_func_t get_errv_func() NU_NOEXCEPT
    {
       switch (_err_cost_selector)
       {
@@ -489,11 +491,9 @@ public:
    }
 
 protected:
-   //Get input using layer index and input index
-   //by means of layer==0 -> net inputs, 
-   //layer>0 -> inputs == outputs of hidden neurons 
-   //of previous layer 
-   virtual double _get_input(size_t layer, size_t idx) NU_NOEXCEPT
+   //! Get input value for a neuron belonging to a given layer
+   //! If layer is 0, it is related to input of the net
+   double _get_input(size_t layer, size_t idx) NU_NOEXCEPT
    {
       if (layer < 1)
          return _inputs[idx];
@@ -503,8 +503,8 @@ protected:
       return neuron_layer[idx].output;
    }
 
-
-   virtual void _fire_neuron(
+   //! Fire all neurons of a given layer
+   void _fire_neuron(
       neuron_layer_t & nlayer,
       size_t layer_idx,
       size_t out_idx) NU_NOEXCEPT
@@ -524,13 +524,29 @@ protected:
    }
 
 
+   // Called for serializing network status
+   virtual const char* _get_id_ann() const NU_NOEXCEPT = 0;
+   virtual const char* _get_id_neuron() const NU_NOEXCEPT = 0;
+   virtual const char* _get_id_neuron_layer() const NU_NOEXCEPT = 0;
+   virtual const char* _get_id_topology() const NU_NOEXCEPT = 0;
+   virtual const char* _get_id_inputs() const NU_NOEXCEPT = 0;
+
+
+   //! This method must be implemented in order to update 
+   //! network weights according to the specific implementation 
+   //! of learning algorithm
    virtual void _update_neuron_weights(Neuron&, size_t) = 0;
 
 
+   //! This method can be redefined in order to provide a 
+   //! specific implementation of learning algorithm
    virtual void _back_propagate(
       const rvector_t & target_v,
       const rvector_t & output_v)
    {
+      if (target_v.size() != output_v.size())
+         throw exception_t::size_mismatch;
+
       // -------- Calculate error for output neurons --------------------------
 
       // Select the right error vector function
@@ -625,8 +641,10 @@ protected:
    }
 
 
+   //! Initialize inputs and neuron layers of a net using a given 
+   //! topology
    static void _build(
-      topology_t& topology,
+      const topology_t& topology,
       std::vector< neuron_layer_t >& neuron_layers,
       rvector_t & inputs)
    {
@@ -638,7 +656,7 @@ protected:
       neuron_layers.resize(size);
 
       size_t idx = 0;
-      for (const auto & n_of_neurons : topology)
+      for (const auto & n_of_neurons : topology.to_stdvec())
       {
          if (idx < 1)
          {
@@ -668,11 +686,8 @@ protected:
    static void _calc_mse_err_v(
       const rvector_t & target_v,
       const rvector_t & outputs_v,
-      rvector_t & res_v)
+      rvector_t & res_v) NU_NOEXCEPT
    {
-      if (target_v.size() != outputs_v.size())
-         throw exception_t::size_mismatch;
-
       // res = (1 - out) * out 
       res_v.resize(outputs_v.size(), 1.0);
       res_v -= outputs_v;
@@ -691,30 +706,20 @@ protected:
    static void _calc_xentropy_err_v(
       const rvector_t & target_v,
       const rvector_t & outputs_v,
-      rvector_t & res_v)
+      rvector_t & res_v) NU_NOEXCEPT
    {
-      if (target_v.size() != outputs_v.size())
-         throw exception_t::size_mismatch;
-
       // Error vector = target - out
       res_v = target_v;
       res_v -= outputs_v;
    }
 
 
-   /* ----------------------------------------------------------------------- */
    // Attributes
-   /* ----------------------------------------------------------------------- */
-
    topology_t _topology;
-
    double _learning_rate = 0.1;
    double _momentum = 0.1;
-
    rvector_t _inputs;
-
    std::vector< neuron_layer_t > _neuron_layers;
-
    err_cost_t _err_cost_selector = err_cost_t::MSE;
 };
 

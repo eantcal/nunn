@@ -73,7 +73,7 @@ using neural_net_t = nu::rmlp_neural_net_t;
 
 const size_t HIDDEN_LAYER_SIZE = 300; // neurons
 const size_t OUTPUT_LAYER_SIZE = 10;  // neurons
-const double NET_LEARING_RATE = 0.025;
+const double NET_LEARNING_RATE = 0.025;
 const double NET_MOMENTUM = 0.50;
 
 std::string TRAINING_LABELS_FN = "train-labels.idx1-ubyte";
@@ -341,7 +341,7 @@ static void usage(const char* appname)
       << "--use_cross_entropy or -c" << std::endl
       << "\tuse the cross entropy cost function instead of MSE" << std::endl
       << "--learning_rate or -r" << std::endl
-      << "\tset learning rate (default " << NET_LEARING_RATE << ")" << std::endl
+      << "\tset learning rate (default " << NET_LEARNING_RATE << ")" << std::endl
       << "--momentum or -m" << std::endl
       << "\tset momentum (default " << NET_MOMENTUM << ")" << std::endl
       << "--epoch_cnt or -e" << std::endl
@@ -447,7 +447,7 @@ int main(int argc, char* argv[])
    std::string save_file_name;
    bool save_to_file = false;
    bool skip_training = false;
-   double learning_rate = NET_LEARING_RATE;
+   double learning_rate = NET_LEARNING_RATE;
    double momentum = NET_MOMENTUM;
    int epoch_cnt = TRAINING_EPOCH_NUMBER;
    bool use_ce = false;

@@ -45,43 +45,37 @@ public:
    using cost_func_t = std::function<double(Net&, const Target&)>;
    using progress_cbk_t = std::function<void(Net&, const Input&, const Target&, size_t)>;
 
+   //! Trainer iterator
    struct iterator
    {
       friend class nn_trainer_t;
+
+   private:
       nn_trainer_t * _trainer = nullptr;
       size_t _epoch = 0;
 
-   private:
       iterator(type_t & trainer, size_t epoch) NU_NOEXCEPT
-         : _trainer(&trainer),
+         : 
+         _trainer(&trainer),
          _epoch(epoch)
       {
       }
 
    public:
-      iterator(iterator & it) NU_NOEXCEPT :
-         _trainer(it._trainer),
-         _epoch(it._epoch)
-      {
-      }
+      //! Copy constructor
+      iterator(const iterator & it) = default;
 
-      iterator& operator=(iterator & it) NU_NOEXCEPT
-      {
-         if (&it != this)
-         {
-            _trainer = it._trainer;
-            _epoch = it._epoch;
-         }
+      //! Assignment constructor
+      iterator& operator=(const iterator & it) = default;
 
-         return *this;
-      }
-
+      //! Move constructor
       iterator(iterator && it) NU_NOEXCEPT :
       _trainer(std::move(it._trainer)),
          _epoch(std::move(it._epoch))
       {
       }
 
+      //! Move assignment operator
       iterator& operator=(iterator && it) NU_NOEXCEPT
       {
          if (&it != this)
@@ -93,27 +87,32 @@ public:
          return *this;
       }
 
+      //! Return epoch number
       size_t get_epoch() const NU_NOEXCEPT
       {
          return _epoch;
       }
 
+      //! Pointer Dereference operator
       type_t& operator*() const NU_NOEXCEPT
       {
          return *_trainer;
       }
 
+      //! Arrow operator
       type_t* operator->() const NU_NOEXCEPT
       {
          return _trainer;
       }
 
+      //! Increment operator
       iterator operator++() NU_NOEXCEPT
       {
          ++_epoch;
          return *this;
       }
 
+      //! Post increment operator
       iterator operator++(int) NU_NOEXCEPT // post
       {
          iterator ret = *this;
@@ -121,6 +120,7 @@ public:
          return ret;
       }
 
+      //! Equal-To operator
       bool operator==(iterator & other) const NU_NOEXCEPT
       {
          return (
@@ -128,6 +128,7 @@ public:
             _epoch == other._epoch);
       }
 
+      //! Not-Equal-To operator
       bool operator!=(iterator & other) const NU_NOEXCEPT
       {
          return !this->operator==(other);
@@ -135,23 +136,29 @@ public:
    };
 
 
-   iterator begin()
+   //! Return an iterator to the first epoch
+   iterator begin() NU_NOEXCEPT
    {
       return iterator(*this, 0);
    }
 
 
-   iterator end()
+   //! Return an iterator to the last epoch
+   iterator end() NU_NOEXCEPT
    {
       return iterator(*this, this->_epochs + 1);
    }
 
 
+   //! Constructor
+   //! @nn:      the network to train
+   //! @epochs:  max epoch count at which to stop training
+   //! @min_err: min error value at which to stop training
    nn_trainer_t(
       Net & nn,
       size_t epochs,
       double min_err
-      ) :
+      )  NU_NOEXCEPT :
       _nn(nn),
       _epochs(epochs),
       _min_err(min_err),
@@ -159,18 +166,21 @@ public:
    {}
 
 
+   //! Return the max number of epochs
    size_t get_epochs() const NU_NOEXCEPT
    {
       return _epochs;
    }
 
-
+   
+   //! Return the min error value at which to stop training
    double get_min_err() const NU_NOEXCEPT
    {
       return _min_err;
    }
 
 
+   //! Return current epoch error
    double get_error() const NU_NOEXCEPT
    {
       return _err;

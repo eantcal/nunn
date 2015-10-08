@@ -38,7 +38,7 @@
 /* -------------------------------------------------------------------------- */
 
 #define PROG_VERSION "1.51"
-#define ABOUT_TEXT "Nunn Library and OCR Test by A. Calderone (c) - 2015"
+#define ABOUT_TEXT "OCR Test by A. Calderone (c) - 2015"
 #define ABOUT_INFO "OCR Test Version " PROG_VERSION
 #define PROG_WINXRES 800
 #define PROG_WINYRES 600
@@ -116,28 +116,28 @@ nu::vector_t<double> g_hwdigit;
 /* -------------------------------------------------------------------------- */
 
 // Toolbar
-static toolbar_t * g_toolbar = nullptr;
-const int g_toolbar_n_of_bmps = 4;
-const int g_toolbar_btn_state = TBSTATE_ENABLED;
-const int g_toolbar_btn_style = BTNS_BUTTON /*| TBSTATE_ELLIPSES*/;
+static toolbar_t * gtb = nullptr;
+const int gtb_n_of_bmps = 4;
+const int gtb_btn_state = TBSTATE_ENABLED;
+const int gtb_btn_style = BTNS_BUTTON /*| TBSTATE_ELLIPSES*/;
 
-TBBUTTON g_toolbar_buttons[] =
+TBBUTTON gtb_buttons[] =
 {
    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-   { 0, IDM_LOAD, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Load" },
-   { 1, IDM_SAVE, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Save" },
+   { 0, IDM_LOAD, gtb_btn_state, gtb_btn_style, { 0 }, NULL, (INT_PTR) "Load" },
+   { 1, IDM_SAVE, gtb_btn_state, gtb_btn_style, { 0 }, NULL, (INT_PTR) "Save" },
 
    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-   { 2, IDM_CLS, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Clear" },
+   { 2, IDM_CLS, gtb_btn_state, gtb_btn_style, { 0 }, NULL, (INT_PTR) "Clear" },
 
    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-   { 3, IDM_RECOGNIZE, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Recognize" },
+   { 3, IDM_RECOGNIZE, gtb_btn_state, gtb_btn_style, { 0 }, NULL, (INT_PTR) "Recognize" },
 };
 
-const int g_toolbar_n_of_buttons = sizeof(g_toolbar_buttons) / sizeof(TBBUTTON);
+const int gtb_n_of_buttons = sizeof(gtb_buttons) / sizeof(TBBUTTON);
 
 
 /* -------------------------------------------------------------------------- */
@@ -145,8 +145,6 @@ const int g_toolbar_n_of_buttons = sizeof(g_toolbar_buttons) / sizeof(TBBUTTON);
 // Forward declarations of functions included in this code module:
 ATOM	MyRegisterClass(HINSTANCE hInstance);
 BOOL	InitInstance(HINSTANCE, int);
-
-
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
@@ -354,7 +352,12 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
 {
    if (!neural_net)
    {
-      MessageBox(hWnd, "No neural network loaded", "Error", MB_ICONERROR);
+      MessageBox(
+         hWnd, 
+         "No neural network loaded", 
+         "Error", 
+         MB_ICONERROR);
+
       return;
    }
 
@@ -370,7 +373,12 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
    }
    else
    {
-      MessageBox(hWnd, "Cannot save current network status", "Error", MB_ICONERROR);
+      MessageBox(
+         hWnd, 
+         "Cannot save current network status", 
+         "Error", 
+         MB_ICONERROR);
+
       return;
    }
 
@@ -506,7 +514,13 @@ void GetDigitBox(int xo, int yo, HDC hdc, RECT& r)
 
 /* -------------------------------------------------------------------------- */
 
-int ReadCellValue(HDC hdc, int xo, int yo, int cell_col, int cell_row, const RECT& r)
+int ReadCellValue(
+   HDC hdc, 
+   int xo, 
+   int yo, 
+   int cell_col, 
+   int cell_row, 
+   const RECT& r)
 {
    int xoff = cell_col * CELLSIZE;
    int yoff = cell_row * CELLSIZE;
@@ -553,7 +567,11 @@ int ReadCellValue(HDC hdc, int xo, int yo, int cell_col, int cell_row, const REC
 
 /* -------------------------------------------------------------------------- */
 
-void PrintGrayscaleDigit(int xo, int yo, HDC hdc, const nu::vector_t<double>& hwdigit)
+void PrintGrayscaleDigit(
+   int xo, 
+   int yo, 
+   HDC hdc, 
+   const nu::vector_t<double>& hwdigit)
 {
    size_t idx = 0;
    const int zoom = 3;
@@ -623,7 +641,12 @@ void WriteBars(int xo, int yo, HDC hdc, nu::vector_t<double>& results)
 
       const int step = 19;
 
-      Rectangle(hdc, xo, digit * step + yo, xo + percent * 2, digit * step + yo + 10);
+      Rectangle(
+         hdc, 
+         xo, 
+         digit * step + yo, 
+         xo + percent * 2, 
+         digit * step + yo + 10);
    }
 }
 
@@ -715,7 +738,8 @@ void DoSelectFont(HWND hwnd)
    LONG lfHeight = -96;
    ReleaseDC(NULL, hdc);
 
-   HFONT hf = CreateFont(lfHeight, 0, 0, 0, 0, TRUE, 0, 0, 0, 0, 0, 0, 0, "Verdana");
+   HFONT hf = CreateFont(
+      lfHeight, 0, 0, 0, 0, TRUE, 0, 0, 0, 0, 0, 0, 0, "Verdana");
 
    if (hf)
    {
@@ -789,14 +813,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
       MoveWindow(hWnd, 0, 0, PROG_WINXRES, PROG_WINYRES, TRUE);
 
-      g_toolbar = new toolbar_t(
+      gtb = new toolbar_t(
          hWnd,
          hInst,
          IDI_TOOLBAR,
          IDI_TOOLBAR,
-         g_toolbar_n_of_bmps,
-         g_toolbar_buttons,
-         g_toolbar_n_of_buttons);
+         gtb_n_of_bmps,
+         gtb_buttons,
+         gtb_n_of_buttons);
       break;
 
    case WM_COMMAND:
@@ -1000,9 +1024,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
    break;
 
    case WM_NOTIFY:
-      if (wParam == IDI_TOOLBAR && g_toolbar)
+      if (wParam == IDI_TOOLBAR && gtb)
       {
-         BOOL ret_val = g_toolbar->on_notify(hWnd, lParam);
+         BOOL ret_val = gtb->on_notify(hWnd, lParam);
 
          switch (((LPNMHDR)lParam)->code)
          {
@@ -1015,8 +1039,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       return 0;
 
    case WM_SIZE:
-      if (g_toolbar)
-         g_toolbar->on_resize();
+      if (gtb)
+         gtb->on_resize();
       break;
 
    case WM_DESTROY:
