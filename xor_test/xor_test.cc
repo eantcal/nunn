@@ -88,17 +88,14 @@ int main(int argc, char* argv[])
 
       // Create a training set
       using training_set_t = std::map< std::vector<double>, std::vector<double> >;
-      training_set_t traing_set;
-
-      for (int a = 0; a < 2; ++a)
+      training_set_t traing_set = 
       {
-         for (int b = 0; b < 2; ++b)
-         {
-            const std::vector<double> v{ double(a), double(b) };
-            const std::vector<double> t{ double(a ^ b) };
-            traing_set.insert(std::make_pair(v, t));
-         }
-      }
+         { { 0, 0 },{ 0 } },
+         { { 0, 1 },{ 1 } },
+         { { 1, 0 },{ 1 } },
+         { { 1, 1 },{ 0 } }
+      };
+            
 
       trainer_t trainer(
          nn,
@@ -130,7 +127,7 @@ int main(int argc, char* argv[])
       // Perform final XOR test
       auto step_f = [](double x) { return x < 0.5 ? 0 : 1; };
 
-      std::cout << " XOR Test " << std::endl;
+      std::cout << std::endl << "XOR Test " << std::endl;
 
       for (int a = 0; a < 2; ++a)
       {

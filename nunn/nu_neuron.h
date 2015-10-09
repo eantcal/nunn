@@ -82,7 +82,7 @@ template<class T> struct neuron_t
    }
 
    //! Resize both the weights and delta_weights vectors
-   void resize(size_t size)
+   void resize(size_t size) NU_NOEXCEPT
    {
       weights.resize(size);
       delta_weights.resize(size);

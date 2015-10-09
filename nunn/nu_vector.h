@@ -44,9 +44,10 @@ namespace nu
 
 
 /* -------------------------------------------------------------------------- */
+//! This class wraps a std::vector to basically make it capable to perform
+//! math operations used by learning algorithms
 
-template< class T = double >
-class vector_t
+template< class T = double > class vector_t
 {
 public:
    using item_t = T;
@@ -76,6 +77,26 @@ public:
       memcpy(_v.data(), v, v_len);
    }
 
+   
+   //! Initializer list constructor
+   vector_t(const std::initializer_list<T> l) NU_NOEXCEPT :
+   _v(l) {}
+
+
+   //! Move constructor
+   vector_t(vector_t&& other) NU_NOEXCEPT :
+      _v(std::move(other._v)) {}
+
+
+   //! Fill constructor
+   vector_t(const size_t & size, item_t v = 0.0) NU_NOEXCEPT
+      : _v(size, v) {}
+
+
+   //! std::vector constructor
+   vector_t(const vr_t& v) NU_NOEXCEPT
+      : _v(v) {}
+
 
    //! Copy assignment operator
    vector_t& operator=(const vector_t&) = default;
@@ -89,17 +110,7 @@ public:
 
       return *this;
    }
-
-   //! Initializer list constructor
-   vector_t(const std::initializer_list<T> l) NU_NOEXCEPT :
-   _v(l) {}
-
-
-   //! Move constructor
-   vector_t(vector_t&& other) NU_NOEXCEPT :
-      _v(std::move(other._v)) {}
-
-
+   
    //! Move assignment operator
    vector_t& operator=(vector_t&& other) NU_NOEXCEPT
    {
@@ -108,17 +119,7 @@ public:
 
       return *this;
    }
-
-
-   //! Fill constructor
-   vector_t(const size_t & size, item_t v = 0.0) NU_NOEXCEPT
-      : _v(size, v) {}
-
-
-   //! std::vector constructor
-   vector_t(const vr_t& v) NU_NOEXCEPT
-      : _v(v) {}
-
+      
 
    //! Return size
    size_t size() const NU_NOEXCEPT
@@ -312,30 +313,35 @@ public:
    }
 
 
+   //! Operator +=
    vector_t& operator+=(const vector_t& other)
    {
       return _op(other, [](item_t& d, const item_t& s) { d += s; });
    }
 
 
+   //! Operator (hadamard product) *=
    vector_t& operator*=(const vector_t& other)
    {
       return _op(other, [](item_t& d, const item_t& s) { d *= s; });
    }
 
 
+   //! Operator -=
    vector_t& operator-=(const vector_t& other)
    {
       return _op(other, [](item_t& d, const item_t& s) { d -= s; });
    }
 
 
+   //! Operator /= (entrywise division)
    vector_t& operator/=(const vector_t& other)
    {
       return _op(other, [](item_t& d, const item_t& s) { d /= s; });
    }
 
 
+   //! Multiply a scalar s to the vector
    vector_t& operator*=(const item_t& s)
    {
       vector_t other(size(), s);
@@ -343,6 +349,7 @@ public:
    }
 
 
+   //! Sum scalar s to each vector element
    vector_t& operator+=(const item_t& s)
    {
       vector_t other(size(), s);
@@ -350,6 +357,7 @@ public:
    }
 
 
+   //! Subtract scalar s to each vector element
    vector_t& operator-=(const item_t& s)
    {
       vector_t other(size(), s);
@@ -357,6 +365,7 @@ public:
    }
 
 
+   //! Divide each vector element by s
    vector_t& operator/=(const item_t& s)
    {
       vector_t other(size(), s);
@@ -364,15 +373,11 @@ public:
    }
 
 
-   //! Copy the vector in to given std::vector 'dst'
-   void get_vector(vr_t & dst) NU_NOEXCEPT
-   {
-      dst = _v;
-   }
-
-
    //! Writes the vector v status into the give string stream ss
-   friend std::stringstream& operator<<(std::stringstream& ss, const vector_t& v)
+   friend std::stringstream& operator<<(
+      std::stringstream& ss, 
+      const vector_t& v)
+      NU_NOEXCEPT
    {
       ss << v.size() << std::endl;
 
@@ -384,7 +389,10 @@ public:
 
 
    //! Copies the vector status from the stream ss into vector v
-   friend std::stringstream& operator>>(std::stringstream& ss, vector_t& v)
+   friend std::stringstream& operator>>(
+      std::stringstream& ss, 
+      vector_t& v)
+      NU_NOEXCEPT
    {
       size_t size = 0;
       ss >> size;
@@ -399,7 +407,8 @@ public:
 
 
    //! Prints out to the os stream vector v
-   friend std::ostream& operator<<(std::ostream& os, const vector_t& v)
+   friend std::ostream& operator<<(std::ostream& os, const vector_t& v) 
+      NU_NOEXCEPT
    {
       os << "[ ";
 
@@ -413,7 +422,7 @@ public:
 
 
    //! Binary sum vector operator
-   friend vector_t operator +(const vector_t& v1, const vector_t& v2)
+   friend vector_t operator +(const vector_t& v1, const vector_t& v2) 
    {
       auto vr = v1;
       vr += v2;
@@ -454,6 +463,7 @@ public:
    {
       return _v;
    }
+
 
    //! Return a reference to standard vector
    std::vector<T>& to_stdvec() NU_NOEXCEPT

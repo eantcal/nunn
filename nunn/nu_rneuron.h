@@ -47,7 +47,7 @@ template<class T> struct rneuron_t : public neuron_t<T>
    vector_t < T > delta_weights_tm1;
 
    friend std::stringstream&
-      operator<<(std::stringstream& ss, const rneuron_t<T>& n)
+      operator<<(std::stringstream& ss, const rneuron_t<T>& n) NU_NOEXCEPT
    {
       const neuron_t<T>& bn = n;
       ss << bn;
@@ -57,7 +57,7 @@ template<class T> struct rneuron_t : public neuron_t<T>
    }
 
    friend std::stringstream&
-      operator>>(std::stringstream& ss, rneuron_t<T>& n)
+      operator>>(std::stringstream& ss, rneuron_t<T>& n) NU_NOEXCEPT
    {
       neuron_t<T>& bn = n;
       ss >> bn;
@@ -66,7 +66,7 @@ template<class T> struct rneuron_t : public neuron_t<T>
       return ss;
    }
 
-   void resize(size_t size)
+   void resize(size_t size) NU_NOEXCEPT
    {
       neuron_t<T>::resize(size);
       delta_weights_tm1.resize(size);

@@ -277,9 +277,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\nunn\nu_mlpnn.h" />
     <ClInclude Include="ocr_test.h" />
     <ClInclude Include="Resource.h" />
