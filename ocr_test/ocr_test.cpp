@@ -37,7 +37,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define PROG_VERSION "1.51"
+#define PROG_VERSION "1.53"
 #define ABOUT_TEXT "OCR Test by A. Calderone (c) - 2015"
 #define ABOUT_INFO "OCR Test Version " PROG_VERSION
 #define PROG_WINXRES 800

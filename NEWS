@@ -3,6 +3,10 @@ Author - Antonino Calderone - antonino.calderone@ericsson.com - (c) 2015
 
 Please send nunn bug reports to <acaldmail@gmail.com>.
 
+Oct 10, 2015
+* Released nunn library 1.53
+- Bug fixes and improvements
+
 Oct 3, 2015
 * Released nunn library 1.52
 - Add hopfield neural network
@@ -50,4 +54,3 @@ Jul 23, 2015
 
 Jun 1, 2015
 * Released nunn library 1.0 for Windows
-
