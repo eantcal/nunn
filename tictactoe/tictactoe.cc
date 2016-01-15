@@ -15,7 +15,7 @@
 *  along with nunnlib; if not, write to the Free Software
 *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  US
 *
-*  Author: <antonino.calderone@ericsson.com>, <acaldmail@gmail.com>
+*  Author: Antonino Calderone <acaldmail@gmail.com>
 *
 */
 
@@ -47,7 +47,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define PROG_VERSION "1.53"
+#define PROG_VERSION "1.54"
 #define TICTACTOE_SIDE 3
 #define TICTACTOE_CELLS (TICTACTOE_SIDE*TICTACTOE_SIDE)
 

@@ -15,7 +15,7 @@
 *  along with nunnlib; if not, write to the Free Software
 *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  US
 *
-*  Author: <antonino.calderone@ericsson.com>, <acaldmail@gmail.com>
+*  Author: Antonino Calderone <acaldmail@gmail.com>
 *
 */
 
@@ -31,7 +31,7 @@
  * This function takes two input arguments with values in [0,1]
  * and returns one output in [0,1], as specified in the following table:
  *
- *  x1 x2 |  y
+ *  x1| x2|  y
  * ---+---+----
  *  0 | 0 |  0
  *  0 | 1 |  1
@@ -39,9 +39,8 @@
  *  1 | 1 |  0
  *
  * XOR computes the logical exclusive-or, which yields 1 if and
- * only if the two inputs have different values.
- *
- * So, this classification can not be solved with linear separation,
+ * only if the two inputs x1 and x2 have different values.
+ * This classification can not be solved with linear separation,
  * but is very easy for an MLP to generate a non-linear solution to.
  *
  */
@@ -50,8 +49,13 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_mlpnn.h"
+#include "nu_stepf.h"
+
 #include <iostream>
 #include <map>
+
+
+/* -------------------------------------------------------------------------- */
 
 using neural_net_t = nu::mlp_neural_net_t;
 using trainer_t = nu::mlp_nn_trainer_t;
@@ -86,7 +90,8 @@ int main(int argc, char* argv[])
       };
             
 
-      // Create a training set
+      /*------------- Create a training set --------------------------------- */
+
       using training_set_t = std::map< std::vector<double>, std::vector<double> >;
       training_set_t traing_set = 
       {
@@ -97,10 +102,16 @@ int main(int argc, char* argv[])
       };
             
 
+      /*------------- Perform net training  --------------------------------- */
+
+      const size_t EPOCHS = 40000;
+      const double MIN_ERR = 0.01;
+
+      // Create a trainer object
       trainer_t trainer(
          nn,
-         20000,  // Max number of epochs
-         0.01   // Min error 
+         EPOCHS,  // Max number of epochs
+         MIN_ERR  // Min error 
          );
 
       std::cout
@@ -108,65 +119,84 @@ int main(int argc, char* argv[])
          << " Minimum error=" << trainer.get_min_err() << " )"
          << std::endl;
 
+      //Called to print out training progress
+      auto progress_cbk = [EPOCHS](
+         neural_net_t& n, 
+         const nu::vector_t<double>& i, 
+         const nu::vector_t<double>& t, 
+         size_t epoch, 
+         size_t sample,
+         double err)
+      {
+         if (epoch % 400 == 0 && sample == 0)
+            std::cout 
+               << "Epoch completed " << (double(epoch)/double(EPOCHS)) * 100.0
+               << "% Err=" << err * 100.0 << "%" << std::endl ;
+      };
+      
+
+      //Used by trainer to calculate the net error to 
+      //be compared with min error (MIN_ERR)
+      auto err_cost_f = [](
+         neural_net_t& net,
+         const neural_net_t::rvector_t & target)
+      {
+         return net.mean_squared_error(target);
+      };
+
+
       // Train the net
-      trainer.train<training_set_t>(
-         traing_set,
-         [](
-            neural_net_t& net,
-            const neural_net_t::rvector_t & target) -> double
-         {
-            static size_t i = 0;
+      trainer.run_training<training_set_t>(traing_set, err_cost_f, progress_cbk);
 
-            if (i++ % 200 == 0)
-               std::cout << ">";
 
-            return net.mean_squared_error(target);
-         }
-      );
+      /*------------- Do final XOR test ------------------------------------- */
 
-      // Perform final XOR test
-      auto step_f = [](double x) { return x < 0.5 ? 0 : 1; };
+      // Step function
+      auto step_f = nu::step_func_t(0.5 /*threshold*/, 0 /* LO */, 1 /* HI */);
 
       std::cout << std::endl << "XOR Test " << std::endl;
 
-      for (int a = 0; a < 2; ++a)
+      for (const auto & sample : traing_set)
       {
-         for (int b = 0; b < 2; ++b)
+         vect_t output_vec { 0.0 };
+         
+         nn.set_inputs(sample.first);
+         nn.feed_forward();
+         nn.get_outputs(output_vec);
+
+         // Dump the network status
+         std::cout << nn;
+
+         std::cout << "-------------------------------" << std::endl;
+
+         auto net_res = step_f(output_vec[0]);
+
+         std::cout
+            << sample.first[0] 
+            << " xor " 
+            << sample.first[1] 
+            << " = " 
+            << net_res << std::endl;
+
+         auto xor_res = sample.second[0];
+
+         // In case you play with configuration parameters 
+         // and break the code :-)
+
+         if (xor_res != net_res)
          {
-            vect_t output_vec{ 0.0 };
-            vect_t input_vec{ double(a), double(b) };
+            std::cerr
+               << "ERROR!: xor(" 
+               << sample.first[0] << "," << sample.first[1] << ") !="
+               << xor_res
+               << std::endl;
 
-            nn.set_inputs(input_vec);
-            nn.feed_forward();
-            nn.get_outputs(output_vec);
-
-            // Dump the network status
-            std::cout << nn;
-
-            std::cout << "-------------------------------" << std::endl;
-
-            auto net_res = step_f(output_vec[0]);
-
-            std::cout
-               << a << " xor " << b << " = " << net_res << std::endl;
-
-            auto xor_res = a ^ b;
-
-            // In case you play with configuration parameters 
-            // and break the code :-)
-
-            if (xor_res != net_res)
-            {
-               std::cerr
-                  << "ERROR!: xor(" << a << "," << b << ") !="
-                  << xor_res
-                  << std::endl;
-
-               return 1;
-            }
-
-            std::cout << "-------------------------------" << std::endl;
+            return 1;
          }
+
+         std::cout 
+            << "-------------------------------" 
+            << std::endl << std::endl;
       }
 
       std::cout << "Test completed successfully" << std::endl;

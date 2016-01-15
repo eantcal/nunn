@@ -15,7 +15,7 @@
 *  along with nunnlib; if not, write to the Free Software
 *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  US
 *
-*  Author: <antonino.calderone@ericsson.com>, <acaldmail@gmail.com>
+*  Author: Antonino Calderone <acaldmail@gmail.com>
 *
 */
 
@@ -38,14 +38,18 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
+//! This class represents the logistic function
 class sigmoid_t
 {
 public:
+
+   //! Calculate logistic function of x
    double operator()(double x) const NU_NOEXCEPT
    {
       return (1 / (1 + exp(-x)));
    }
 
+   //! Derive the logistic function in y
    static inline double derive(double y) NU_NOEXCEPT
    {
       return (1 - y) * y;

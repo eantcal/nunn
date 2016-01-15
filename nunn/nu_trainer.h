@@ -15,7 +15,7 @@
 *  along with nunnlib; if not, write to the Free Software
 *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  US
 *
-*  Author: <antonino.calderone@ericsson.com>, <acaldmail@gmail.com>
+*  Author: Antonino Calderone <acaldmail@gmail.com>
 *
 */
 
@@ -42,8 +42,25 @@ class nn_trainer_t
 
 public:
    using type_t = nn_trainer_t<Net, Input, Target>;
-   using cost_func_t = std::function<double(Net&, const Target&)>;
-   using progress_cbk_t = std::function<void(Net&, const Input&, const Target&, size_t)>;
+
+   //! Cost function pointer
+   using cost_fptr_t = double(Net&, const Target&);
+
+   //! Cost function object wrapper
+   using cost_func_t = std::function<cost_fptr_t>;
+
+   //! Progress call back function pointer
+   using progress_fptr_t = 
+      void(
+         Net&, 
+         const Input&, 
+         const Target&, 
+         size_t /*epoch*/, 
+         size_t /* sample_idx */,
+         double /* err */);
+
+   //! Progress call back function object wrapper
+   using progress_cbk_t = std::function<progress_fptr_t>;
 
    //! Trainer iterator
    struct iterator
@@ -205,19 +222,27 @@ public:
 
    //! Trains the net using a training set of samples
    template <class TSet>
-   size_t train(
+   size_t run_training(
       const TSet& training_set,
       cost_func_t err_cost_f,
-      progress_cbk_t * progress_cbk = nullptr)
+      progress_cbk_t progress_cbk = nullptr)
    {
       size_t epoch = 0;
 
       for (; epoch < _epochs; ++epoch)
       {
+         size_t sample_idx = 0;
+
          for (const auto & sample : training_set)
          {
             if (progress_cbk)
-               (*progress_cbk)(_nn, sample.first, sample.second, epoch);
+               progress_cbk(
+                  _nn,
+                  sample.first,
+                  sample.second,
+                  epoch,
+                  sample_idx++,
+                  _err);
 
             if (train(sample.first, sample.second, err_cost_f) == true)
                return epoch;

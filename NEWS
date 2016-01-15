@@ -1,7 +1,11 @@
 nunn library NEWS -- history of user-visible changes.
-Author - Antonino Calderone - antonino.calderone@ericsson.com - (c) 2015
+Author - Antonino Calderone - <acaldmail@gmail.com> - (c) 2015, 2016
 
 Please send nunn bug reports to <acaldmail@gmail.com>.
+
+TODO, 2016
+* Released nunn library 1.54
+- Bug fixes and improvements
 
 Oct 10, 2015
 * Released nunn library 1.53
