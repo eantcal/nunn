@@ -34,6 +34,7 @@ AC_CHECK_FUNCS([sqrt])
 AC_CONFIG_FILES([
   Makefile
   nunn/Makefile
+  nunn_topo/Makefile
   mnist/Makefile
   mnist_test/Makefile
   tictactoe/Makefile

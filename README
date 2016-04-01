@@ -25,9 +25,41 @@ Features
 - Easy to use and understand
 - Easy to save and load entire ANNs
 - Ready for 32/64 bit Linux/Windows (and maybe others)
+- Exports topology that you can draw using Graphviz dot (http://www.graphviz.org/)
 
 
-The library source and bin is provided with following samples:
+The library package includes the following samples/tools:
+
+
+-------------------------------------------------------------------------------
+Nunn Topology -> Graphviz format converter (nunn_topo)
+-------------------------------------------------------------------------------
+
+Using this tool you can export neural network topologies and draw them 
+using Graphviz dot.
+dot draws directed graphs. It reads attributed graph text files and writes drawings,
+either as graph files or in a graphics format such as GIF, PNG, SVG or PostScript
+(which can be converted to PDF).
+
+
+nunn_topo Usage:
+
+nunn_topo
+        [--version|-v]
+        [--help|-h]
+        [--save|-s <dot file name>]
+        [--load|-l <net_description_file_name>]
+
+Where:
+--version or -v
+        shows the program version
+--help or -h
+        generates just this 'Usage' text
+--save or -s
+        save dot file
+--load or -l
+        load net data from file
+
 
 -------------------------------------------------------------------------------
 MNIST Test Demo (mnist_test)

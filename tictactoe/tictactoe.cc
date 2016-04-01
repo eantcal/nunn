@@ -1402,6 +1402,11 @@ int main(int argc, char* argv[])
       std::cout << "done." << std::endl;
       std::cout << std::endl;
 
+      net->select_error_cost_function(
+            use_cross_entropy ?
+               nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY :
+               nu::mlp_neural_net_t::err_cost_t::MSE);
+
       for ( int epoch = 0; epoch < max_epoch_number; ++epoch )
       {
          std::cout
@@ -1420,10 +1425,6 @@ int main(int argc, char* argv[])
          double err = 0.0;
          double cross_err = 0.0;
 
-         net->select_error_cost_function(
-            use_cross_entropy ?
-               nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY :
-               nu::mlp_neural_net_t::err_cost_t::MSE);
 
          for ( const auto & sample : samples )
          {
