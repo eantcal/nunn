@@ -30,12 +30,12 @@
 
 #include "nu_vector.h"
 
-#include <list>
-#include <vector>
-#include <memory>
-#include <cstdint>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <cstdint>
+#include <list>
+#include <memory>
+#include <vector>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -44,176 +44,153 @@
 
 /* -------------------------------------------------------------------------- */
 
-//! This class represents a single handwritten digit and its classification 
+//! This class represents a single handwritten digit and its classification
 //! (label)
-class digit_data_t
-{
+class digit_data_t {
 public:
-   using data_t = std::vector < char > ;
+    using data_t = std::vector<char>;
 
 private:
-   size_t _dx;
-   size_t _dy;
-   int _label;
-   data_t _data;
+    size_t _dx;
+    size_t _dy;
+    int _label;
+    data_t _data;
 
 public:
-
-   //! ctor
-   digit_data_t(size_t dx, size_t dy, int label, const data_t& data) NU_NOEXCEPT :
-      _dx(dx),
-      _dy(dy),
-      _label(label),
-      _data(data)
-   {
-   }
-
-
-   //! copy ctor
-   digit_data_t(const digit_data_t&) = default;
-
-   //! copy assign operator
-   digit_data_t& operator=( const digit_data_t& other ) = default;
+    //! ctor
+    digit_data_t(size_t dx, size_t dy, int label,
+        const data_t& data) NU_NOEXCEPT : _dx(dx),
+                                          _dy(dy),
+                                          _label(label),
+                                          _data(data)
+    {
+    }
 
 
-   //! move ctor
-   digit_data_t(digit_data_t&& other) NU_NOEXCEPT :
-      _dx(std::move(_dx)),
-      _dy(std::move(_dy)),
-      _label(std::move(_label)),
-      _data(std::move(_data))
-   {
-   }
+    //! copy ctor
+    digit_data_t(const digit_data_t&) = default;
+
+    //! copy assign operator
+    digit_data_t& operator=(const digit_data_t& other) = default;
 
 
-   //! move assign operator
-   digit_data_t& operator=( digit_data_t&& other ) NU_NOEXCEPT
-   {
-      if ( this != &other )
-      {
-         _dx = std::move(_dx);
-         _dy = std::move(_dy);
-         _label = std::move(_label);
-         _data = std::move(_data);
-      }
-
-      return *this;
-   }
-   
-
-   //! Returns the digit width in pixels
-   size_t get_dx() const NU_NOEXCEPT
-   {
-      return _dx;
-   }
+    //! move ctor
+    digit_data_t(digit_data_t&& other) NU_NOEXCEPT : _dx(std::move(_dx)),
+                                                     _dy(std::move(_dy)),
+                                                     _label(std::move(_label)),
+                                                     _data(std::move(_data))
+    {
+    }
 
 
-   //! Returns the digit height in pixels
-   size_t get_dy() const NU_NOEXCEPT
-   {
-      return _dy;
-   }
+    //! move assign operator
+    digit_data_t& operator=(digit_data_t&& other) NU_NOEXCEPT
+    {
+        if (this != &other) {
+            _dx = std::move(_dx);
+            _dy = std::move(_dy);
+            _label = std::move(_label);
+            _data = std::move(_data);
+        }
+
+        return *this;
+    }
 
 
-   //! Returns the digit classification
-   int get_label() const NU_NOEXCEPT
-   {
-      return _label;
-   }
+    //! Returns the digit width in pixels
+    size_t get_dx() const NU_NOEXCEPT { return _dx; }
 
 
-   //! Returns a reference to internal data
-   const data_t& data() const NU_NOEXCEPT
-   {
-      return _data;
-   }
+    //! Returns the digit height in pixels
+    size_t get_dy() const NU_NOEXCEPT { return _dy; }
 
 
-   //! Converts the image data into a vector normalizing each item
-   //! within the range [0.0, 1.0]
-   void to_vect(nu::vector_t < double > & v) const NU_NOEXCEPT;
+    //! Returns the digit classification
+    int get_label() const NU_NOEXCEPT { return _label; }
 
 
-   //! Converts a label into a vector where the items are all zeros
-   //! except for the item with index corrisponding to the label value
-   //! its self (which is within range [0, 9]
-   void label_to_target(nu::vector_t < double > & v) const NU_NOEXCEPT;
+    //! Returns a reference to internal data
+    const data_t& data() const NU_NOEXCEPT { return _data; }
+
+
+    //! Converts the image data into a vector normalizing each item
+    //! within the range [0.0, 1.0]
+    void to_vect(nu::vector_t<double>& v) const NU_NOEXCEPT;
+
+
+    //! Converts a label into a vector where the items are all zeros
+    //! except for the item with index corrisponding to the label value
+    //! its self (which is within range [0, 9]
+    void label_to_target(nu::vector_t<double>& v) const NU_NOEXCEPT;
 
 
 #ifdef _WIN32
-   //! Draw the digit image on the window
-   void paint(int xoff, int yoff, HWND hwnd = nullptr) const NU_NOEXCEPT;
+    //! Draw the digit image on the window
+    void paint(int xoff, int yoff, HWND hwnd = nullptr) const NU_NOEXCEPT;
 #endif
-
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-//! This class provides a method to load MNIST pair of images and labels files 
+//! This class provides a method to load MNIST pair of images and labels files
 //! The data can be retrieved as a list of digit_data_t objects
-class training_data_t
-{
+class training_data_t {
 public:
+    using data_t = std::list<std::unique_ptr<digit_data_t>>;
 
-   using data_t = std::list< std::unique_ptr<digit_data_t> >;
-
-   //! Return a reference to a list of digit_data_t objects
-   const data_t & data() const NU_NOEXCEPT
-   {
-      return _data;
-   }
+    //! Return a reference to a list of digit_data_t objects
+    const data_t& data() const NU_NOEXCEPT { return _data; }
 
 
-   //! reshuffle objects
-   void reshuffle()
-   {
-      std::vector< std::unique_ptr< digit_data_t> > data;
+    //! reshuffle objects
+    void reshuffle()
+    {
+        std::vector<std::unique_ptr<digit_data_t>> data;
 
-      for ( auto & e : _data )
-         data.push_back(std::move(e));
+        for (auto& e : _data)
+            data.push_back(std::move(e));
 
-      std::random_shuffle(data.begin(), data.end());
-      _data.clear();
+        std::random_shuffle(data.begin(), data.end());
+        _data.clear();
 
-      for ( auto & e : data )
-         _data.push_back(std::move(e));
-   }
-
-
-   enum class exception_t
-   {
-      lbls_file_not_found,
-      imgs_file_not_found,
-      lbls_file_read_error,
-      imgs_file_read_error,
-      lbls_file_wrong_magic,
-      imgs_file_wrong_magic,
-      n_of_items_mismatch,
-   };
+        for (auto& e : data)
+            _data.push_back(std::move(e));
+    }
 
 
-   training_data_t() = delete;
+    enum class exception_t {
+        lbls_file_not_found,
+        imgs_file_not_found,
+        lbls_file_read_error,
+        imgs_file_read_error,
+        lbls_file_wrong_magic,
+        imgs_file_wrong_magic,
+        n_of_items_mismatch,
+    };
 
-   
-   training_data_t(
-      const std::string& lbls_file,
-      const std::string& imgs_file) throw ( ) :
-      _lbls_file(lbls_file),
-      _imgs_file(imgs_file)
-   {}
+
+    training_data_t() = delete;
 
 
-   //! Load data.
-   //! @return number of loaded items or -1 in case of error
-   int load();
+    training_data_t(
+        const std::string& lbls_file, const std::string& imgs_file) throw()
+        : _lbls_file(lbls_file)
+        , _imgs_file(imgs_file)
+    {
+    }
+
+
+    //! Load data.
+    //! @return number of loaded items or -1 in case of error
+    int load();
 
 
 private:
-   std::string _lbls_file;
-   std::string _imgs_file;
+    std::string _lbls_file;
+    std::string _imgs_file;
 
-   data_t _data;
+    data_t _data;
 };
 
 

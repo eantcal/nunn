@@ -27,35 +27,29 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class step_func_t
-{
+class step_func_t {
 public:
-   step_func_t(
-      double threshold = 0.0,
-      double O_output = 0.0,
-      double I_output = 1.0) NU_NOEXCEPT
-      :
-      _threshold(threshold),
-      _O_output(O_output),
-      _I_output(I_output)
-   {}
+    step_func_t(double threshold = 0.0, double O_output = 0.0,
+        double I_output = 1.0) NU_NOEXCEPT : _threshold(threshold),
+                                             _O_output(O_output),
+                                             _I_output(I_output)
+    {
+    }
 
-   double operator()(double x) const NU_NOEXCEPT
-   {
-      return (x > _threshold ? _I_output : _O_output);
-   }
+    double operator()(double x) const NU_NOEXCEPT
+    {
+        return (x > _threshold ? _I_output : _O_output);
+    }
 
 private:
-   double _threshold;
-   double _O_output;
-   double _I_output;
-
+    double _threshold;
+    double _O_output;
+    double _I_output;
 };
 
 

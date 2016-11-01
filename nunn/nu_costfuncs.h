@@ -32,42 +32,41 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace cf
-{
+namespace cf {
 
 
-/* -------------------------------------------------------------------------- */
+    /* --------------------------------------------------------------------------
+     */
 
-//! Calculate the mean squared error of given 
-//! 'output vector' - 'target vector'
-inline double mean_squared_error(
-   vector_t<double> output,
-   const vector_t<double>& target)
-{
-   output -= target;
-   return 0.5 * output.euclidean_norm2();
-}
-
-
-//! Calculate the cross-entropy cost defined as
-//! C=Sum(target*Log(output)+(1-target)*Log(1-output))/output.size()
-double cross_entropy(
-   vector_t<double> output,
-   const vector_t<double>& target);
+    //! Calculate the mean squared error of given
+    //! 'output vector' - 'target vector'
+    inline double mean_squared_error(
+        vector_t<double> output, const vector_t<double>& target)
+    {
+        output -= target;
+        return 0.5 * output.euclidean_norm2();
+    }
 
 
-/* -------------------------------------------------------------------------- */
+    //! Calculate the cross-entropy cost defined as
+    //! C=Sum(target*Log(output)+(1-target)*Log(1-output))/output.size()
+    double cross_entropy(
+        vector_t<double> output, const vector_t<double>& target);
 
-using costfunc_t = double(vector_t<double>, const vector_t<double>&);
+
+    /* --------------------------------------------------------------------------
+     */
+
+    using costfunc_t = double(vector_t<double>, const vector_t<double>&);
 
 
-/* -------------------------------------------------------------------------- */
+    /* --------------------------------------------------------------------------
+     */
 
 } // namespace cf
 

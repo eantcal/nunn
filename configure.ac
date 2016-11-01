@@ -39,6 +39,7 @@ AC_CONFIG_FILES([
   mnist_test/Makefile
   tictactoe/Makefile
   xor_test/Makefile
+  counter_test/Makefile
   and_test/Makefile
   hopfield_test/Makefile
 ])

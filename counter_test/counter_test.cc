@@ -23,25 +23,7 @@
 /* -------------------------------------------------------------------------- */
 
 /*
- * Solving the XOR Problem with nunn Lib
- *
- * A typical example of non-linearly separable function is the XOR.
- * Implementing the XOR function is a classic problem in neural networks.
- *
- * This function takes two input arguments with values in [0,1]
- * and returns one output in [0,1], as specified in the following table:
- *
- *  x1| x2|  y
- * ---+---+----
- *  0 | 0 |  0
- *  0 | 1 |  1
- *  1 | 0 |  1
- *  1 | 1 |  0
- *
- * XOR computes the logical exclusive-or, which yields 1 if and
- * only if the two inputs x1 and x2 have different values.
- * This classification can not be solved with linear separation,
- * but is very easy for an MLP to generate a non-linear solution to.
+ * Implementing a 3-bit counter using a neural network 
  *
  */
 
@@ -53,6 +35,8 @@
 
 #include <iostream>
 #include <map>
+#include <thread>
+#include <chrono>
 
 
 /* -------------------------------------------------------------------------- */
@@ -73,9 +57,9 @@ int main(int argc, char* argv[])
     // The topology vector must be at least of 3 items and all of them must be
     // non-zero positive integer values
     neural_net_t::topology_t topology = {
-        2, // input layer takes a two dimensional vector as input
-        2, // hidden layer size
-        1 // output
+        3,  // input layer takes a two dimensional vector as input
+        20, // hidden layer size
+        3   // output
     };
 
     try {
@@ -83,8 +67,8 @@ int main(int argc, char* argv[])
         // Construct the network using topology, learning rate and momentum
         neural_net_t nn{
             topology,
-            0.4, // learning rate
-            0.9, // momentum
+            0.05, // learning rate
+            0.0, // momentum
         };
 
 
@@ -93,18 +77,24 @@ int main(int argc, char* argv[])
 
         using training_set_t
             = std::map<std::vector<double>, std::vector<double>>;
-        training_set_t traing_set = 
-            { { { 0, 0 }, { 0 } }, 
-            {   { 0, 1 }, { 1 } },
-            {   { 1, 0 }, { 1 } }, 
-            {   { 1, 1 }, { 0 } } };
+
+        training_set_t traing_set = { 
+            { { 0, 0, 0 }, { 0, 0, 1 } }, 
+            { { 0, 0, 1 }, { 0, 1, 0 } }, 
+            { { 0, 1, 0 }, { 0, 1, 1 } }, 
+            { { 0, 1, 1 }, { 1, 0, 0 } }, 
+            { { 1, 0, 0 }, { 1, 0, 1 } }, 
+            { { 1, 0, 1 }, { 1, 1, 0 } }, 
+            { { 1, 1, 0 }, { 1, 1, 1 } }, 
+            { { 1, 1, 1 }, { 0, 0, 0 } }, 
+        };
 
 
         /*------------- Perform net training  ---------------------------------
          */
 
         const size_t EPOCHS = 40000;
-        const double MIN_ERR = 0.01;
+        const double MIN_ERR = 0.001;
 
         // Create a trainer object
         trainer_t trainer(nn,
@@ -112,16 +102,18 @@ int main(int argc, char* argv[])
             MIN_ERR // Min error
             );
 
-        std::cout << "XOR training start ( Max epochs count="
+        std::cout << "Counter training start ( Max epochs count="
                   << trainer.get_epochs()
                   << " Minimum error=" << trainer.get_min_err() << " )"
                   << std::endl;
 
         // Called to print out training progress
-        auto progress_cbk = [EPOCHS](neural_net_t& n,
+        auto progress_cbk = [EPOCHS](
+            neural_net_t& n,
             const nu::vector_t<double>& i, const nu::vector_t<double>& t,
-            size_t epoch, size_t sample, double err) {
-            if (epoch % 400 == 0 && sample == 0)
+            size_t epoch, size_t sample, double err) 
+        {
+            if (epoch % 500 == 0 && sample == 0)
                 std::cout << "Epoch completed "
                           << (double(epoch) / double(EPOCHS)) * 100.0
                           << "% Err=" << err * 100.0 << "%" << std::endl;
@@ -137,54 +129,44 @@ int main(int argc, char* argv[])
 
 
         // Train the net
-        trainer.run_training<training_set_t>(
-            traing_set, err_cost_f, progress_cbk);
+        trainer.run_training<training_set_t>(traing_set, err_cost_f, progress_cbk);
 
 
-        /*------------- Do final XOR test -------------------------------------
+        /*------------- Do final counter test -------------------------------------
          */
 
         // Step function
-        auto step_f
-            = nu::step_func_t(0.5 /*threshold*/, 0 /* LO */, 1 /* HI */);
+        auto step_f = nu::step_func_t(0.5 /*threshold*/, 0 /* LO */, 1 /* HI */);
 
-        std::cout << std::endl << "XOR Test " << std::endl;
+        std::cout << std::endl << "Counter Test " << std::endl;
 
-        for (const auto& sample : traing_set) {
-            vect_t output_vec{ 0.0 };
+        vect_t input_vec{ 0, 0, 0 };
+        vect_t output_vec{ 0, 0, 0 };
 
-            nn.set_inputs(sample.first);
+        while (1) {
+            nn.set_inputs(input_vec);
             nn.feed_forward();
             nn.get_outputs(output_vec);
 
             // Dump the network status
-            std::cout << nn;
 
-            std::cout << "-------------------------------" << std::endl;
-
-            auto net_res = step_f(output_vec[0]);
-
-            std::cout << sample.first[0] << " xor " << sample.first[1] << " = "
-                      << net_res << std::endl;
-
-            auto xor_res = sample.second[0];
-
-            // In case you play with configuration parameters
-            // and break the code :-)
-
-            if (xor_res != net_res) {
-                std::cerr << "ERROR!: xor(" << sample.first[0] << ","
-                          << sample.first[1] << ") !=" << xor_res << std::endl;
-
-                return 1;
+            std::cout << "  Input  : " << nu::vector_t<>(input_vec) << std::endl;
+            std::cout << "  Output : " << nu::vector_t<>(output_vec) << std::endl;
+            for (auto & item : output_vec) {
+                item = item>0.5 ? 1.0 : 0.0;
             }
+            input_vec = output_vec;
+            std::cout << "E|Output|: " << nu::vector_t<>(output_vec) << std::endl;
 
             std::cout << "-------------------------------" << std::endl
                       << std::endl;
+
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
         std::cout << "Test completed successfully" << std::endl;
-    } catch (neural_net_t::exception_t& e) {
+    } 
+    catch (neural_net_t::exception_t& e) {
         std::cerr << "nu::mlp_neural_net_t::exception_t n# " << int(e)
                   << std::endl;
 
@@ -192,7 +174,8 @@ int main(int argc, char* argv[])
                   << std::endl;
 
         return 1;
-    } catch (...) {
+    } 
+    catch (...) {
         std::cerr << "Fatal error. Check for configuration parameters and retry"
                   << std::endl;
 
