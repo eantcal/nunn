@@ -48,7 +48,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define PROG_VERSION "1.54"
+#define PROG_VERSION "1.55"
 #define TICTACTOE_SIDE 3
 #define TICTACTOE_CELLS (TICTACTOE_SIDE * TICTACTOE_SIDE)
 

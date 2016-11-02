@@ -50,7 +50,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define PROG_VERSION "1.54"
+#define PROG_VERSION "1.55"
 #define ABOUT_TEXT "TicTacToe for Windows by A. Calderone (c) - 2015"
 #define ABOUT_INFO "WinTTT " PROG_VERSION
 #define PROG_WINXRES 664

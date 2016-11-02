@@ -9,10 +9,10 @@
 
 #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 // Windows Header Files:
-#include <Commctrl.h>
 #include <Windowsx.h>
-#include <commdlg.h>
 #include <windows.h>
+#include <Commctrl.h>
+#include <commdlg.h>
 
 // C RunTime Header Files
 #include <malloc.h>
