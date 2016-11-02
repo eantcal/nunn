@@ -331,6 +331,7 @@ SUBDIRS = nunn nunn_topo mnist mnist_test tictactoe and_test xor_test counter_te
 EXTRA_DIST = \
    ocr_test \
    *.sln \
+   *.iss \
    nunn/*.vcxproj* \
    nunn_topo/*.vcxproj* \
    mnist/*.vcxproj* \

@@ -49,6 +49,7 @@ Source: "x64\Release64\and_test.exe"; DestDir: "{app}"; Flags: ignoreversion; Ch
 Source: "x64\Release64\nunn_topo.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsWin64;
 Source: "ocr_test.net"; DestDir: "{app}\Nets"; Flags: ignoreversion
 Source: "tictactoe\tictactoe.net"; DestDir: "{app}\Nets"; Flags: ignoreversion
+Source: "*.tar.gz"; DestDir: "{app}\Source"; Flags: ignoreversion
 Source: "AUTHORS"; DestDir: "{app}\Documentation"; Flags: ignoreversion
 Source: "COPYING"; DestDir: "{app}\LicenseFiles"; Flags: ignoreversion
 Source: "README"; DestDir: "{app}\Documentation"; Flags: ignoreversion

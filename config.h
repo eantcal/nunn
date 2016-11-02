@@ -53,7 +53,7 @@
 #define PACKAGE_NAME "nunn"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "nunn 1.54"
+#define PACKAGE_STRING "nunn 1.55"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "nunn"
@@ -62,13 +62,13 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.54"
+#define PACKAGE_VERSION "1.55"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "1.54"
+#define VERSION "1.55"
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
