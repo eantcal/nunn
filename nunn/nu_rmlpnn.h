@@ -60,8 +60,9 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! This class represents a RMLP neural net
-class rmlp_neural_net_t : public xmlp_neural_net_t<rneuron_t<double>> {
-protected:
+class rmlp_neural_net_t : public xmlp_neural_net_t<rneuron_t<double>>
+{
+  protected:
     using super_t = xmlp_neural_net_t<rneuron_t<double>>;
 
 
@@ -97,14 +98,14 @@ protected:
     }
 
 
-public:
+  public:
     //! default ctor
     rmlp_neural_net_t() = default;
 
 
     //! ctor
     rmlp_neural_net_t(const topology_t& topology, double learning_rate = 0.1,
-        double momentum = 0.5, err_cost_t ec = err_cost_t::MSE);
+                      double momentum = 0.5, err_cost_t ec = err_cost_t::MSE);
 
 
     //! copy-ctor
@@ -113,7 +114,7 @@ public:
 
     //! move-ctor
     rmlp_neural_net_t(rmlp_neural_net_t&& nn)
-        : super_t(nn)
+      : super_t(nn)
     {
     }
 
@@ -131,16 +132,16 @@ public:
 
 
     //! Build the net by using data of the given string stream
-    friend std::stringstream& operator>>(
-        std::stringstream& ss, rmlp_neural_net_t& net)
+    friend std::stringstream& operator>>(std::stringstream& ss,
+                                         rmlp_neural_net_t& net)
     {
         return net.load(ss);
     }
 
 
     //! Save net status into the given string stream
-    friend std::stringstream& operator<<(
-        std::stringstream& ss, rmlp_neural_net_t& net)
+    friend std::stringstream& operator<<(std::stringstream& ss,
+                                         rmlp_neural_net_t& net)
     {
         return net.save(ss);
     }
@@ -157,16 +158,16 @@ public:
     void reshuffle_weights() NU_NOEXCEPT;
 
 
-protected:
+  protected:
     //! This method is implemented in order to update
     //! network weights according to BPTT learning algorithm
-    void _update_neuron_weights(
-        rneuron_t<double>& neuron, size_t layer_idx) override;
+    void _update_neuron_weights(rneuron_t<double>& neuron,
+                                size_t layer_idx) override;
 
     std::stringstream& _load(std::stringstream& ss);
 
 
-private:
+  private:
     static const char* ID_ANN;
     static const char* ID_NEURON;
     static const char* ID_NEURON_LAYER;
@@ -179,12 +180,13 @@ private:
 
 //! The trainer class is a helper class for network training
 class rmlp_nn_trainer_t
-    : public nn_trainer_t<rmlp_neural_net_t, rmlp_neural_net_t::rvector_t,
-          rmlp_neural_net_t::rvector_t> {
-public:
+  : public nn_trainer_t<rmlp_neural_net_t, rmlp_neural_net_t::rvector_t,
+                        rmlp_neural_net_t::rvector_t>
+{
+  public:
     rmlp_nn_trainer_t(rmlp_neural_net_t& nn, size_t epochs, double min_err)
-        : nn_trainer_t<rmlp_neural_net_t, rmlp_neural_net_t::rvector_t,
-              rmlp_neural_net_t::rvector_t>(nn, epochs, min_err)
+      : nn_trainer_t<rmlp_neural_net_t, rmlp_neural_net_t::rvector_t,
+                     rmlp_neural_net_t::rvector_t>(nn, epochs, min_err)
     {
     }
 };

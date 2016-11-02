@@ -61,13 +61,19 @@
 
 /* -------------------------------------------------------------------------- */
 
-class grid_t {
-private:
+class grid_t
+{
+  private:
     int _grid[TICTACTOE_SIDE][TICTACTOE_SIDE];
     int _tmp_grid[TICTACTOE_SIDE][TICTACTOE_SIDE];
 
-public:
-    enum symbol_t { EMPTY, X, O };
+  public:
+    enum symbol_t
+    {
+        EMPTY,
+        X,
+        O
+    };
 
 
     grid_t() { clear(); }
@@ -144,9 +150,8 @@ public:
         if (this == &other)
             return false;
 
-        return len() < other.len()
-            || (len() == other.len()
-                   && get_unique_id() < other.get_unique_id());
+        return len() < other.len() || (len() == other.len() &&
+                                       get_unique_id() < other.get_unique_id());
     }
 
 
@@ -213,15 +218,16 @@ public:
                 return true;
         }
 
-        return (at(0, 0) == symbol && at(1, 1) == symbol && at(2, 2) == symbol)
-            || (at(2, 0) == symbol && at(1, 1) == symbol && at(0, 2) == symbol);
+        return (at(0, 0) == symbol && at(1, 1) == symbol &&
+                at(2, 2) == symbol) ||
+               (at(2, 0) == symbol && at(1, 1) == symbol && at(0, 2) == symbol);
     }
 
     grid_t::symbol_t get_winner_symbol() const
     {
         return is_the_winner(grid_t::O)
-            ? grid_t::O
-            : (is_the_winner(grid_t::X) ? grid_t::X : grid_t::EMPTY);
+                 ? grid_t::O
+                 : (is_the_winner(grid_t::X) ? grid_t::X : grid_t::EMPTY);
     }
 
     bool is_completed() const
@@ -240,8 +246,9 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-class renderer_t {
-private:
+class renderer_t
+{
+  private:
     std::vector<std::string> _rows;
 
     void _init_rows()
@@ -259,7 +266,7 @@ private:
         _rows[9] = "-------------";
     }
 
-public:
+  public:
     virtual void draw(const grid_t& grid, bool show_nums)
     {
         char ch = '0';
@@ -274,18 +281,18 @@ public:
                 auto& cell = _rows[(y + 1) * 3 - 1][2 + x * 4];
 
                 switch (symbol) {
-                case 0:
-                    cell = show_nums ? ch : ' ';
-                    break;
-                case 1:
-                    cell = 'X';
-                    break;
-                case 2:
-                    cell = 'O';
-                    break;
-                default:
-                    assert(0);
-                    break;
+                    case 0:
+                        cell = show_nums ? ch : ' ';
+                        break;
+                    case 1:
+                        cell = 'X';
+                        break;
+                    case 2:
+                        cell = 'O';
+                        break;
+                    default:
+                        assert(0);
+                        break;
                 }
             }
         }
@@ -301,10 +308,11 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-class nn_io_converter_t {
-public:
+class nn_io_converter_t
+{
+  public:
     static void get_inputs(const grid_t& grid, grid_t::symbol_t turn_of_symb,
-        nu::vector_t<double>& inputs)
+                           nu::vector_t<double>& inputs)
     {
         inputs.resize(10, 0.0);
         size_t i = 0;
@@ -318,7 +326,7 @@ public:
     }
 
     static void get_outputs(const grid_t& grid, const grid_t& new_grid,
-        nu::vector_t<double>& outputs)
+                            nu::vector_t<double>& outputs)
     {
         outputs.resize(grid.size(), 0.0);
 
@@ -336,26 +344,28 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-class nn_trainer_t {
-public:
-    struct sample_t {
+class nn_trainer_t
+{
+  public:
+    struct sample_t
+    {
         nu::vector_t<double> inputs;
         nu::vector_t<double> outputs;
 
         bool operator<(const sample_t& other) const NU_NOEXCEPT
         {
-            return inputs < other.inputs
-                || (inputs == other.inputs && outputs < other.outputs);
+            return inputs < other.inputs ||
+                   (inputs == other.inputs && outputs < other.outputs);
         }
     };
 
     using samples_t = std::set<sample_t>;
 
-private:
+  private:
     std::set<grid_t> _pos_coll;
 
-    static grid_t::symbol_t _get_turn_symb(
-        const grid_t& grid, grid_t::symbol_t default_symb)
+    static grid_t::symbol_t _get_turn_symb(const grid_t& grid,
+                                           grid_t::symbol_t default_symb)
     {
         int x_cnt = 0;
         int o_cnt = 0;
@@ -380,8 +390,8 @@ private:
         int y = 0;
 
         grid_t::symbol_t symbol = _get_turn_symb(new_grid, default_symb);
-        grid_t::symbol_t other_symbol
-            = symbol == grid_t::O ? grid_t::X : grid_t::O;
+        grid_t::symbol_t other_symbol =
+          symbol == grid_t::O ? grid_t::X : grid_t::O;
 
         bool done = false;
 
@@ -399,47 +409,46 @@ private:
             }
 
             if (symcnt == 1 && osymcnt == 2 && new_grid.at(1, 1) == symbol) {
-                if ((new_grid.at(0, 0) == other_symbol
-                        && new_grid.at(2, 2) == other_symbol)
-                    ||
+                if ((new_grid.at(0, 0) == other_symbol &&
+                     new_grid.at(2, 2) == other_symbol) ||
 
-                    (new_grid.at(0, 2) == other_symbol
-                        && new_grid.at(2, 0) == other_symbol))
+                    (new_grid.at(0, 2) == other_symbol &&
+                     new_grid.at(2, 0) == other_symbol))
 
                 {
                     new_grid.at(1, 0) = symbol;
                     return;
                 }
 
-                if ((new_grid.at(2) == other_symbol
-                        && new_grid.at(7) == other_symbol)) {
+                if ((new_grid.at(2) == other_symbol &&
+                     new_grid.at(7) == other_symbol)) {
                     new_grid.at(5) = symbol;
                     return;
                 }
 
 
-                if ((new_grid.at(1) == other_symbol
-                        && new_grid.at(8) == other_symbol)) {
+                if ((new_grid.at(1) == other_symbol &&
+                     new_grid.at(8) == other_symbol)) {
                     new_grid.at(5) = symbol;
                     return;
                 }
 
 
-                if ((new_grid.at(0) == other_symbol
-                        && new_grid.at(7) == other_symbol)) {
+                if ((new_grid.at(0) == other_symbol &&
+                     new_grid.at(7) == other_symbol)) {
                     new_grid.at(3) = symbol;
                     return;
                 }
 
 
-                if ((new_grid.at(1) == other_symbol
-                        && new_grid.at(6) == other_symbol)) {
+                if ((new_grid.at(1) == other_symbol &&
+                     new_grid.at(6) == other_symbol)) {
                     new_grid.at(0) = symbol;
                     return;
                 }
 
-                if ((new_grid.at(5) == other_symbol
-                        && new_grid.at(6) == other_symbol)) {
+                if ((new_grid.at(5) == other_symbol &&
+                     new_grid.at(6) == other_symbol)) {
                     new_grid.at(7) = symbol;
                     return;
                 }
@@ -678,16 +687,16 @@ private:
 
             for (int j = 0; j < TICTACTOE_CELLS; ++j) {
                 switch (k & 3) {
-                case 0:
-                case 3:
-                    grid.at(j) = grid_t::EMPTY;
-                    break;
-                case 1:
-                    grid.at(j) = grid_t::X;
-                    break;
-                case 2:
-                    grid.at(j) = grid_t::O;
-                    break;
+                    case 0:
+                    case 3:
+                        grid.at(j) = grid_t::EMPTY;
+                        break;
+                    case 1:
+                        grid.at(j) = grid_t::X;
+                        break;
+                    case 2:
+                        grid.at(j) = grid_t::O;
+                        break;
                 }
 
                 k = k >> 2;
@@ -700,7 +709,8 @@ private:
 
 
     void _create_sample(const grid_t& init_grid_st, grid_t::symbol_t symb_turn,
-        nu::vector_t<double>& inputs, nu::vector_t<double>& outputs)
+                        nu::vector_t<double>& inputs,
+                        nu::vector_t<double>& outputs)
     {
         auto res = init_grid_st;
         _play(res, symb_turn);
@@ -709,7 +719,7 @@ private:
         nn_io_converter_t::get_outputs(init_grid_st, res, outputs);
     }
 
-public:
+  public:
     void build_training_set(samples_t& samples)
     {
         _build_pos_coll();
@@ -747,38 +757,40 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-class game_t {
-private:
+class game_t
+{
+  private:
     grid_t _grid;
     renderer_t& _renderer;
     nu::mlp_neural_net_t& _nn;
     bool _computer_alone = false;
 
-    void _show_verdict(
-        grid_t::symbol_t symbol, grid_t::symbol_t computer_symbol)
+    void _show_verdict(grid_t::symbol_t symbol,
+                       grid_t::symbol_t computer_symbol)
     {
         if (computer_symbol == symbol)
             std::cout << "Artificial Intelligence beats Man :-)" << std::endl;
 
         switch (symbol) {
-        case grid_t::X:
-            std::cout << "X wins !" << std::endl << std::endl << std::endl;
-            break;
-        case grid_t::O:
-            std::cout << "O wins !" << std::endl << std::endl << std::endl;
-            break;
-        case grid_t::EMPTY:
-        default:
-            std::cout << "X and O have tied the game" << std::endl;
-            break;
+            case grid_t::X:
+                std::cout << "X wins !" << std::endl << std::endl << std::endl;
+                break;
+            case grid_t::O:
+                std::cout << "O wins !" << std::endl << std::endl << std::endl;
+                break;
+            case grid_t::EMPTY:
+            default:
+                std::cout << "X and O have tied the game" << std::endl;
+                break;
         }
     }
 
-public:
-    game_t(renderer_t& renderer, nu::mlp_neural_net_t& nn, bool computer_alone
-        = false) NU_NOEXCEPT : _renderer(renderer),
-                               _nn(nn),
-                               _computer_alone(computer_alone)
+  public:
+    game_t(renderer_t& renderer, nu::mlp_neural_net_t& nn,
+           bool computer_alone = false) NU_NOEXCEPT
+      : _renderer(renderer),
+        _nn(nn),
+        _computer_alone(computer_alone)
     {
     }
 
@@ -900,56 +912,58 @@ public:
 static void usage(const char* appname)
 {
     std::cerr
-        << "Usage:" << std::endl
-        << appname << std::endl
-        << "\t[--version|-v] " << std::endl
-        << "\t[--help|-h] " << std::endl
-        << "\t[--save|-s <net_description_file_name>] " << std::endl
-        << "\t[--load|-l <net_description_file_name>] " << std::endl
-        << "\t[--skip_training|-n] " << std::endl
-        << "\t[--use_cross_entropy|-c] " << std::endl
-        << "\t[--learning_rate|-r <rate>] " << std::endl
-        << "\t[--momentum|-m <value>] " << std::endl
-        << "\t[--epoch_cnt|-e <count>] " << std::endl
-        << "\t[--stop_on_err_tr|-x <error rate>] " << std::endl
-        << "\t[[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]  "
-        << std::endl
-        << std::endl
-        << "Where:" << std::endl
-        << "--version or -v " << std::endl
-        << "\tshows the program version" << std::endl
-        << "--help or -h " << std::endl
-        << "\tgenerates just this 'Usage' text " << std::endl
-        << "--save or -s" << std::endl
-        << "\tsave net data to file" << std::endl
-        << "--load or -l" << std::endl
-        << "\tload net data from file" << std::endl
-        << "--skip_training or -n" << std::endl
-        << "\tskip net training" << std::endl
-        << "--use_cross_entropy or -c" << std::endl
-        << "\tuse the cross entropy cost function instead of MSE" << std::endl
-        << "--learning_rate or -r" << std::endl
-        << "\tset learning rate (default " << LEARNING_RATE << ")" << std::endl
-        << "--momentum or -m" << std::endl
-        << "\tset momentum (default " << MOMENTUM << ")" << std::endl
-        << "--epoch_cnt or -e" << std::endl
-        << "\tset epoch count (default " << TRAINING_EPOCH_NUMBER << ")"
-        << std::endl
-        << "--stop_on_err_tr or -x" << std::endl
-        << "\tset error rate threshold (default " << TRAINING_ERR_THRESHOLD
-        << ")" << std::endl
-        << "--hidden_layer or -hl" << std::endl
-        << "\tset hidden layer size (n. of neurons)" << std::endl;
+      << "Usage:" << std::endl
+      << appname << std::endl
+      << "\t[--version|-v] " << std::endl
+      << "\t[--help|-h] " << std::endl
+      << "\t[--save|-s <net_description_file_name>] " << std::endl
+      << "\t[--load|-l <net_description_file_name>] " << std::endl
+      << "\t[--skip_training|-n] " << std::endl
+      << "\t[--use_cross_entropy|-c] " << std::endl
+      << "\t[--learning_rate|-r <rate>] " << std::endl
+      << "\t[--momentum|-m <value>] " << std::endl
+      << "\t[--epoch_cnt|-e <count>] " << std::endl
+      << "\t[--stop_on_err_tr|-x <error rate>] " << std::endl
+      << "\t[[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]  "
+      << std::endl
+      << std::endl
+      << "Where:" << std::endl
+      << "--version or -v " << std::endl
+      << "\tshows the program version" << std::endl
+      << "--help or -h " << std::endl
+      << "\tgenerates just this 'Usage' text " << std::endl
+      << "--save or -s" << std::endl
+      << "\tsave net data to file" << std::endl
+      << "--load or -l" << std::endl
+      << "\tload net data from file" << std::endl
+      << "--skip_training or -n" << std::endl
+      << "\tskip net training" << std::endl
+      << "--use_cross_entropy or -c" << std::endl
+      << "\tuse the cross entropy cost function instead of MSE" << std::endl
+      << "--learning_rate or -r" << std::endl
+      << "\tset learning rate (default " << LEARNING_RATE << ")" << std::endl
+      << "--momentum or -m" << std::endl
+      << "\tset momentum (default " << MOMENTUM << ")" << std::endl
+      << "--epoch_cnt or -e" << std::endl
+      << "\tset epoch count (default " << TRAINING_EPOCH_NUMBER << ")"
+      << std::endl
+      << "--stop_on_err_tr or -x" << std::endl
+      << "\tset error rate threshold (default " << TRAINING_ERR_THRESHOLD << ")"
+      << std::endl
+      << "--hidden_layer or -hl" << std::endl
+      << "\tset hidden layer size (n. of neurons)" << std::endl;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 static bool process_cl(int argc, char* argv[], std::string& files_path,
-    std::string& load_file_name, std::string& save_file_name,
-    bool& skip_training, double& learning_rate, bool& change_lr,
-    double& momentum, bool& change_m, int& epoch, double& threshold,
-    std::vector<size_t>& hidden_layer, bool& use_cross_entropy)
+                       std::string& load_file_name, std::string& save_file_name,
+                       bool& skip_training, double& learning_rate,
+                       bool& change_lr, double& momentum, bool& change_m,
+                       int& epoch, double& threshold,
+                       std::vector<size_t>& hidden_layer,
+                       bool& use_cross_entropy)
 {
     int pidx = 1;
 
@@ -967,8 +981,8 @@ static bool process_cl(int argc, char* argv[], std::string& files_path,
             continue;
         }
 
-        if ((arg == "--training_files_path" || arg == "-p")
-            && (pidx + 1) < argc) {
+        if ((arg == "--training_files_path" || arg == "-p") &&
+            (pidx + 1) < argc) {
             files_path = argv[++pidx];
 
             if (!files_path.empty()) {
@@ -1101,8 +1115,9 @@ int main(int argc, char* argv[])
 
     if (argc > 1) {
         if (!process_cl(argc, argv, files_path, load_file_name, save_file_name,
-                skip_training, learning_rate, change_lr, momentum, change_m,
-                epoch_cnt, threshold, hidden_layer, use_cross_entropy)) {
+                        skip_training, learning_rate, change_lr, momentum,
+                        change_m, epoch_cnt, threshold, hidden_layer,
+                        use_cross_entropy)) {
             usage(argv[0]);
             return 1;
         }
@@ -1125,7 +1140,7 @@ int main(int argc, char* argv[])
         topology.push_back(TICTACTOE_CELLS /*outputs*/);
 
         net = std::unique_ptr<nu::mlp_neural_net_t>(
-            new nu::mlp_neural_net_t(topology, learning_rate, MOMENTUM));
+          new nu::mlp_neural_net_t(topology, learning_rate, MOMENTUM));
     }
 
     if (!load_file_name.empty()) {
@@ -1169,8 +1184,8 @@ int main(int argc, char* argv[])
         if (hl_cnt > 0 && hl_cnt < top.size() - 1) {
             std::cout << "NN hidden neurons L" << hl_cnt;
             std::cout << "       : " << hl << std::endl;
-            net_desc
-                += "  hl(" + std::to_string(hl_cnt) + ")=" + std::to_string(hl);
+            net_desc +=
+              "  hl(" + std::to_string(hl_cnt) + ")=" + std::to_string(hl);
         } else {
             if (hl_cnt == 0) {
                 std::cout << "Inputs                    "
@@ -1205,9 +1220,9 @@ int main(int argc, char* argv[])
         std::cout << "done." << std::endl;
         std::cout << std::endl;
 
-        net->select_error_cost_function(use_cross_entropy
-                ? nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY
-                : nu::mlp_neural_net_t::err_cost_t::MSE);
+        net->select_error_cost_function(
+          use_cross_entropy ? nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY
+                            : nu::mlp_neural_net_t::err_cost_t::MSE);
 
         for (int epoch = 0; epoch < max_epoch_number; ++epoch) {
             std::cout << net_desc << " "

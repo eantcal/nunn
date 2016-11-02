@@ -43,11 +43,16 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! This is an implementation of a Hopfield Neural Network
-class hopfieldnn_t {
-public:
+class hopfieldnn_t
+{
+  public:
     using rvector_t = vector_t<double>;
 
-    enum class exception_t { size_mismatch, invalid_sstream_format };
+    enum class exception_t
+    {
+        size_mismatch,
+        invalid_sstream_format
+    };
 
 
     //! default ctor
@@ -56,8 +61,8 @@ public:
 
     //! Create a net with pattern size equal to n_of_inputs
     hopfieldnn_t(const size_t& n_of_inputs) NU_NOEXCEPT
-        : _s(n_of_inputs),
-          _w(n_of_inputs* n_of_inputs)
+      : _s(n_of_inputs),
+        _w(n_of_inputs* n_of_inputs)
     {
     }
 
@@ -92,9 +97,9 @@ public:
 
     //! move-ctor
     hopfieldnn_t(hopfieldnn_t&& nn) NU_NOEXCEPT
-        : _s(std::move(nn._s)),
-          _w(std::move(nn._w)),
-          _pattern_size(std::move(_pattern_size))
+      : _s(std::move(nn._s)),
+        _w(std::move(nn._w)),
+        _pattern_size(std::move(_pattern_size))
     {
     }
 
@@ -123,24 +128,24 @@ public:
 
 
     //! Build the net by using data of the given string stream
-    friend std::stringstream& operator>>(
-        std::stringstream& ss, hopfieldnn_t& net)
+    friend std::stringstream& operator>>(std::stringstream& ss,
+                                         hopfieldnn_t& net)
     {
         return net.load(ss);
     }
 
 
     //! Save net status into the given string stream
-    friend std::stringstream& operator<<(
-        std::stringstream& ss, hopfieldnn_t& net) NU_NOEXCEPT
+    friend std::stringstream& operator<<(std::stringstream& ss,
+                                         hopfieldnn_t& net) NU_NOEXCEPT
     {
         return net.save(ss);
     }
 
 
     //! Print the net state out to the given ostream
-    friend std::ostream& operator<<(
-        std::ostream& os, hopfieldnn_t& net) NU_NOEXCEPT
+    friend std::ostream& operator<<(std::ostream& os,
+                                    hopfieldnn_t& net) NU_NOEXCEPT
     {
         return net.dump(os);
     }
@@ -156,7 +161,7 @@ public:
         _pattern_size = 0;
     }
 
-private:
+  private:
     static const char* ID_ANN;
     static const char* ID_WEIGHTS;
     static const char* ID_NEURON_ST;

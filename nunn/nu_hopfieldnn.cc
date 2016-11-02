@@ -51,8 +51,8 @@ void hopfieldnn_t::add_pattern(const rvector_t& input_pattern)
 
 /* -------------------------------------------------------------------------- */
 
-void hopfieldnn_t::recall(
-    const rvector_t& input_pattern, rvector_t& output_pattern)
+void hopfieldnn_t::recall(const rvector_t& input_pattern,
+                          rvector_t& output_pattern)
 {
     if (get_inputs_count() != input_pattern.size())
         throw exception_t::size_mismatch;

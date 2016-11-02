@@ -107,7 +107,7 @@ void digit_data_t::paint(int xoff, int yoff, HWND hwnd) const NU_NOEXCEPT
             int c = data_bits[idx++];
 
             SetPixel(hdc, int(x) + xoff, int(y) + yoff,
-                RGB(255 - c, 255 - c, 255 - c));
+                     RGB(255 - c, 255 - c, 255 - c));
         }
     }
 
@@ -130,8 +130,8 @@ int training_data_t::load()
     auto to_int32 = [&](const std::vector<char>& buf) {
         assert(buf.size() >= 4);
 
-        return ((buf[0] << 24) & 0xff000000) | ((buf[1] << 16) & 0x00ff0000)
-            | ((buf[2] << 8) & 0x0000ff00) | ((buf[3] << 0) & 0x000000ff);
+        return ((buf[0] << 24) & 0xff000000) | ((buf[1] << 16) & 0x00ff0000) |
+               ((buf[2] << 8) & 0x0000ff00) | ((buf[3] << 0) & 0x000000ff);
     };
 
     try {
@@ -150,16 +150,16 @@ int training_data_t::load()
         if (fread(buf.data(), 1, 4, flbls) != 4)
             throw exception_t::lbls_file_read_error;
 
-        if (buf[0] != magic_lbls[0] || buf[1] != magic_lbls[1]
-            || buf[2] != magic_lbls[2] || buf[3] != magic_lbls[3])
+        if (buf[0] != magic_lbls[0] || buf[1] != magic_lbls[1] ||
+            buf[2] != magic_lbls[2] || buf[3] != magic_lbls[3])
             throw exception_t::lbls_file_wrong_magic;
 
         if (fread(buf.data(), 1, 4, fimgs) != 4)
             throw exception_t::imgs_file_read_error;
 
 
-        if (buf[0] != magic_imgs[0] || buf[1] != magic_imgs[1]
-            || buf[2] != magic_imgs[2] || buf[3] != magic_imgs[3])
+        if (buf[0] != magic_imgs[0] || buf[1] != magic_imgs[1] ||
+            buf[2] != magic_imgs[2] || buf[3] != magic_imgs[3])
             throw exception_t::imgs_file_wrong_magic;
 
 
@@ -202,7 +202,7 @@ int training_data_t::load()
                 break;
 
             std::unique_ptr<digit_data_t> digit_info(
-                new digit_data_t(size_t(n_cols), size_t(n_rows), label, data));
+              new digit_data_t(size_t(n_cols), size_t(n_rows), label, data));
 
             _data.push_back(std::move(digit_info));
         }

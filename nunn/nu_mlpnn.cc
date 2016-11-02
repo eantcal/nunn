@@ -33,8 +33,9 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 mlp_neural_net_t::mlp_neural_net_t(const topology_t& topology,
-    double learning_rate, double momentum, err_cost_t ec)
-    : super_t(topology, learning_rate, momentum, ec)
+                                   double learning_rate, double momentum,
+                                   err_cost_t ec)
+  : super_t(topology, learning_rate, momentum, ec)
 {
     _build(_topology, _neuron_layers, _inputs);
     reshuffle_weights();
@@ -43,8 +44,8 @@ mlp_neural_net_t::mlp_neural_net_t(const topology_t& topology,
 
 /* -------------------------------------------------------------------------- */
 
-void mlp_neural_net_t::_update_neuron_weights(
-    neuron_t<double>& neuron, size_t layer_idx)
+void mlp_neural_net_t::_update_neuron_weights(neuron_t<double>& neuron,
+                                              size_t layer_idx)
 {
     const auto lr_err = neuron.error * _learning_rate;
     const auto m_err = neuron.error * _momentum;
@@ -52,8 +53,8 @@ void mlp_neural_net_t::_update_neuron_weights(
     for (size_t in_idx = 0; in_idx < neuron.weights.size(); ++in_idx) {
         const auto dw_prev_step = neuron.delta_weights[in_idx];
 
-        neuron.delta_weights[in_idx]
-            = _get_input(layer_idx - 1, in_idx) * lr_err + m_err * dw_prev_step;
+        neuron.delta_weights[in_idx] =
+          _get_input(layer_idx - 1, in_idx) * lr_err + m_err * dw_prev_step;
 
         neuron.weights[in_idx] += neuron.delta_weights[in_idx];
     }

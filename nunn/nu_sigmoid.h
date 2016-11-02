@@ -38,8 +38,9 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! This class represents the logistic function
-class sigmoid_t {
-public:
+class sigmoid_t
+{
+  public:
     //! Calculate logistic function of x
     double operator()(double x) const NU_NOEXCEPT
     {

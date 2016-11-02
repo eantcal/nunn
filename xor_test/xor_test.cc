@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
     neural_net_t::topology_t topology = {
         2, // input layer takes a two dimensional vector as input
         2, // hidden layer size
-        1 // output
+        1  // output
     };
 
     try {
@@ -91,13 +91,12 @@ int main(int argc, char* argv[])
         /*------------- Create a training set ---------------------------------
          */
 
-        using training_set_t
-            = std::map<std::vector<double>, std::vector<double>>;
-        training_set_t traing_set = 
-            { { { 0, 0 }, { 0 } }, 
-            {   { 0, 1 }, { 1 } },
-            {   { 1, 0 }, { 1 } }, 
-            {   { 1, 1 }, { 0 } } };
+        using training_set_t =
+          std::map<std::vector<double>, std::vector<double>>;
+        training_set_t traing_set = { { { 0, 0 }, { 0 } },
+                                      { { 0, 1 }, { 1 } },
+                                      { { 1, 0 }, { 1 } },
+                                      { { 1, 1 }, { 0 } } };
 
 
         /*------------- Perform net training  ---------------------------------
@@ -108,9 +107,9 @@ int main(int argc, char* argv[])
 
         // Create a trainer object
         trainer_t trainer(nn,
-            EPOCHS, // Max number of epochs
-            MIN_ERR // Min error
-            );
+                          EPOCHS, // Max number of epochs
+                          MIN_ERR // Min error
+                          );
 
         std::cout << "XOR training start ( Max epochs count="
                   << trainer.get_epochs()
@@ -119,8 +118,9 @@ int main(int argc, char* argv[])
 
         // Called to print out training progress
         auto progress_cbk = [EPOCHS](neural_net_t& n,
-            const nu::vector_t<double>& i, const nu::vector_t<double>& t,
-            size_t epoch, size_t sample, double err) {
+                                     const nu::vector_t<double>& i,
+                                     const nu::vector_t<double>& t,
+                                     size_t epoch, size_t sample, double err) {
             if (epoch % 400 == 0 && sample == 0)
                 std::cout << "Epoch completed "
                           << (double(epoch) / double(EPOCHS)) * 100.0
@@ -130,23 +130,23 @@ int main(int argc, char* argv[])
 
         // Used by trainer to calculate the net error to
         // be compared with min error (MIN_ERR)
-        auto err_cost_f
-            = [](neural_net_t& net, const neural_net_t::rvector_t& target) {
-                  return net.mean_squared_error(target);
-              };
+        auto err_cost_f = [](neural_net_t& net,
+                             const neural_net_t::rvector_t& target) {
+            return net.mean_squared_error(target);
+        };
 
 
         // Train the net
-        trainer.run_training<training_set_t>(
-            traing_set, err_cost_f, progress_cbk);
+        trainer.run_training<training_set_t>(traing_set, err_cost_f,
+                                             progress_cbk);
 
 
         /*------------- Do final XOR test -------------------------------------
          */
 
         // Step function
-        auto step_f
-            = nu::step_func_t(0.5 /*threshold*/, 0 /* LO */, 1 /* HI */);
+        auto step_f =
+          nu::step_func_t(0.5 /*threshold*/, 0 /* LO */, 1 /* HI */);
 
         std::cout << std::endl << "XOR Test " << std::endl;
 

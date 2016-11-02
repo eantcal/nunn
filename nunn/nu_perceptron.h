@@ -53,18 +53,23 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! This class represents a Perceptron neural net
-class perceptron_t {
-public:
+class perceptron_t
+{
+  public:
     using rvector_t = vector_t<double>;
 
-    enum class exception_t { size_mismatch, invalid_sstream_format };
+    enum class exception_t
+    {
+        size_mismatch,
+        invalid_sstream_format
+    };
 
     //! default ctor
     perceptron_t() = default;
 
     //! ctor
     perceptron_t(const size_t& n_of_inputs, double learning_rate = 0.1,
-        step_func_t step_f = step_func_t());
+                 step_func_t step_f = step_func_t());
 
 
     //! Create a perceptron using data serialized into the given stream
@@ -76,10 +81,10 @@ public:
 
     //! move-ctor
     perceptron_t(perceptron_t&& nn)
-        : _inputs_count(std::move(nn._inputs_count))
-        , _learning_rate(std::move(nn._learning_rate))
-        , _inputs(std::move(nn._inputs))
-        , _neuron(std::move(nn._neuron))
+      : _inputs_count(std::move(nn._inputs_count))
+      , _learning_rate(std::move(nn._learning_rate))
+      , _inputs(std::move(nn._inputs))
+      , _neuron(std::move(nn._neuron))
     {
     }
 
@@ -177,24 +182,24 @@ public:
 
 
     //! Build the net by using data of the given string stream
-    friend std::stringstream& operator>>(
-        std::stringstream& ss, perceptron_t& net)
+    friend std::stringstream& operator>>(std::stringstream& ss,
+                                         perceptron_t& net)
     {
         return net.load(ss);
     }
 
 
     //! Save net status into the given string stream
-    friend std::stringstream& operator<<(
-        std::stringstream& ss, perceptron_t& net) NU_NOEXCEPT
+    friend std::stringstream& operator<<(std::stringstream& ss,
+                                         perceptron_t& net) NU_NOEXCEPT
     {
         return net.save(ss);
     }
 
 
     //! Print the net state out to the given ostream
-    friend std::ostream& operator<<(
-        std::ostream& os, perceptron_t& net) NU_NOEXCEPT
+    friend std::ostream& operator<<(std::ostream& os,
+                                    perceptron_t& net) NU_NOEXCEPT
     {
         return net.dump(os);
     }
@@ -203,9 +208,9 @@ public:
     //! Reset all net weights using new random values
     void reshuffle_weights() NU_NOEXCEPT;
 
-private:
-    void _back_propagate(
-        const double_t& target, const double_t& output) NU_NOEXCEPT;
+  private:
+    void _back_propagate(const double_t& target,
+                         const double_t& output) NU_NOEXCEPT;
 
     static const char* ID_ANN;
     static const char* ID_NEURON;
@@ -223,11 +228,12 @@ private:
 
 //! The perceptron trainer class is a helper class for training perceptrons
 class perceptron_trainer_t
-    : public nn_trainer_t<perceptron_t, nu::vector_t<double>, double> {
-public:
+  : public nn_trainer_t<perceptron_t, nu::vector_t<double>, double>
+{
+  public:
     perceptron_trainer_t(perceptron_t& nn, size_t epochs, double min_err)
-        : nn_trainer_t<perceptron_t, nu::vector_t<double>, double>(
-              nn, epochs, min_err)
+      : nn_trainer_t<perceptron_t, nu::vector_t<double>, double>(nn, epochs,
+                                                                 min_err)
     {
     }
 };

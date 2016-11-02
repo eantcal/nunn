@@ -46,23 +46,24 @@
 
 //! This class represents a single handwritten digit and its classification
 //! (label)
-class digit_data_t {
-public:
+class digit_data_t
+{
+  public:
     using data_t = std::vector<char>;
 
-private:
+  private:
     size_t _dx;
     size_t _dy;
     int _label;
     data_t _data;
 
-public:
+  public:
     //! ctor
     digit_data_t(size_t dx, size_t dy, int label,
-        const data_t& data) NU_NOEXCEPT : _dx(dx),
-                                          _dy(dy),
-                                          _label(label),
-                                          _data(data)
+                 const data_t& data) NU_NOEXCEPT : _dx(dx),
+                                                   _dy(dy),
+                                                   _label(label),
+                                                   _data(data)
     {
     }
 
@@ -135,8 +136,9 @@ public:
 
 //! This class provides a method to load MNIST pair of images and labels files
 //! The data can be retrieved as a list of digit_data_t objects
-class training_data_t {
-public:
+class training_data_t
+{
+  public:
     using data_t = std::list<std::unique_ptr<digit_data_t>>;
 
     //! Return a reference to a list of digit_data_t objects
@@ -159,7 +161,8 @@ public:
     }
 
 
-    enum class exception_t {
+    enum class exception_t
+    {
         lbls_file_not_found,
         imgs_file_not_found,
         lbls_file_read_error,
@@ -173,10 +176,10 @@ public:
     training_data_t() = delete;
 
 
-    training_data_t(
-        const std::string& lbls_file, const std::string& imgs_file) throw()
-        : _lbls_file(lbls_file)
-        , _imgs_file(imgs_file)
+    training_data_t(const std::string& lbls_file,
+                    const std::string& imgs_file) throw()
+      : _lbls_file(lbls_file)
+      , _imgs_file(imgs_file)
     {
     }
 
@@ -186,7 +189,7 @@ public:
     int load();
 
 
-private:
+  private:
     std::string _lbls_file;
     std::string _imgs_file;
 

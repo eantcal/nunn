@@ -33,11 +33,11 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-perceptron_t::perceptron_t(
-    const size_t& n_of_inputs, double learning_rate, step_func_t step_f)
-    : _inputs_count(n_of_inputs)
-    , _learning_rate(learning_rate)
-    , _step_f(step_f)
+perceptron_t::perceptron_t(const size_t& n_of_inputs, double learning_rate,
+                           step_func_t step_f)
+  : _inputs_count(n_of_inputs)
+  , _learning_rate(learning_rate)
+  , _step_f(step_f)
 {
     if (n_of_inputs < 1)
         throw exception_t::size_mismatch;
@@ -70,8 +70,8 @@ void perceptron_t::feed_forward() NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-void perceptron_t::back_propagate(
-    const double& target, double& output) NU_NOEXCEPT
+void perceptron_t::back_propagate(const double& target,
+                                  double& output) NU_NOEXCEPT
 {
     // Calculate and get the outputs
     feed_forward();
@@ -85,8 +85,8 @@ void perceptron_t::back_propagate(
 
 /* -------------------------------------------------------------------------- */
 
-void perceptron_t::_back_propagate(
-    const double& target, const double& output) NU_NOEXCEPT
+void perceptron_t::_back_propagate(const double& target,
+                                   const double& output) NU_NOEXCEPT
 {
     _neuron.error = (target - output);
     const double e = _learning_rate * _neuron.error;

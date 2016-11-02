@@ -41,16 +41,16 @@ const size_t pattern_size = 100;
 const size_t n_of_patterns = 5;
 
 std::string g_learning_patterns[] = { // 0123456789
-    { "   ***    " // 0
-      "  ****    " // 1
-      " *****    " // 2
-      "   ***    " // 3
-      "   ***    " // 4
-      "   ***    " // 5
-      "   ***    " // 6
-      "   ***    " // 7
-      " *******  " // 8
-      " *******  " }, // 9
+    { "   ***    "                    // 0
+      "  ****    "                    // 1
+      " *****    "                    // 2
+      "   ***    "                    // 3
+      "   ***    "                    // 4
+      "   ***    "                    // 5
+      "   ***    "                    // 6
+      "   ***    "                    // 7
+      " *******  "                    // 8
+      " *******  " },                 // 9
 
     { "**********"
       "**********"
@@ -99,16 +99,16 @@ std::string g_learning_patterns[] = { // 0123456789
 
 
 std::string g_test_patterns[] = { // 0123456789
-    { "   ***    " // 0
-      "   ***    " // 1
-      "   ***    " // 2
-      "   ***    " // 3
-      "   ***    " // 4
-      "   ***    " // 5
-      "   ***    " // 6
-      "   ***    " // 7
-      "   ***    " // 8
-      "   ***    " }, // 9
+    { "   ***    "                // 0
+      "   ***    "                // 1
+      "   ***    "                // 2
+      "   ***    "                // 3
+      "   ***    "                // 4
+      "   ***    "                // 5
+      "   ***    "                // 6
+      "   ***    "                // 7
+      "   ***    "                // 8
+      "   ***    " },             // 9
 
     { "**********"
       "**********"
@@ -189,7 +189,7 @@ static void print_pattern(const nu::hopfieldnn_t::rvector_t& pattern)
 /* -------------------------------------------------------------------------- */
 
 static void convert_pattern_into_input_v(
-    const std::string& pattern, nu::hopfieldnn_t::rvector_t& input_vector)
+  const std::string& pattern, nu::hopfieldnn_t::rvector_t& input_vector)
 {
     size_t i = 0;
     for (auto c : pattern)

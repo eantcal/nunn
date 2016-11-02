@@ -34,10 +34,12 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! The trainer class is a helper class for neural networks training
-template <class Net, class Input, class Target> class nn_trainer_t {
+template <class Net, class Input, class Target>
+class nn_trainer_t
+{
     friend class iterator;
 
-public:
+  public:
     using type_t = nn_trainer_t<Net, Input, Target>;
 
     //! Cost function pointer
@@ -48,26 +50,28 @@ public:
 
     //! Progress call back function pointer
     using progress_fptr_t = void(Net&, const Input&, const Target&,
-        size_t /*epoch*/, size_t /* sample_idx */, double /* err */);
+                                 size_t /*epoch*/, size_t /* sample_idx */,
+                                 double /* err */);
 
     //! Progress call back function object wrapper
     using progress_cbk_t = std::function<progress_fptr_t>;
 
     //! Trainer iterator
-    struct iterator {
+    struct iterator
+    {
         friend class nn_trainer_t;
 
-    private:
+      private:
         nn_trainer_t* _trainer = nullptr;
         size_t _epoch = 0;
 
         iterator(type_t& trainer, size_t epoch) NU_NOEXCEPT
-            : _trainer(&trainer),
-              _epoch(epoch)
+          : _trainer(&trainer),
+            _epoch(epoch)
         {
         }
 
-    public:
+      public:
         //! Copy constructor
         iterator(const iterator& it) = default;
 
@@ -142,10 +146,10 @@ public:
     //! @epochs:  max epoch count at which to stop training
     //! @min_err: min error value at which to stop training
     nn_trainer_t(Net& nn, size_t epochs, double min_err) NU_NOEXCEPT
-        : _nn(nn),
-          _epochs(epochs),
-          _min_err(min_err),
-          _err(0.0)
+      : _nn(nn),
+        _epochs(epochs),
+        _min_err(min_err),
+        _err(0.0)
     {
     }
 
@@ -178,7 +182,7 @@ public:
     //! Trains the net using a training set of samples
     template <class TSet>
     size_t run_training(const TSet& training_set, cost_func_t err_cost_f,
-        progress_cbk_t progress_cbk = nullptr)
+                        progress_cbk_t progress_cbk = nullptr)
     {
         size_t epoch = 0;
 
@@ -187,24 +191,18 @@ public:
 
             for (const auto& sample : training_set) {
                 if (progress_cbk)
-                    progress_cbk(
-                        _nn, 
-                        sample.first, 
-                        sample.second, 
-                        epoch,
-                        sample_idx++, 
-                        _err);
+                    progress_cbk(_nn, sample.first, sample.second, epoch,
+                                 sample_idx++, _err);
 
                 if (train(sample.first, sample.second, err_cost_f) == true)
                     return epoch;
-               
             }
         }
 
         return epoch;
     }
 
-protected:
+  protected:
     Net& _nn;
     size_t _epochs;
     double _min_err;

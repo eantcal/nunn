@@ -46,15 +46,20 @@ namespace nu {
 //! This class wraps a std::vector to basically make it capable to perform
 //! math operations used by learning algorithms
 
-template <class T = double> class vector_t {
-public:
+template <class T = double>
+class vector_t
+{
+  public:
     using item_t = T;
     using vr_t = std::vector<item_t>;
 
     using iterator = typename vr_t::iterator;
     using const_iterator = typename vr_t::const_iterator;
 
-    enum class exception_t { size_mismatch };
+    enum class exception_t
+    {
+        size_mismatch
+    };
 
 
     //! Construct an empty vector, with no elements.
@@ -333,8 +338,8 @@ public:
 
 
     //! Writes the vector v status into the give string stream ss
-    friend std::stringstream& operator<<(
-        std::stringstream& ss, const vector_t& v) NU_NOEXCEPT
+    friend std::stringstream& operator<<(std::stringstream& ss,
+                                         const vector_t& v) NU_NOEXCEPT
     {
         ss << v.size() << std::endl;
 
@@ -346,8 +351,8 @@ public:
 
 
     //! Copies the vector status from the stream ss into vector v
-    friend std::stringstream& operator>>(
-        std::stringstream& ss, vector_t& v) NU_NOEXCEPT
+    friend std::stringstream& operator>>(std::stringstream& ss,
+                                         vector_t& v) NU_NOEXCEPT
     {
         size_t size = 0;
         ss >> size;
@@ -362,8 +367,8 @@ public:
 
 
     //! Prints out to the os stream vector v
-    friend std::ostream& operator<<(
-        std::ostream& os, const vector_t& v) NU_NOEXCEPT
+    friend std::ostream& operator<<(std::ostream& os,
+                                    const vector_t& v) NU_NOEXCEPT
     {
         os << "[ ";
 
@@ -420,11 +425,11 @@ public:
     //! Return a reference to standard vector
     std::vector<T>& to_stdvec() NU_NOEXCEPT { return _v; }
 
-private:
+  private:
     vr_t _v;
 
-    vector_t& _op(
-        const vector_t& other, std::function<void(item_t&, const item_t&)> f)
+    vector_t& _op(const vector_t& other,
+                  std::function<void(item_t&, const item_t&)> f)
     {
         if (other.size() != size())
             throw exception_t::size_mismatch;

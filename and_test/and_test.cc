@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 {
     try {
         nu::step_func_t step_f(0.5 /* Lo/Hi-threshold */, 0 /* Lo - Output */,
-            1 /* Hi - Output */);
+                               1 /* Hi - Output */);
 
         nu::perceptron_t nn(2 /* inputs */, 0.2 /* learning rate */, step_f);
 
@@ -68,9 +68,9 @@ int main(int argc, char* argv[])
         // ---------------------------------------------------------
 
         nu::perceptron_trainer_t trainer(nn,
-            2000, // Max number of epochs
-            0.01 // Min error
-            );
+                                         2000, // Max number of epochs
+                                         0.01  // Min error
+                                         );
 
         std::cout << "AND training start ( Max epochs count="
                   << trainer.get_epochs()
@@ -87,14 +87,14 @@ int main(int argc, char* argv[])
             for (int a = 0; a < 2; ++a) {
                 for (int b = 0; b < 2; ++b) {
                     training_epoch.train(
-                        { double(a), double(b) }, // input vector
-                        { double(and_function(a, b)) }, // target
+                      { double(a), double(b) },       // input vector
+                      { double(and_function(a, b)) }, // target
 
-                        // cost function
-                        [&err](nu::perceptron_t& net, const double& target) {
-                            err = net.error(target);
-                            return err;
-                        });
+                      // cost function
+                      [&err](nu::perceptron_t& net, const double& target) {
+                          err = net.error(target);
+                          return err;
+                      });
                 }
             }
 

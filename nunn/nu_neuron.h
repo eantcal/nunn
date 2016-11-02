@@ -41,7 +41,9 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! This class represents a neuron of a neural net neuron layer
-template <class T> struct neuron_t {
+template <class T>
+struct neuron_t
+{
     //! neuron weights
     vector_t<T> weights;
 
@@ -58,8 +60,8 @@ template <class T> struct neuron_t {
     T error = T(0);
 
     //! Save neuron status into a given string stream
-    friend std::stringstream& operator<<(
-        std::stringstream& ss, const neuron_t<T>& n) NU_NOEXCEPT
+    friend std::stringstream& operator<<(std::stringstream& ss,
+                                         const neuron_t<T>& n) NU_NOEXCEPT
     {
         ss << n.bias << std::endl;
         ss << n.weights << std::endl;
@@ -69,8 +71,8 @@ template <class T> struct neuron_t {
     }
 
     //! Load neuron status from a given string stream
-    friend std::stringstream& operator>>(
-        std::stringstream& ss, neuron_t<T>& n) NU_NOEXCEPT
+    friend std::stringstream& operator>>(std::stringstream& ss,
+                                         neuron_t<T>& n) NU_NOEXCEPT
     {
         ss >> n.bias;
         ss >> n.weights;

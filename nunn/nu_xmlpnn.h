@@ -52,17 +52,20 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! This class represents a base class for MLP and RMLP neural nets
-template <class Neuron> class xmlp_neural_net_t {
-public:
+template <class Neuron>
+class xmlp_neural_net_t
+{
+  public:
     using rvector_t = vector_t<double>;
 
     using errv_func_t = std::function<void(const rvector_t& /* target */,
-        const rvector_t& /* output */, rvector_t& /* result */)>;
+                                           const rvector_t& /* output */,
+                                           rvector_t& /* result */)>;
 
     using cost_func_t = std::function<cf::costfunc_t>;
 
 
-protected:
+  protected:
     using actfunc_t = sigmoid_t;
 
     //! This class represents a neuron layer of a neural net.
@@ -70,17 +73,19 @@ protected:
 
     cost_func_t _userdef_costf = nullptr;
 
-public:
+  public:
     using topology_t = vector_t<size_t>;
 
-    enum class err_cost_t {
-        MSE, //! mean square error cost function
+    enum class err_cost_t
+    {
+        MSE,          //! mean square error cost function
         CROSSENTROPY, //! cross entropy cost function
         USERDEF
     };
 
 
-    enum class exception_t {
+    enum class exception_t
+    {
         size_mismatch,
         invalid_sstream_format,
         userdef_costf_not_defined
@@ -93,11 +98,11 @@ public:
 
     //! ctor
     xmlp_neural_net_t(const topology_t& topology, double learning_rate,
-        double momentum, err_cost_t ec) NU_NOEXCEPT
-        : _topology(topology),
-          _learning_rate(learning_rate),
-          _momentum(momentum),
-          _err_cost_selector(ec)
+                      double momentum, err_cost_t ec) NU_NOEXCEPT
+      : _topology(topology),
+        _learning_rate(learning_rate),
+        _momentum(momentum),
+        _err_cost_selector(ec)
     {
     }
 
@@ -108,12 +113,12 @@ public:
 
     //! move-ctor
     xmlp_neural_net_t(xmlp_neural_net_t<Neuron>&& nn) NU_NOEXCEPT
-        : _topology(std::move(nn._topology)),
-          _learning_rate(std::move(nn._learning_rate)),
-          _momentum(std::move(nn._momentum)),
-          _inputs(std::move(nn._inputs)),
-          _neuron_layers(std::move(nn._neuron_layers)),
-          _err_cost_selector(std::move(nn._err_cost_selector))
+      : _topology(std::move(nn._topology)),
+        _learning_rate(std::move(nn._learning_rate)),
+        _momentum(std::move(nn._momentum)),
+        _inputs(std::move(nn._inputs)),
+        _neuron_layers(std::move(nn._neuron_layers)),
+        _err_cost_selector(std::move(nn._err_cost_selector))
     {
     }
 
@@ -420,18 +425,18 @@ public:
         get_outputs(output);
 
         switch (_err_cost_selector) {
-        case err_cost_t::USERDEF:
-            if (!_userdef_costf)
-                throw exception_t::userdef_costf_not_defined;
+            case err_cost_t::USERDEF:
+                if (!_userdef_costf)
+                    throw exception_t::userdef_costf_not_defined;
 
-            return _userdef_costf(output, target);
+                return _userdef_costf(output, target);
 
-        case err_cost_t::CROSSENTROPY:
-            return cf::cross_entropy(output, target);
+            case err_cost_t::CROSSENTROPY:
+                return cf::cross_entropy(output, target);
 
-        case err_cost_t::MSE:
-        default:
-            return cf::mean_squared_error(output, target);
+            case err_cost_t::MSE:
+            default:
+                return cf::mean_squared_error(output, target);
         }
     }
 
@@ -440,16 +445,16 @@ public:
     virtual errv_func_t get_errv_func() NU_NOEXCEPT
     {
         switch (_err_cost_selector) {
-        case err_cost_t::CROSSENTROPY:
-            return _calc_xentropy_err_v;
+            case err_cost_t::CROSSENTROPY:
+                return _calc_xentropy_err_v;
 
-        case err_cost_t::MSE:
-        default:
-            return _calc_mse_err_v;
+            case err_cost_t::MSE:
+            default:
+                return _calc_mse_err_v;
         }
     }
 
-protected:
+  protected:
     //! Get input value for a neuron belonging to a given layer
     //! If layer is 0, it is related to input of the net
     double _get_input(size_t layer, size_t idx) NU_NOEXCEPT
@@ -463,8 +468,8 @@ protected:
     }
 
     //! Fire all neurons of a given layer
-    void _fire_neuron(
-        neuron_layer_t& nlayer, size_t layer_idx, size_t out_idx) NU_NOEXCEPT
+    void _fire_neuron(neuron_layer_t& nlayer, size_t layer_idx,
+                      size_t out_idx) NU_NOEXCEPT
     {
         auto& neuron = nlayer[out_idx];
 
@@ -497,8 +502,8 @@ protected:
 
     //! This method can be redefined in order to provide a
     //! specific implementation of learning algorithm
-    virtual void _back_propagate(
-        const rvector_t& target_v, const rvector_t& output_v)
+    virtual void _back_propagate(const rvector_t& target_v,
+                                 const rvector_t& output_v)
     {
         if (target_v.size() != output_v.size())
             throw exception_t::size_mismatch;
@@ -577,16 +582,16 @@ protected:
 
                 // For each neuron of next layer...
                 for (size_t nnidx = 0; nnidx < nlsize; ++nnidx) {
-                    auto& next_layer_neuron
-                        = (_neuron_layers[layer_idx])[nnidx];
+                    auto& next_layer_neuron =
+                      (_neuron_layers[layer_idx])[nnidx];
 
                     // ... add to the sum the product of its output error
                     //     (as previusly computed)
                     //     multiplied by the weights releated to neurons of
                     //     hidden layer
                     //     (they are related to hl-neuron index: nidx)
-                    sum += next_layer_neuron.error
-                        * next_layer_neuron.weights[nidx];
+                    sum +=
+                      next_layer_neuron.error * next_layer_neuron.weights[nidx];
 
                     // Add also bias-error rate
                     if (nnidx == (nlsize - 1))
@@ -604,7 +609,8 @@ protected:
     //! Initialize inputs and neuron layers of a net using a given
     //! topology
     static void _build(const topology_t& topology,
-        std::vector<neuron_layer_t>& neuron_layers, rvector_t& inputs)
+                       std::vector<neuron_layer_t>& neuron_layers,
+                       rvector_t& inputs)
     {
         if (topology.size() < 3)
             throw(exception_t::size_mismatch);
@@ -637,7 +643,8 @@ protected:
 
     //! Calculate error vector in using MSE function
     static void _calc_mse_err_v(const rvector_t& target_v,
-        const rvector_t& outputs_v, rvector_t& res_v) NU_NOEXCEPT
+                                const rvector_t& outputs_v,
+                                rvector_t& res_v) NU_NOEXCEPT
     {
         // res = (1 - out) * out
         res_v.resize(outputs_v.size(), 1.0);
@@ -655,7 +662,8 @@ protected:
 
     //! Calculate error vector in using cross-entropy function
     static void _calc_xentropy_err_v(const rvector_t& target_v,
-        const rvector_t& outputs_v, rvector_t& res_v) NU_NOEXCEPT
+                                     const rvector_t& outputs_v,
+                                     rvector_t& res_v) NU_NOEXCEPT
     {
         // Error vector = target - out
         res_v = target_v;

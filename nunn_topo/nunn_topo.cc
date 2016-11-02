@@ -36,7 +36,7 @@
 /* -------------------------------------------------------------------------- */
 
 static bool process_cl(int argc, char* argv[], std::string& load_file_name,
-    std::string& save_file_name)
+                       std::string& save_file_name)
 {
     int pidx = 1;
 
@@ -96,8 +96,8 @@ static void usage(const char* appname)
 
 /* -------------------------------------------------------------------------- */
 
-bool save_topo(
-    const std::string& filename, nu::mlp_neural_net_t::topology_t& topology)
+bool save_topo(const std::string& filename,
+               nu::mlp_neural_net_t::topology_t& topology)
 {
     const size_t buf_size = 1024;
 
@@ -171,7 +171,7 @@ bool save_topo(
     for (size_t node = 0; node < input_n; ++node) {
         for (size_t level_node = 0; level_node < topology[1]; ++level_node) {
             snprintf(buf, sizeof(buf) - 1, "x%03zu->a%03zu%03zu;\n", node,
-                size_t(1), level_node);
+                     size_t(1), level_node);
             ss << buf;
         }
     }
@@ -185,7 +185,7 @@ bool save_topo(
             for (size_t level_node_r = 0; level_node_r < topology[level + 1];
                  ++level_node_r) {
                 snprintf(buf, sizeof(buf) - 1, "a%03zu%03zu->a%03zu%03zu;\n",
-                    level, level_node_l, level + 1, level_node_r);
+                         level, level_node_l, level + 1, level_node_r);
 
                 ss << buf;
             }
@@ -198,7 +198,7 @@ bool save_topo(
         for (size_t level_node = 0; level_node < topology[topology.size() - 2];
              ++level_node) {
             snprintf(buf, sizeof(buf) - 1, "a%03zu%03zu->y%03zu;\n", hlevel_n,
-                level_node, node);
+                     level_node, node);
             ss << buf;
         }
     }
@@ -222,6 +222,7 @@ bool save_topo(
 
     return true;
 }
+
 
 /* -------------------------------------------------------------------------- */
 
