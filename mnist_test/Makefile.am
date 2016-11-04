@@ -3,8 +3,8 @@ sbin_PROGRAMS =
 
 AM_CPPFLAGS = \
    -g \
-   -I../mnist \
-   -I../nunn
+   -I$(top_srcdir)/mnist \
+   -I$(top_srcdir)/nunn
 
 mnist_test_CXXFLAGS = \
    -std=c++11 \
@@ -16,8 +16,8 @@ mnist_test_SOURCES = \
 AM_CXXFLAGS = ${mnist_test_CXXFLAGS}
 
 mnist_test_LDADD = \
-   -lnunn \
-   -lmnist
+   -L../nunn/.libs -lnunn \
+   -L../mnist/.libs -lmnist
 
 sbin_PROGRAMS += \
    mnist_test 

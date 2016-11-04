@@ -3,7 +3,7 @@ sbin_PROGRAMS =
 
 AM_CPPFLAGS = \
    -g \
-   -I../nunn
+   -I$(top_srcdir)/nunn
 
 nunn_topo_CXXFLAGS = \
    -std=c++14 \
@@ -15,7 +15,7 @@ nunn_topo_SOURCES = \
 AM_CXXFLAGS = ${nunn_topo_CXXFLAGS}
 
 nunn_topo_LDADD = \
-   -lnunn 
+   -L../nunn/.libs -lnunn 
 
 sbin_PROGRAMS += \
    nunn_topo 

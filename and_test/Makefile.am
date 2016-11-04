@@ -3,7 +3,7 @@ sbin_PROGRAMS =
 
 AM_CPPFLAGS = \
    -g \
-   -I../nunn
+   -I$(top_srcdir)/nunn
 
 and_test_CXXFLAGS = \
    -std=c++11 \
@@ -15,7 +15,7 @@ and_test_SOURCES = \
 AM_CXXFLAGS = ${and_test_CXXFLAGS}
 
 and_test_LDADD = \
-   -lnunn 
+   -L../nunn/.libs -lnunn 
 
 sbin_PROGRAMS += \
    and_test 

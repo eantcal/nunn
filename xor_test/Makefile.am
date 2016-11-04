@@ -3,7 +3,7 @@ sbin_PROGRAMS =
 
 AM_CPPFLAGS = \
    -g \
-   -I../nunn
+   -I$(top_srcdir)/nunn
 
 xor_test_CXXFLAGS = \
    -std=c++11 \
@@ -15,7 +15,7 @@ xor_test_SOURCES = \
 AM_CXXFLAGS = ${xor_test_CXXFLAGS}
 
 xor_test_LDADD = \
-   -lnunn 
+   -L../nunn/.libs -lnunn 
 
 sbin_PROGRAMS += \
    xor_test 

@@ -3,7 +3,7 @@ sbin_PROGRAMS =
 
 AM_CPPFLAGS = \
    -g \
-   -I../nunn
+   -I$(top_srcdir)/nunn
 
 hopfield_test_CXXFLAGS = \
    -std=c++11 \
@@ -15,7 +15,7 @@ hopfield_test_SOURCES = \
 AM_CXXFLAGS = ${hopfield_test_CXXFLAGS}
 
 hopfield_test_LDADD = \
-   -lnunn 
+   -L../nunn/.libs -lnunn 
 
 sbin_PROGRAMS += \
    hopfield_test 

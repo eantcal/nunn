@@ -3,7 +3,7 @@ sbin_PROGRAMS =
 
 AM_CPPFLAGS = \
    -g \
-   -I../nunn
+   -I$(top_srcdir)/nunn
 
 tictactoe_CXXFLAGS = \
    -std=c++11 \
@@ -15,7 +15,7 @@ tictactoe_SOURCES = \
 AM_CXXFLAGS = ${tictactoe_CXXFLAGS}
 
 tictactoe_LDADD = \
-   -lnunn 
+   -L../nunn/.libs -lnunn 
 
 sbin_PROGRAMS += \
    tictactoe 

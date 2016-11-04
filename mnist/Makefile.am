@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I../nunn
+AM_CPPFLAGS = -I$(top_srcdir)/nunn
 
 lib_LTLIBRARIES = libmnist.la
 
