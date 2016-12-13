@@ -15,7 +15,7 @@
 *  along with nunnlib; if not, write to the Free Software
 *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  US
 *
-*  Author: Antonino Calderone <acaldmail@gmail.com>
+*  Author: Antonino Calderone <antonino.calderone@gmail.com>
 *
 */
 

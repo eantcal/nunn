@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Nunn Library"
-#define MyAppVersion "1.55"
+#define MyAppVersion "1.56"
 #define MyAppPublisher "antonino.calderone@gmail.com"
 #define MyAppURL "http://www.nunnlib.eu"
 #define MyAppExeName "ocr_test.exe"
