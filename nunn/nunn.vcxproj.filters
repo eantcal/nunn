@@ -45,9 +45,6 @@
     <ClInclude Include="nu_xmlpnn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_noexcept.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="nu_costfuncs.h">
       <Filter>Header Files</Filter>
     </ClInclude>

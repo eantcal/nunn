@@ -64,7 +64,7 @@ Pixel values are 0 to 255. 0 means background (white), 255 means foreground
 
 /* -------------------------------------------------------------------------- */
 
-void digit_data_t::to_vect(nu::vector_t<double>& v) const NU_NOEXCEPT
+void digit_data_t::to_vect(nu::vector_t<double>& v) const noexcept
 {
     size_t vsize = data().size();
     v.resize(vsize);
@@ -76,7 +76,7 @@ void digit_data_t::to_vect(nu::vector_t<double>& v) const NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-void digit_data_t::label_to_target(nu::vector_t<double>& v) const NU_NOEXCEPT
+void digit_data_t::label_to_target(nu::vector_t<double>& v) const noexcept
 {
     v.resize(10);
     std::fill(v.begin(), v.end(), 0.0);
@@ -88,7 +88,7 @@ void digit_data_t::label_to_target(nu::vector_t<double>& v) const NU_NOEXCEPT
 
 
 #ifdef _WIN32
-void digit_data_t::paint(int xoff, int yoff, HWND hwnd) const NU_NOEXCEPT
+void digit_data_t::paint(int xoff, int yoff, HWND hwnd) const noexcept
 {
     size_t dx = get_dx();
     size_t dy = get_dy();

@@ -52,7 +52,7 @@ perceptron_t::perceptron_t(const size_t& n_of_inputs, double learning_rate,
 
 /* -------------------------------------------------------------------------- */
 
-void perceptron_t::feed_forward() NU_NOEXCEPT
+void perceptron_t::feed_forward() noexcept
 {
     // For each layer (excluding input one) of neurons do...
     auto& neuron = _neuron;
@@ -71,7 +71,7 @@ void perceptron_t::feed_forward() NU_NOEXCEPT
 /* -------------------------------------------------------------------------- */
 
 void perceptron_t::back_propagate(const double& target,
-                                  double& output) NU_NOEXCEPT
+                                  double& output) noexcept
 {
     // Calculate and get the outputs
     feed_forward();
@@ -86,7 +86,7 @@ void perceptron_t::back_propagate(const double& target,
 /* -------------------------------------------------------------------------- */
 
 void perceptron_t::_back_propagate(const double& target,
-                                   const double& output) NU_NOEXCEPT
+                                   const double& output) noexcept
 {
     _neuron.error = (target - output);
     const double e = _learning_rate * _neuron.error;
@@ -127,7 +127,7 @@ std::stringstream& perceptron_t::load(std::stringstream& ss)
 
 /* -------------------------------------------------------------------------- */
 
-std::stringstream& perceptron_t::save(std::stringstream& ss) NU_NOEXCEPT
+std::stringstream& perceptron_t::save(std::stringstream& ss) noexcept
 {
     ss.clear();
 
@@ -147,7 +147,7 @@ std::stringstream& perceptron_t::save(std::stringstream& ss) NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-void perceptron_t::reshuffle_weights() NU_NOEXCEPT
+void perceptron_t::reshuffle_weights() noexcept
 {
     double weights_cnt = double(_neuron.weights.size());
 
@@ -170,7 +170,7 @@ void perceptron_t::reshuffle_weights() NU_NOEXCEPT
 /* -------------------------------------------------------------------------- */
 
 //! Print the net state out to the given ostream
-std::ostream& perceptron_t::dump(std::ostream& os) NU_NOEXCEPT
+std::ostream& perceptron_t::dump(std::ostream& os) noexcept
 {
     os << "Perceptron " << std::endl;
 

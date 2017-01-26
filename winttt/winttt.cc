@@ -110,7 +110,7 @@ struct sample_t
     nu::vector_t<double> inputs;
     nu::vector_t<double> outputs;
 
-    bool operator<(const sample_t& other) const NU_NOEXCEPT
+    bool operator<(const sample_t& other) const noexcept
     {
         return inputs < other.inputs ||
                (inputs == other.inputs && outputs < other.outputs);
@@ -584,19 +584,19 @@ class grid_t
     int _tmp_grid[TICTACTOE_SIDE][TICTACTOE_SIDE];
 
 
-    int& _at(int x, int y) NU_NOEXCEPT { return _grid[x][y]; }
+    int& _at(int x, int y) noexcept { return _grid[x][y]; }
 
-    const int& _at(int x, int y) const NU_NOEXCEPT
+    const int& _at(int x, int y) const noexcept
     {
         return _grid[x][y];
     }
 
-    static int _pos2y(int pos) NU_NOEXCEPT
+    static int _pos2y(int pos) noexcept
     {
         return pos / TICTACTOE_SIDE;
     }
 
-    static int _pos2x(int pos) NU_NOEXCEPT
+    static int _pos2x(int pos) noexcept
     {
         return pos % TICTACTOE_SIDE;
     }
@@ -634,7 +634,7 @@ class grid_t
         }
     }
 
-    size_t size() const NU_NOEXCEPT { return TICTACTOE_SIDE * TICTACTOE_SIDE; }
+    size_t size() const noexcept { return TICTACTOE_SIDE * TICTACTOE_SIDE; }
 
 
     int get_unique_id() const
@@ -702,7 +702,7 @@ class grid_t
     }
 
 
-    bool operator<(const grid_t& other) const NU_NOEXCEPT
+    bool operator<(const grid_t& other) const noexcept
     {
         if (this == &other)
             return false;

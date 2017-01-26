@@ -61,7 +61,7 @@ struct neuron_t
 
     //! Save neuron status into a given string stream
     friend std::stringstream& operator<<(std::stringstream& ss,
-                                         const neuron_t<T>& n) NU_NOEXCEPT
+                                         const neuron_t<T>& n) noexcept
     {
         ss << n.bias << std::endl;
         ss << n.weights << std::endl;
@@ -72,7 +72,7 @@ struct neuron_t
 
     //! Load neuron status from a given string stream
     friend std::stringstream& operator>>(std::stringstream& ss,
-                                         neuron_t<T>& n) NU_NOEXCEPT
+                                         neuron_t<T>& n) noexcept
     {
         ss >> n.bias;
         ss >> n.weights;
@@ -82,7 +82,7 @@ struct neuron_t
     }
 
     //! Resize both the weights and delta_weights vectors
-    void resize(size_t size) NU_NOEXCEPT
+    void resize(size_t size) noexcept
     {
         weights.resize(size);
         delta_weights.resize(size);

@@ -39,7 +39,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_neuron.h"
-#include "nu_noexcept.h"
+
 #include "nu_stepf.h"
 #include "nu_trainer.h"
 #include "nu_vector.h"
@@ -108,11 +108,11 @@ class perceptron_t
 
 
     //! Return the number of inputs
-    size_t get_inputs_count() const NU_NOEXCEPT { return _inputs.size(); }
+    size_t get_inputs_count() const noexcept { return _inputs.size(); }
 
 
     //! Return current learning rate
-    double get_learning_rate() const NU_NOEXCEPT { return _learning_rate; }
+    double get_learning_rate() const noexcept { return _learning_rate; }
 
 
     //! Change net learning rate
@@ -130,32 +130,32 @@ class perceptron_t
 
 
     //! Get net inputs
-    void get_inputs(rvector_t& inputs) const NU_NOEXCEPT { inputs = _inputs; }
+    void get_inputs(rvector_t& inputs) const noexcept { inputs = _inputs; }
 
 
     //! Get net output
-    double get_output() const NU_NOEXCEPT { return _neuron.output; }
+    double get_output() const noexcept { return _neuron.output; }
 
 
     //! Return f(get_output()), where f is the step function
-    double get_sharp_output() const NU_NOEXCEPT
+    double get_sharp_output() const noexcept
     {
         return _step_f(get_output());
     }
 
 
     //! Fire all neurons of the net and calculate the outputs
-    void feed_forward() NU_NOEXCEPT;
+    void feed_forward() noexcept;
 
 
     //! Fire the neuron, calculate the output
     //! then apply the learning algorithm to the net
-    void back_propagate(const double& target, double& output) NU_NOEXCEPT;
+    void back_propagate(const double& target, double& output) noexcept;
 
 
     //! Fire the neuron, calculate the output
     //! then apply the learning algorithm to the net
-    void back_propagate(const double& target) NU_NOEXCEPT
+    void back_propagate(const double& target) noexcept
     {
         double output;
         back_propagate(target, output);
@@ -163,7 +163,7 @@ class perceptron_t
 
 
     //! Compute global error
-    double error(const double& target) const NU_NOEXCEPT
+    double error(const double& target) const noexcept
     {
         return std::abs(target - get_output());
     }
@@ -174,11 +174,11 @@ class perceptron_t
 
 
     //! Save net status into the given string stream
-    std::stringstream& save(std::stringstream& ss) NU_NOEXCEPT;
+    std::stringstream& save(std::stringstream& ss) noexcept;
 
 
     //! Print the net state out to the given ostream
-    std::ostream& dump(std::ostream& os) NU_NOEXCEPT;
+    std::ostream& dump(std::ostream& os) noexcept;
 
 
     //! Build the net by using data of the given string stream
@@ -191,7 +191,7 @@ class perceptron_t
 
     //! Save net status into the given string stream
     friend std::stringstream& operator<<(std::stringstream& ss,
-                                         perceptron_t& net) NU_NOEXCEPT
+                                         perceptron_t& net) noexcept
     {
         return net.save(ss);
     }
@@ -199,18 +199,18 @@ class perceptron_t
 
     //! Print the net state out to the given ostream
     friend std::ostream& operator<<(std::ostream& os,
-                                    perceptron_t& net) NU_NOEXCEPT
+                                    perceptron_t& net) noexcept
     {
         return net.dump(os);
     }
 
 
     //! Reset all net weights using new random values
-    void reshuffle_weights() NU_NOEXCEPT;
+    void reshuffle_weights() noexcept;
 
   private:
     void _back_propagate(const double_t& target,
-                         const double_t& output) NU_NOEXCEPT;
+                         const double_t& output) noexcept;
 
     static const char* ID_ANN;
     static const char* ID_NEURON;

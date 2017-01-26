@@ -67,7 +67,7 @@ void hopfieldnn_t::recall(const rvector_t& input_pattern,
 /* -------------------------------------------------------------------------- */
 
 //! default assignment-move operator
-hopfieldnn_t& hopfieldnn_t::operator=(hopfieldnn_t&& nn) NU_NOEXCEPT
+hopfieldnn_t& hopfieldnn_t::operator=(hopfieldnn_t&& nn) noexcept
 {
     if (this != &nn) {
         _s = std::move(nn._s);
@@ -81,7 +81,7 @@ hopfieldnn_t& hopfieldnn_t::operator=(hopfieldnn_t&& nn) NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-void hopfieldnn_t::_propagate() NU_NOEXCEPT
+void hopfieldnn_t::_propagate() noexcept
 {
     size_t it = 0;
     size_t last_it = 0;
@@ -99,7 +99,7 @@ void hopfieldnn_t::_propagate() NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-bool hopfieldnn_t::_propagate_neuron(size_t i) NU_NOEXCEPT
+bool hopfieldnn_t::_propagate_neuron(size_t i) noexcept
 {
     bool changed = false;
     double sum = 0;
@@ -158,7 +158,7 @@ std::stringstream& hopfieldnn_t::load(std::stringstream& ss)
 
 /* -------------------------------------------------------------------------- */
 
-std::stringstream& hopfieldnn_t::save(std::stringstream& ss) NU_NOEXCEPT
+std::stringstream& hopfieldnn_t::save(std::stringstream& ss) noexcept
 {
     ss.clear();
 
@@ -178,7 +178,7 @@ std::stringstream& hopfieldnn_t::save(std::stringstream& ss) NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-std::ostream& hopfieldnn_t::dump(std::ostream& os) NU_NOEXCEPT
+std::ostream& hopfieldnn_t::dump(std::ostream& os) noexcept
 {
     os << "Hopfield " << std::endl;
 

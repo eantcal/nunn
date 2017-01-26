@@ -29,7 +29,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_costfuncs.h"
-#include "nu_noexcept.h"
+
 #include "nu_sigmoid.h"
 #include "nu_trainer.h"
 #include "nu_vector.h"
@@ -98,7 +98,7 @@ class xmlp_neural_net_t
 
     //! ctor
     xmlp_neural_net_t(const topology_t& topology, double learning_rate,
-                      double momentum, err_cost_t ec) NU_NOEXCEPT
+                      double momentum, err_cost_t ec) noexcept
       : _topology(topology),
         _learning_rate(learning_rate),
         _momentum(momentum),
@@ -112,7 +112,7 @@ class xmlp_neural_net_t
 
 
     //! move-ctor
-    xmlp_neural_net_t(xmlp_neural_net_t<Neuron>&& nn) NU_NOEXCEPT
+    xmlp_neural_net_t(xmlp_neural_net_t<Neuron>&& nn) noexcept
       : _topology(std::move(nn._topology)),
         _learning_rate(std::move(nn._learning_rate)),
         _momentum(std::move(nn._momentum)),
@@ -128,7 +128,7 @@ class xmlp_neural_net_t
 
 
     //! move-assignment operator
-    xmlp_neural_net_t& operator=(xmlp_neural_net_t<Neuron>&& nn) NU_NOEXCEPT
+    xmlp_neural_net_t& operator=(xmlp_neural_net_t<Neuron>&& nn) noexcept
     {
         if (this != &nn) {
             _topology = std::move(nn._topology);
@@ -144,7 +144,7 @@ class xmlp_neural_net_t
 
 
     //! Selects the error cost function
-    void select_error_cost_function(err_cost_t ec) NU_NOEXCEPT
+    void select_error_cost_function(err_cost_t ec) noexcept
     {
         _err_cost_selector = ec;
     }
@@ -152,7 +152,7 @@ class xmlp_neural_net_t
 
     //! Set a user defined cost function, selector is automatically
     //! set to err_cost_t::USERDEF;
-    void set_error_cost_function(cost_func_t cf) NU_NOEXCEPT
+    void set_error_cost_function(cost_func_t cf) noexcept
     {
         _err_cost_selector = err_cost_t::USERDEF;
         _userdef_costf = cf;
@@ -160,15 +160,15 @@ class xmlp_neural_net_t
 
 
     //! Get current error cost selector value
-    err_cost_t get_err_cost() const NU_NOEXCEPT { return _err_cost_selector; }
+    err_cost_t get_err_cost() const noexcept { return _err_cost_selector; }
 
 
     //! Return the number of inputs
-    size_t get_inputs_count() const NU_NOEXCEPT { return _inputs.size(); }
+    size_t get_inputs_count() const noexcept { return _inputs.size(); }
 
 
     //! Return the number of outputs
-    size_t get_outputs_count() const NU_NOEXCEPT
+    size_t get_outputs_count() const noexcept
     {
         if (_topology.empty())
             return 0;
@@ -178,26 +178,26 @@ class xmlp_neural_net_t
 
 
     //! Return a const reference to topology vector
-    const topology_t& get_topology() const NU_NOEXCEPT { return _topology; }
+    const topology_t& get_topology() const noexcept { return _topology; }
 
 
     //! Return current learning rate
-    double get_learning_rate() const NU_NOEXCEPT { return _learning_rate; }
+    double get_learning_rate() const noexcept { return _learning_rate; }
 
 
     //! Change the learning rate of the net
-    void set_learning_rate(double new_rate) NU_NOEXCEPT
+    void set_learning_rate(double new_rate) noexcept
     {
         _learning_rate = new_rate;
     }
 
 
     //! Return current momentum
-    double get_momentum() const NU_NOEXCEPT { return _momentum; }
+    double get_momentum() const noexcept { return _momentum; }
 
 
     //! Change the momentum of the net
-    void set_momentum(double new_momentum) NU_NOEXCEPT
+    void set_momentum(double new_momentum) noexcept
     {
         _momentum = new_momentum;
     }
@@ -214,11 +214,11 @@ class xmlp_neural_net_t
 
 
     //! Get the net inputs
-    const rvector_t& get_inputs() const NU_NOEXCEPT { return _inputs; }
+    const rvector_t& get_inputs() const noexcept { return _inputs; }
 
 
     //! Get the net outputs
-    void get_outputs(rvector_t& outputs) NU_NOEXCEPT
+    void get_outputs(rvector_t& outputs) noexcept
     {
         const auto& last_layer = *_neuron_layers.crbegin();
         outputs.resize(last_layer.size());
@@ -230,7 +230,7 @@ class xmlp_neural_net_t
 
 
     //! Fire all neurons of the net and calculate the outputs
-    void feed_forward() NU_NOEXCEPT
+    void feed_forward() noexcept
     {
         // For each layer (excluding input one) of neurons do...
         for (size_t layer_idx = 0; layer_idx < _neuron_layers.size();
@@ -318,7 +318,7 @@ class xmlp_neural_net_t
 
 
     //! Save net status into the given string stream
-    virtual std::stringstream& save(std::stringstream& ss) NU_NOEXCEPT
+    virtual std::stringstream& save(std::stringstream& ss) noexcept
     {
         ss.clear();
 
@@ -347,7 +347,7 @@ class xmlp_neural_net_t
 
 
     //! Print the net state out to the given ostream
-    virtual std::ostream& dump(std::ostream& os) NU_NOEXCEPT
+    virtual std::ostream& dump(std::ostream& os) noexcept
     {
         os << "Net Inputs" << std::endl;
         size_t idx = 0;
@@ -406,7 +406,7 @@ class xmlp_neural_net_t
 
     //! Calculate cross-entropy cost defined as
     //! C=(target*Log(output)+(1-target)*Log(1-output))/output.size()
-    double cross_entropy(const rvector_t& target) NU_NOEXCEPT
+    double cross_entropy(const rvector_t& target) noexcept
     {
         rvector_t output;
         get_outputs(output);
@@ -442,7 +442,7 @@ class xmlp_neural_net_t
 
 
     //! Return error vector function
-    virtual errv_func_t get_errv_func() NU_NOEXCEPT
+    virtual errv_func_t get_errv_func() noexcept
     {
         switch (_err_cost_selector) {
             case err_cost_t::CROSSENTROPY:
@@ -457,7 +457,7 @@ class xmlp_neural_net_t
   protected:
     //! Get input value for a neuron belonging to a given layer
     //! If layer is 0, it is related to input of the net
-    double _get_input(size_t layer, size_t idx) NU_NOEXCEPT
+    double _get_input(size_t layer, size_t idx) noexcept
     {
         if (layer < 1)
             return _inputs[idx];
@@ -469,7 +469,7 @@ class xmlp_neural_net_t
 
     //! Fire all neurons of a given layer
     void _fire_neuron(neuron_layer_t& nlayer, size_t layer_idx,
-                      size_t out_idx) NU_NOEXCEPT
+                      size_t out_idx) noexcept
     {
         auto& neuron = nlayer[out_idx];
 
@@ -487,11 +487,11 @@ class xmlp_neural_net_t
 
 
     // Called for serializing network status
-    virtual const char* _get_id_ann() const NU_NOEXCEPT = 0;
-    virtual const char* _get_id_neuron() const NU_NOEXCEPT = 0;
-    virtual const char* _get_id_neuron_layer() const NU_NOEXCEPT = 0;
-    virtual const char* _get_id_topology() const NU_NOEXCEPT = 0;
-    virtual const char* _get_id_inputs() const NU_NOEXCEPT = 0;
+    virtual const char* _get_id_ann() const noexcept = 0;
+    virtual const char* _get_id_neuron() const noexcept = 0;
+    virtual const char* _get_id_neuron_layer() const noexcept = 0;
+    virtual const char* _get_id_topology() const noexcept = 0;
+    virtual const char* _get_id_inputs() const noexcept = 0;
 
 
     //! This method must be implemented in order to update
@@ -644,7 +644,7 @@ class xmlp_neural_net_t
     //! Calculate error vector in using MSE function
     static void _calc_mse_err_v(const rvector_t& target_v,
                                 const rvector_t& outputs_v,
-                                rvector_t& res_v) NU_NOEXCEPT
+                                rvector_t& res_v) noexcept
     {
         // res = (1 - out) * out
         res_v.resize(outputs_v.size(), 1.0);
@@ -663,7 +663,7 @@ class xmlp_neural_net_t
     //! Calculate error vector in using cross-entropy function
     static void _calc_xentropy_err_v(const rvector_t& target_v,
                                      const rvector_t& outputs_v,
-                                     rvector_t& res_v) NU_NOEXCEPT
+                                     rvector_t& res_v) noexcept
     {
         // Error vector = target - out
         res_v = target_v;

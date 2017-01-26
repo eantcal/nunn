@@ -60,7 +60,7 @@ class digit_data_t
   public:
     //! ctor
     digit_data_t(size_t dx, size_t dy, int label,
-                 const data_t& data) NU_NOEXCEPT : _dx(dx),
+                 const data_t& data) noexcept : _dx(dx),
                                                    _dy(dy),
                                                    _label(label),
                                                    _data(data)
@@ -76,7 +76,7 @@ class digit_data_t
 
 
     //! move ctor
-    digit_data_t(digit_data_t&& other) NU_NOEXCEPT : _dx(std::move(_dx)),
+    digit_data_t(digit_data_t&& other) noexcept : _dx(std::move(_dx)),
                                                      _dy(std::move(_dy)),
                                                      _label(std::move(_label)),
                                                      _data(std::move(_data))
@@ -85,7 +85,7 @@ class digit_data_t
 
 
     //! move assign operator
-    digit_data_t& operator=(digit_data_t&& other) NU_NOEXCEPT
+    digit_data_t& operator=(digit_data_t&& other) noexcept
     {
         if (this != &other) {
             _dx = std::move(_dx);
@@ -99,35 +99,35 @@ class digit_data_t
 
 
     //! Returns the digit width in pixels
-    size_t get_dx() const NU_NOEXCEPT { return _dx; }
+    size_t get_dx() const noexcept { return _dx; }
 
 
     //! Returns the digit height in pixels
-    size_t get_dy() const NU_NOEXCEPT { return _dy; }
+    size_t get_dy() const noexcept { return _dy; }
 
 
     //! Returns the digit classification
-    int get_label() const NU_NOEXCEPT { return _label; }
+    int get_label() const noexcept { return _label; }
 
 
     //! Returns a reference to internal data
-    const data_t& data() const NU_NOEXCEPT { return _data; }
+    const data_t& data() const noexcept { return _data; }
 
 
     //! Converts the image data into a vector normalizing each item
     //! within the range [0.0, 1.0]
-    void to_vect(nu::vector_t<double>& v) const NU_NOEXCEPT;
+    void to_vect(nu::vector_t<double>& v) const noexcept;
 
 
     //! Converts a label into a vector where the items are all zeros
     //! except for the item with index corrisponding to the label value
     //! its self (which is within range [0, 9]
-    void label_to_target(nu::vector_t<double>& v) const NU_NOEXCEPT;
+    void label_to_target(nu::vector_t<double>& v) const noexcept;
 
 
 #ifdef _WIN32
     //! Draw the digit image on the window
-    void paint(int xoff, int yoff, HWND hwnd = nullptr) const NU_NOEXCEPT;
+    void paint(int xoff, int yoff, HWND hwnd = nullptr) const noexcept;
 #endif
 };
 
@@ -142,7 +142,7 @@ class training_data_t
     using data_t = std::list<std::unique_ptr<digit_data_t>>;
 
     //! Return a reference to a list of digit_data_t objects
-    const data_t& data() const NU_NOEXCEPT { return _data; }
+    const data_t& data() const noexcept { return _data; }
 
 
     //! reshuffle objects

@@ -79,7 +79,7 @@ class grid_t
     grid_t() { clear(); }
 
 
-    size_t size() const NU_NOEXCEPT { return TICTACTOE_SIDE * TICTACTOE_SIDE; }
+    size_t size() const noexcept { return TICTACTOE_SIDE * TICTACTOE_SIDE; }
 
 
     int get_unique_id() const
@@ -145,7 +145,7 @@ class grid_t
         return result;
     }
 
-    bool operator<(const grid_t& other) const NU_NOEXCEPT
+    bool operator<(const grid_t& other) const noexcept
     {
         if (this == &other)
             return false;
@@ -352,7 +352,7 @@ class nn_trainer_t
         nu::vector_t<double> inputs;
         nu::vector_t<double> outputs;
 
-        bool operator<(const sample_t& other) const NU_NOEXCEPT
+        bool operator<(const sample_t& other) const noexcept
         {
             return inputs < other.inputs ||
                    (inputs == other.inputs && outputs < other.outputs);
@@ -787,7 +787,7 @@ class game_t
 
   public:
     game_t(renderer_t& renderer, nu::mlp_neural_net_t& nn,
-           bool computer_alone = false) NU_NOEXCEPT
+           bool computer_alone = false) noexcept
       : _renderer(renderer),
         _nn(nn),
         _computer_alone(computer_alone)

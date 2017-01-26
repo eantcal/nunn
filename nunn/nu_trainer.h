@@ -65,7 +65,7 @@ class nn_trainer_t
         nn_trainer_t* _trainer = nullptr;
         size_t _epoch = 0;
 
-        iterator(type_t& trainer, size_t epoch) NU_NOEXCEPT
+        iterator(type_t& trainer, size_t epoch) noexcept
           : _trainer(&trainer),
             _epoch(epoch)
         {
@@ -79,13 +79,13 @@ class nn_trainer_t
         iterator& operator=(const iterator& it) = default;
 
         //! Move constructor
-        iterator(iterator&& it) NU_NOEXCEPT : _trainer(std::move(it._trainer)),
+        iterator(iterator&& it) noexcept : _trainer(std::move(it._trainer)),
                                               _epoch(std::move(it._epoch))
         {
         }
 
         //! Move assignment operator
-        iterator& operator=(iterator&& it) NU_NOEXCEPT
+        iterator& operator=(iterator&& it) noexcept
         {
             if (&it != this) {
                 _trainer = std::move(it._trainer);
@@ -96,23 +96,23 @@ class nn_trainer_t
         }
 
         //! Return epoch number
-        size_t get_epoch() const NU_NOEXCEPT { return _epoch; }
+        size_t get_epoch() const noexcept { return _epoch; }
 
         //! Pointer Dereference operator
-        type_t& operator*() const NU_NOEXCEPT { return *_trainer; }
+        type_t& operator*() const noexcept { return *_trainer; }
 
         //! Arrow operator
-        type_t* operator->() const NU_NOEXCEPT { return _trainer; }
+        type_t* operator->() const noexcept { return _trainer; }
 
         //! Increment operator
-        iterator operator++() NU_NOEXCEPT
+        iterator operator++() noexcept
         {
             ++_epoch;
             return *this;
         }
 
         //! Post increment operator
-        iterator operator++(int)NU_NOEXCEPT // post
+        iterator operator++(int)noexcept // post
         {
             iterator ret = *this;
             ++_epoch;
@@ -120,13 +120,13 @@ class nn_trainer_t
         }
 
         //! Equal-To operator
-        bool operator==(iterator& other) const NU_NOEXCEPT
+        bool operator==(iterator& other) const noexcept
         {
             return (_trainer == other._trainer && _epoch == other._epoch);
         }
 
         //! Not-Equal-To operator
-        bool operator!=(iterator& other) const NU_NOEXCEPT
+        bool operator!=(iterator& other) const noexcept
         {
             return !this->operator==(other);
         }
@@ -134,18 +134,18 @@ class nn_trainer_t
 
 
     //! Return an iterator to the first epoch
-    iterator begin() NU_NOEXCEPT { return iterator(*this, 0); }
+    iterator begin() noexcept { return iterator(*this, 0); }
 
 
     //! Return an iterator to the last epoch
-    iterator end() NU_NOEXCEPT { return iterator(*this, this->_epochs + 1); }
+    iterator end() noexcept { return iterator(*this, this->_epochs + 1); }
 
 
     //! Constructor
     //! @nn:      the network to train
     //! @epochs:  max epoch count at which to stop training
     //! @min_err: min error value at which to stop training
-    nn_trainer_t(Net& nn, size_t epochs, double min_err) NU_NOEXCEPT
+    nn_trainer_t(Net& nn, size_t epochs, double min_err) noexcept
       : _nn(nn),
         _epochs(epochs),
         _min_err(min_err),
@@ -155,15 +155,15 @@ class nn_trainer_t
 
 
     //! Return the max number of epochs
-    size_t get_epochs() const NU_NOEXCEPT { return _epochs; }
+    size_t get_epochs() const noexcept { return _epochs; }
 
 
     //! Return the min error value at which to stop training
-    double get_min_err() const NU_NOEXCEPT { return _min_err; }
+    double get_min_err() const noexcept { return _min_err; }
 
 
     //! Return current epoch error
-    double get_error() const NU_NOEXCEPT { return _err; }
+    double get_error() const noexcept { return _err; }
 
 
     //! Trains the net using a single sample

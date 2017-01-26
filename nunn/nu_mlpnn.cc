@@ -65,7 +65,7 @@ void mlp_neural_net_t::_update_neuron_weights(neuron_t<double>& neuron,
 
 /* -------------------------------------------------------------------------- */
 
-void mlp_neural_net_t::reshuffle_weights() NU_NOEXCEPT
+void mlp_neural_net_t::reshuffle_weights() noexcept
 {
     double weights_cnt = 0.0;
     for (auto& nl : _neuron_layers)

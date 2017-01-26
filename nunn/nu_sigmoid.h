@@ -25,7 +25,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_noexcept.h"
+
 #include "nu_vector.h"
 #include <cmath>
 
@@ -42,13 +42,13 @@ class sigmoid_t
 {
   public:
     //! Calculate logistic function of x
-    double operator()(double x) const NU_NOEXCEPT
+    double operator()(double x) const noexcept
     {
         return (1 / (1 + exp(-x)));
     }
 
     //! Derive the logistic function in y
-    static inline double derive(double y) NU_NOEXCEPT { return (1 - y) * y; }
+    static inline double derive(double y) noexcept { return (1 - y) * y; }
 };
 
 

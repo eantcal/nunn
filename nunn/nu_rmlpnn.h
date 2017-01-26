@@ -67,32 +67,32 @@ class rmlp_neural_net_t : public xmlp_neural_net_t<rneuron_t<double>>
 
 
     //! Called for serializing network status, returns NN id string
-    const char* _get_id_ann() const NU_NOEXCEPT override { return ID_ANN; }
+    const char* _get_id_ann() const noexcept override { return ID_ANN; }
 
 
     //! Called for serializing network status, returns neuron id string
-    const char* _get_id_neuron() const NU_NOEXCEPT override
+    const char* _get_id_neuron() const noexcept override
     {
         return ID_NEURON;
     }
 
 
     //! Called for serializing network status, returns neuron-layer id string
-    const char* _get_id_neuron_layer() const NU_NOEXCEPT override
+    const char* _get_id_neuron_layer() const noexcept override
     {
         return ID_NEURON_LAYER;
     }
 
 
     //! Called for serializing network status, returns topology id string
-    const char* _get_id_topology() const NU_NOEXCEPT override
+    const char* _get_id_topology() const noexcept override
     {
         return ID_TOPOLOGY;
     }
 
 
     //! Called for serializing network status, returns inputs id string
-    const char* _get_id_inputs() const NU_NOEXCEPT override
+    const char* _get_id_inputs() const noexcept override
     {
         return ID_INPUTS;
     }
@@ -155,7 +155,7 @@ class rmlp_neural_net_t : public xmlp_neural_net_t<rneuron_t<double>>
 
 
     //! Reset all net weights using new random values
-    void reshuffle_weights() NU_NOEXCEPT;
+    void reshuffle_weights() noexcept;
 
 
   protected:

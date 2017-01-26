@@ -28,7 +28,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_noexcept.h"
+
 #include "nu_stepf.h"
 #include "nu_vector.h"
 
@@ -60,7 +60,7 @@ class hopfieldnn_t
 
 
     //! Create a net with pattern size equal to n_of_inputs
-    hopfieldnn_t(const size_t& n_of_inputs) NU_NOEXCEPT
+    hopfieldnn_t(const size_t& n_of_inputs) noexcept
       : _s(n_of_inputs),
         _w(n_of_inputs* n_of_inputs)
     {
@@ -68,14 +68,14 @@ class hopfieldnn_t
 
 
     //! Returns the capacity of the net
-    size_t get_capacity() const NU_NOEXCEPT
+    size_t get_capacity() const noexcept
     {
         return size_t(0.138 * double(_s.size()));
     }
 
 
     //! Returns the number of patterns added to the net
-    size_t get_n_of_patterns() const NU_NOEXCEPT { return _pattern_size; }
+    size_t get_n_of_patterns() const noexcept { return _pattern_size; }
 
 
     //! Adds specified pattern
@@ -96,7 +96,7 @@ class hopfieldnn_t
 
 
     //! move-ctor
-    hopfieldnn_t(hopfieldnn_t&& nn) NU_NOEXCEPT
+    hopfieldnn_t(hopfieldnn_t&& nn) noexcept
       : _s(std::move(nn._s)),
         _w(std::move(nn._w)),
         _pattern_size(std::move(_pattern_size))
@@ -109,22 +109,22 @@ class hopfieldnn_t
 
 
     //! default assignment-move operator
-    hopfieldnn_t& operator=(hopfieldnn_t&& nn) NU_NOEXCEPT;
+    hopfieldnn_t& operator=(hopfieldnn_t&& nn) noexcept;
 
 
     //! Returns the number of inputs
-    size_t get_inputs_count() const NU_NOEXCEPT { return _s.size(); }
+    size_t get_inputs_count() const noexcept { return _s.size(); }
 
     //! Build the net by using data of the given string stream
     std::stringstream& load(std::stringstream& ss);
 
 
     //! Save net status into the given string stream
-    std::stringstream& save(std::stringstream& ss) NU_NOEXCEPT;
+    std::stringstream& save(std::stringstream& ss) noexcept;
 
 
     //! Print the net state out to the given ostream
-    std::ostream& dump(std::ostream& os) NU_NOEXCEPT;
+    std::ostream& dump(std::ostream& os) noexcept;
 
 
     //! Build the net by using data of the given string stream
@@ -137,7 +137,7 @@ class hopfieldnn_t
 
     //! Save net status into the given string stream
     friend std::stringstream& operator<<(std::stringstream& ss,
-                                         hopfieldnn_t& net) NU_NOEXCEPT
+                                         hopfieldnn_t& net) noexcept
     {
         return net.save(ss);
     }
@@ -145,14 +145,14 @@ class hopfieldnn_t
 
     //! Print the net state out to the given ostream
     friend std::ostream& operator<<(std::ostream& os,
-                                    hopfieldnn_t& net) NU_NOEXCEPT
+                                    hopfieldnn_t& net) noexcept
     {
         return net.dump(os);
     }
 
 
     //! Reset the net status
-    void clear() NU_NOEXCEPT
+    void clear() noexcept
     {
         for (auto& item : _s)
             item = 0;
@@ -168,8 +168,8 @@ class hopfieldnn_t
 
     step_func_t step_f = step_func_t(0, -1, 1);
 
-    void _propagate() NU_NOEXCEPT;
-    bool _propagate_neuron(size_t i) NU_NOEXCEPT;
+    void _propagate() noexcept;
+    bool _propagate_neuron(size_t i) noexcept;
 
     rvector_t _s; // neuron states
     rvector_t _w; // weights matrix

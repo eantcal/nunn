@@ -26,9 +26,7 @@
 #define __NU_VECTOR_H__
 
 
-/* -------------------------------------------------------------------------- */
-
-#include "nu_noexcept.h"
+/* -------------------------------------------------------------------------- */ 
 
 #include <cmath>
 #include <functional>
@@ -71,26 +69,26 @@ class vector_t
 
 
     //! Construct a vector coping elements of a given c-style vector
-    vector_t(const double* v, size_t v_len) NU_NOEXCEPT : _v(v_len)
+    vector_t(const double* v, size_t v_len) noexcept : _v(v_len)
     {
         memcpy(_v.data(), v, v_len);
     }
 
 
     //! Initializer list constructor
-    vector_t(const std::initializer_list<T> l) NU_NOEXCEPT : _v(l) {}
+    vector_t(const std::initializer_list<T> l) noexcept : _v(l) {}
 
 
     //! Move constructor
-    vector_t(vector_t&& other) NU_NOEXCEPT : _v(std::move(other._v)) {}
+    vector_t(vector_t&& other) noexcept : _v(std::move(other._v)) {}
 
 
     //! Fill constructor
-    vector_t(const size_t& size, item_t v = 0.0) NU_NOEXCEPT : _v(size, v) {}
+    vector_t(const size_t& size, item_t v = 0.0) noexcept : _v(size, v) {}
 
 
     //! std::vector constructor
-    vector_t(const vr_t& v) NU_NOEXCEPT : _v(v) {}
+    vector_t(const vr_t& v) noexcept : _v(v) {}
 
 
     //! Copy assignment operator
@@ -98,7 +96,7 @@ class vector_t
 
 
     //! Fill assignment operator
-    vector_t& operator=(const T& value) NU_NOEXCEPT
+    vector_t& operator=(const T& value) noexcept
     {
         if (!_v.empty())
             std::fill(_v.begin(), _v.end(), value);
@@ -107,7 +105,7 @@ class vector_t
     }
 
     //! Move assignment operator
-    vector_t& operator=(vector_t&& other) NU_NOEXCEPT
+    vector_t& operator=(vector_t&& other) noexcept
     {
         if (this != &other)
             _v = std::move(other._v);
@@ -117,42 +115,42 @@ class vector_t
 
 
     //! Return size
-    size_t size() const NU_NOEXCEPT { return _v.size(); }
+    size_t size() const noexcept { return _v.size(); }
 
 
     //! Return whether the vector is empty
-    bool empty() const NU_NOEXCEPT { return _v.empty(); }
+    bool empty() const noexcept { return _v.empty(); }
 
 
     //! Change size
-    void resize(const size_t& size, item_t v = 0.0) NU_NOEXCEPT
+    void resize(const size_t& size, item_t v = 0.0) noexcept
     {
         _v.resize(size, v);
     }
 
 
     //! Return iterator to beginning
-    iterator begin() NU_NOEXCEPT { return _v.begin(); }
+    iterator begin() noexcept { return _v.begin(); }
 
 
     //! Return const_iterator to beginning
-    const_iterator cbegin() const NU_NOEXCEPT { return _v.cbegin(); }
+    const_iterator cbegin() const noexcept { return _v.cbegin(); }
 
 
     //! Return iterator to end
-    iterator end() NU_NOEXCEPT { return _v.end(); }
+    iterator end() noexcept { return _v.end(); }
 
 
     //! Return const_iterator to end
-    const_iterator cend() const NU_NOEXCEPT { return _v.cend(); }
+    const_iterator cend() const noexcept { return _v.cend(); }
 
 
     //! Access element
-    item_t operator[](size_t idx) const NU_NOEXCEPT { return _v[idx]; }
+    item_t operator[](size_t idx) const noexcept { return _v[idx]; }
 
 
     //! Access element
-    item_t& operator[](size_t idx) NU_NOEXCEPT { return _v[idx]; }
+    item_t& operator[](size_t idx) noexcept { return _v[idx]; }
 
 
     //! Add element at the end
@@ -160,7 +158,7 @@ class vector_t
 
 
     //! Return index of highest vector element
-    size_t max_item_index() NU_NOEXCEPT
+    size_t max_item_index() noexcept
     {
         if (empty())
             return size_t(-1);
@@ -208,25 +206,25 @@ class vector_t
 
 
     //! Apply the function abs to each vector item
-    const vector_t& abs() NU_NOEXCEPT { return apply(::abs); }
+    const vector_t& abs() noexcept { return apply(::abs); }
 
 
     //! Apply the function std::log to each vector item
-    const vector_t& log() NU_NOEXCEPT
+    const vector_t& log() noexcept
     {
         return apply([](double x) { return std::log(x); });
     }
 
 
     //! Negates each vector item
-    const vector_t& negate() NU_NOEXCEPT
+    const vector_t& negate() noexcept
     {
         return apply([](double x) { return -x; });
     }
 
 
     //! Returns the sum of all vector items
-    T sum() const NU_NOEXCEPT
+    T sum() const noexcept
     {
         T res = T(0);
         for (auto& i : _v)
@@ -236,42 +234,42 @@ class vector_t
     }
 
     //! Relational operator ==
-    bool operator==(const vector_t& other) const NU_NOEXCEPT
+    bool operator==(const vector_t& other) const noexcept
     {
         return (this == &other) || _v == other._v;
     }
 
 
     //! Relational operator !=
-    bool operator!=(const vector_t& other) const NU_NOEXCEPT
+    bool operator!=(const vector_t& other) const noexcept
     {
         return (this != &other) && _v != other._v;
     }
 
 
     //! Relational operator <
-    bool operator<(const vector_t& other) const NU_NOEXCEPT
+    bool operator<(const vector_t& other) const noexcept
     {
         return _v < other._v;
     }
 
 
     //! Relational operator <=
-    bool operator<=(const vector_t& other) const NU_NOEXCEPT
+    bool operator<=(const vector_t& other) const noexcept
     {
         return _v <= other._v;
     }
 
 
     //! Relational operator >=
-    bool operator>=(const vector_t& other) const NU_NOEXCEPT
+    bool operator>=(const vector_t& other) const noexcept
     {
         return _v >= other._v;
     }
 
 
     //! Relational operator >
-    bool operator>(const vector_t& other) const NU_NOEXCEPT
+    bool operator>(const vector_t& other) const noexcept
     {
         return _v > other._v;
     }
@@ -339,7 +337,7 @@ class vector_t
 
     //! Writes the vector v status into the give string stream ss
     friend std::stringstream& operator<<(std::stringstream& ss,
-                                         const vector_t& v) NU_NOEXCEPT
+                                         const vector_t& v) noexcept
     {
         ss << v.size() << std::endl;
 
@@ -352,7 +350,7 @@ class vector_t
 
     //! Copies the vector status from the stream ss into vector v
     friend std::stringstream& operator>>(std::stringstream& ss,
-                                         vector_t& v) NU_NOEXCEPT
+                                         vector_t& v) noexcept
     {
         size_t size = 0;
         ss >> size;
@@ -368,7 +366,7 @@ class vector_t
 
     //! Prints out to the os stream vector v
     friend std::ostream& operator<<(std::ostream& os,
-                                    const vector_t& v) NU_NOEXCEPT
+                                    const vector_t& v) noexcept
     {
         os << "[ ";
 
@@ -400,7 +398,7 @@ class vector_t
 
 
     //! Return the square euclidean norm of vector
-    item_t euclidean_norm2() const NU_NOEXCEPT
+    item_t euclidean_norm2() const noexcept
     {
         item_t res = 0.0;
 
@@ -412,18 +410,18 @@ class vector_t
 
 
     //! Return the euclidean norm of vector
-    item_t euclidean_norm() const NU_NOEXCEPT
+    item_t euclidean_norm() const noexcept
     {
         return std::sqrt(euclidean_norm2());
     }
 
 
     //! Return a const reference to standard vector
-    const std::vector<T>& to_stdvec() const NU_NOEXCEPT { return _v; }
+    const std::vector<T>& to_stdvec() const noexcept { return _v; }
 
 
     //! Return a reference to standard vector
-    std::vector<T>& to_stdvec() NU_NOEXCEPT { return _v; }
+    std::vector<T>& to_stdvec() noexcept { return _v; }
 
   private:
     vr_t _v;

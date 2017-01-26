@@ -22,7 +22,7 @@
 #ifndef __NU_STEPF_H__
 #define __NU_STEPF_H__
 
-#include "nu_noexcept.h"
+
 
 
 /* -------------------------------------------------------------------------- */
@@ -36,13 +36,13 @@ class step_func_t
 {
   public:
     step_func_t(double threshold = 0.0, double O_output = 0.0,
-                double I_output = 1.0) NU_NOEXCEPT : _threshold(threshold),
+                double I_output = 1.0) noexcept : _threshold(threshold),
                                                      _O_output(O_output),
                                                      _I_output(I_output)
     {
     }
 
-    double operator()(double x) const NU_NOEXCEPT
+    double operator()(double x) const noexcept
     {
         return (x > _threshold ? _I_output : _O_output);
     }
