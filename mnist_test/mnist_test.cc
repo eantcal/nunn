@@ -334,7 +334,7 @@ static double test_net(std::unique_ptr<neural_net_t>& net,
 
         entropy_cost += nu::cf::cross_entropy(outputs, target);
 
-        if ((*i)->get_label() != outputs.max_item_index())
+        if ((*i)->get_label() != outputs.maxarg())
             ++err_cnt;
 
         ++cnt;

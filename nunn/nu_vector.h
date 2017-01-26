@@ -47,15 +47,14 @@ namespace nu {
 template <class T = double>
 class vector_t
 {
-  public:
+public:
     using item_t = T;
     using vr_t = std::vector<item_t>;
 
     using iterator = typename vr_t::iterator;
     using const_iterator = typename vr_t::const_iterator;
 
-    enum class exception_t
-    {
+    enum class exception_t {
         size_mismatch
     };
 
@@ -69,8 +68,7 @@ class vector_t
 
 
     //! Construct a vector coping elements of a given c-style vector
-    vector_t(const double* v, size_t v_len) noexcept : _v(v_len)
-    {
+    vector_t(const double* v, size_t v_len) noexcept : _v(v_len) {
         memcpy(_v.data(), v, v_len);
     }
 
@@ -96,8 +94,7 @@ class vector_t
 
 
     //! Fill assignment operator
-    vector_t& operator=(const T& value) noexcept
-    {
+    vector_t& operator=(const T& value) noexcept {
         if (!_v.empty())
             std::fill(_v.begin(), _v.end(), value);
 
@@ -105,8 +102,7 @@ class vector_t
     }
 
     //! Move assignment operator
-    vector_t& operator=(vector_t&& other) noexcept
-    {
+    vector_t& operator=(vector_t&& other) noexcept {
         if (this != &other)
             _v = std::move(other._v);
 
@@ -123,8 +119,7 @@ class vector_t
 
 
     //! Change size
-    void resize(const size_t& size, item_t v = 0.0) noexcept
-    {
+    void resize(const size_t& size, item_t v = 0.0) noexcept {
         _v.resize(size, v);
     }
 
@@ -158,8 +153,7 @@ class vector_t
 
 
     //! Return index of highest vector element
-    size_t max_item_index() noexcept
-    {
+    size_t maxarg() noexcept {
         if (empty())
             return size_t(-1);
 
@@ -178,9 +172,14 @@ class vector_t
     }
 
 
+    //! deprecated - see maxarg
+    size_t max_item_index() noexcept {
+        return maxarg();
+    }
+
+
     //! Return dot product
-    item_t dot(const vector_t& other)
-    {
+    item_t dot(const vector_t& other) {
         if (other.size() != size())
             throw exception_t::size_mismatch;
 
@@ -196,8 +195,7 @@ class vector_t
 
     //! Apply the function f to each vector element
     //! For each element x in vector, x=f(x)
-    const vector_t& apply(const std::function<T(T)>& f)
-    {
+    const vector_t& apply(const std::function<T(T)>& f) {
         for (auto& i : _v)
             i = f(i);
 
@@ -210,22 +208,19 @@ class vector_t
 
 
     //! Apply the function std::log to each vector item
-    const vector_t& log() noexcept
-    {
+    const vector_t& log() noexcept {
         return apply([](double x) { return std::log(x); });
     }
 
 
     //! Negates each vector item
-    const vector_t& negate() noexcept
-    {
+    const vector_t& negate() noexcept {
         return apply([](double x) { return -x; });
     }
 
 
     //! Returns the sum of all vector items
-    T sum() const noexcept
-    {
+    T sum() const noexcept {
         T res = T(0);
         for (auto& i : _v)
             res += i;
@@ -234,102 +229,88 @@ class vector_t
     }
 
     //! Relational operator ==
-    bool operator==(const vector_t& other) const noexcept
-    {
+    bool operator==(const vector_t& other) const noexcept {
         return (this == &other) || _v == other._v;
     }
 
 
     //! Relational operator !=
-    bool operator!=(const vector_t& other) const noexcept
-    {
+    bool operator!=(const vector_t& other) const noexcept {
         return (this != &other) && _v != other._v;
     }
 
 
     //! Relational operator <
-    bool operator<(const vector_t& other) const noexcept
-    {
+    bool operator<(const vector_t& other) const noexcept {
         return _v < other._v;
     }
 
 
     //! Relational operator <=
-    bool operator<=(const vector_t& other) const noexcept
-    {
+    bool operator<=(const vector_t& other) const noexcept {
         return _v <= other._v;
     }
 
 
     //! Relational operator >=
-    bool operator>=(const vector_t& other) const noexcept
-    {
+    bool operator>=(const vector_t& other) const noexcept {
         return _v >= other._v;
     }
 
 
     //! Relational operator >
-    bool operator>(const vector_t& other) const noexcept
-    {
+    bool operator>(const vector_t& other) const noexcept {
         return _v > other._v;
     }
 
 
     //! Operator +=
-    vector_t& operator+=(const vector_t& other)
-    {
+    vector_t& operator+=(const vector_t& other) {
         return _op(other, [](item_t& d, const item_t& s) { d += s; });
     }
 
 
     //! Operator (hadamard product) *=
-    vector_t& operator*=(const vector_t& other)
-    {
+    vector_t& operator*=(const vector_t& other) {
         return _op(other, [](item_t& d, const item_t& s) { d *= s; });
     }
 
 
     //! Operator -=
-    vector_t& operator-=(const vector_t& other)
-    {
+    vector_t& operator-=(const vector_t& other) {
         return _op(other, [](item_t& d, const item_t& s) { d -= s; });
     }
 
 
     //! Operator /= (entrywise division)
-    vector_t& operator/=(const vector_t& other)
-    {
+    vector_t& operator/=(const vector_t& other) {
         return _op(other, [](item_t& d, const item_t& s) { d /= s; });
     }
 
 
     //! Multiply a scalar s to the vector
-    vector_t& operator*=(const item_t& s)
-    {
+    vector_t& operator*=(const item_t& s) {
         vector_t other(size(), s);
         return this->operator*=(other);
     }
 
 
     //! Sum scalar s to each vector element
-    vector_t& operator+=(const item_t& s)
-    {
+    vector_t& operator+=(const item_t& s) {
         vector_t other(size(), s);
         return this->operator+=(other);
     }
 
 
     //! Subtract scalar s to each vector element
-    vector_t& operator-=(const item_t& s)
-    {
+    vector_t& operator-=(const item_t& s) {
         vector_t other(size(), s);
         return this->operator-=(other);
     }
 
 
     //! Divide each vector element by s
-    vector_t& operator/=(const item_t& s)
-    {
+    vector_t& operator/=(const item_t& s) {
         vector_t other(size(), s);
         return this->operator/=(other);
     }
@@ -380,8 +361,7 @@ class vector_t
 
 
     //! Binary sum vector operator
-    friend vector_t operator+(const vector_t& v1, const vector_t& v2)
-    {
+    friend vector_t operator+(const vector_t& v1, const vector_t& v2) {
         auto vr = v1;
         vr += v2;
         return vr;
@@ -389,8 +369,7 @@ class vector_t
 
 
     //! Binary sub vector operator
-    friend vector_t operator-(const vector_t& v1, const vector_t& v2)
-    {
+    friend vector_t operator-(const vector_t& v1, const vector_t& v2) {
         auto vr = v1;
         vr -= v2;
         return vr;
@@ -398,8 +377,7 @@ class vector_t
 
 
     //! Return the square euclidean norm of vector
-    item_t euclidean_norm2() const noexcept
-    {
+    item_t euclidean_norm2() const noexcept {
         item_t res = 0.0;
 
         for (size_t i = 0; i < _v.size(); ++i)
@@ -410,8 +388,7 @@ class vector_t
 
 
     //! Return the euclidean norm of vector
-    item_t euclidean_norm() const noexcept
-    {
+    item_t euclidean_norm() const noexcept {
         return std::sqrt(euclidean_norm2());
     }
 
@@ -423,7 +400,7 @@ class vector_t
     //! Return a reference to standard vector
     std::vector<T>& to_stdvec() noexcept { return _v; }
 
-  private:
+private:
     vr_t _v;
 
     vector_t& _op(const vector_t& other,

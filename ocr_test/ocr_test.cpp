@@ -810,8 +810,8 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
 
         WriteBars(530, 90, hdc, outputs);
 
-        int percent = int(outputs[outputs.max_item_index()] * 100);
-        std::string net_answer = std::to_string(outputs.max_item_index());
+        int percent = int(outputs[outputs.maxarg()] * 100);
+        std::string net_answer = std::to_string(outputs.maxarg());
 
         if (percent < 1)
             net_answer = "?";

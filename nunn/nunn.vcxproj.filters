@@ -51,6 +51,12 @@
     <ClInclude Include="nu_hopfieldnn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nu_qlearn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nu_qmtx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nu_mlpnn.cc">
@@ -66,6 +72,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="nu_hopfieldnn.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nu_qlearn.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nu_qmtx.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
