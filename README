@@ -1,14 +1,9 @@
 -------------------------------------------------------------------------------
 nunn - https://sourceforge.net/projects/nunn/
-(c) Antonino Calderone <antonino.calderone@gmail.com> - 2015, 2016
+(c) Antonino Calderone <antonino.calderone@gmail.com> - 2015 - 2017
 -------------------------------------------------------------------------------
 
-This is an implementation of a Artificial Neural Network Library which 
-learns by example.
-You give the algorithm examples of what you want the network to do and it 
-changes the network's weights. When training is finished, it will give you 
-the required output for a particular input.
-
+This is an implementation of a Machine Learning Library.
 
 Binaries for Windows have been built by using Microsoft Visual C++ 2015, 
 so you may need to install Visual C++ Redistributable Packages 2015.
@@ -19,12 +14,11 @@ or use the link https://www.microsoft.com/en-us/download/details.aspx?id=48145
 -------------------------------------------------------------------------------
 Features
 -------------------------------------------------------------------------------
-- Free open source artificial neural network library
-- Implements Perceptron, MLP, RMLP and Hopfield neural nets
-- Supports fully connected networks
+- Implements Perceptron, MLP, RMLP, Hopfield neural nets, Q-Learning algorithm
+- Supports fully connected multi-layers neural networks
 - Easy to use and understand
-- Easy to save and load entire ANNs
-- Ready for 32/64 bit Linux/Windows (and maybe others)
+- Easy to save and load entire objects
+- Multi-platform
 - Exports topology that you can draw using Graphviz dot (http://www.graphviz.org/)
 
 
@@ -72,7 +66,7 @@ The images are greyscale and 28 by 28 pixels in size.
 The first part of 60,000 images were used as training data.
 The second part of 10,000 images were used as test data.
 The test data was taken from a different set of people than the original training data.
-The training input is treated as a 28×28=784-dimensional vector.
+The training input is treated as a 28Ã—28=784-dimensional vector.
 Each entry in the vector represents the grey value for a single pixel in the image.
 The corresponding desired output is a 10-dimensional vector.
 
@@ -324,7 +318,7 @@ is identical with one of the pattern vectors,
 the net does not change its state. 
 It recognizes also test vectors that are similar to patterns.
 
-Sometimes we can see another feature of Hopfield network – 
+Sometimes we can see another feature of Hopfield network Â– 
 remembering relations between neighboring pixels without their values. 
 As a result of network activity we get the picture that is the reversed 
 pattern.
