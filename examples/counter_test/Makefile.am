@@ -15,7 +15,7 @@ counter_test_SOURCES = \
 AM_CXXFLAGS = ${counter_test_CXXFLAGS}
 
 counter_test_LDADD = \
-   -L../nunn/.libs -lnunn 
+   -L../../nunn/.libs -lnunn 
 
 sbin_PROGRAMS += \
    counter_test 

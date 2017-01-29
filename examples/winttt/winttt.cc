@@ -34,7 +34,6 @@
 #include "winttt.h"
 #include "stdafx.h"
 
-#include "mnist.h"
 #include "nu_mlpnn.h"
 
 #include <fstream>
@@ -46,6 +45,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <list>
 
 
 /* -------------------------------------------------------------------------- */

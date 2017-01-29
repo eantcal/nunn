@@ -15,7 +15,7 @@ and_test_SOURCES = \
 AM_CXXFLAGS = ${and_test_CXXFLAGS}
 
 and_test_LDADD = \
-   -L../nunn/.libs -lnunn 
+   -L../../nunn/.libs -lnunn 
 
 sbin_PROGRAMS += \
    and_test 

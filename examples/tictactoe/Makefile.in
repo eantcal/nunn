@@ -89,7 +89,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 sbin_PROGRAMS = tictactoe$(EXEEXT)
-subdir = tictactoe
+subdir = examples/tictactoe
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -353,7 +353,7 @@ tictactoe_SOURCES = \
 
 AM_CXXFLAGS = ${tictactoe_CXXFLAGS}
 tictactoe_LDADD = \
-   -L../nunn/.libs -lnunn 
+   -L../../nunn/.libs -lnunn 
 
 all: all-recursive
 
@@ -368,9 +368,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu tictactoe/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu examples/tictactoe/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu tictactoe/Makefile
+	  $(AUTOMAKE) --gnu examples/tictactoe/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \

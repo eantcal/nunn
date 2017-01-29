@@ -36,11 +36,11 @@ AC_CONFIG_FILES([
   nunn/Makefile
   nunn_topo/Makefile
   mnist/Makefile
-  mnist_test/Makefile
-  tictactoe/Makefile
-  xor_test/Makefile
-  counter_test/Makefile
-  and_test/Makefile
-  hopfield_test/Makefile
+  examples/mnist_test/Makefile
+  examples/tictactoe/Makefile
+  examples/xor_test/Makefile
+  examples/counter_test/Makefile
+  examples/and_test/Makefile
+  examples/hopfield_test/Makefile
 ])
 AC_OUTPUT

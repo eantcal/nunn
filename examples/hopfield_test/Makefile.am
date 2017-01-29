@@ -15,7 +15,7 @@ hopfield_test_SOURCES = \
 AM_CXXFLAGS = ${hopfield_test_CXXFLAGS}
 
 hopfield_test_LDADD = \
-   -L../nunn/.libs -lnunn 
+   -L../../nunn/.libs -lnunn 
 
 sbin_PROGRAMS += \
    hopfield_test 

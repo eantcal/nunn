@@ -10,39 +10,39 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mnist", "mnist\mnist.vcxpro
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mnist_test", "mnist_test\mnist_test.vcxproj", "{FB71F354-BB62-413E-829C-A45FFF5DAA34}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mnist_test", "examples\mnist_test\mnist_test.vcxproj", "{FB71F354-BB62-413E-829C-A45FFF5DAA34}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 		{BB402D5E-DECC-4A56-9187-D7536808CA94} = {BB402D5E-DECC-4A56-9187-D7536808CA94}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ocr_test", "ocr_test\ocr_test.vcxproj", "{EF52B110-FF72-4524-83B8-AD38FDA90F87}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ocr_test", "examples\ocr_test\ocr_test.vcxproj", "{EF52B110-FF72-4524-83B8-AD38FDA90F87}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 		{BB402D5E-DECC-4A56-9187-D7536808CA94} = {BB402D5E-DECC-4A56-9187-D7536808CA94}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tictactoe", "tictactoe\tictactoe.vcxproj", "{AA1E5DA3-20A2-49F5-A27A-CF3C050FBCFC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tictactoe", "examples\tictactoe\tictactoe.vcxproj", "{AA1E5DA3-20A2-49F5-A27A-CF3C050FBCFC}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winttt", "winttt\winttt.vcxproj", "{25E164FA-06C1-4DA4-9657-48A1A31D5D69}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winttt", "examples\winttt\winttt.vcxproj", "{25E164FA-06C1-4DA4-9657-48A1A31D5D69}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xor_test", "xor_test\xor_test.vcxproj", "{A88C4575-D641-4089-BD1C-E9CE99443755}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xor_test", "examples\xor_test\xor_test.vcxproj", "{A88C4575-D641-4089-BD1C-E9CE99443755}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "and_test", "and_test\and_test.vcxproj", "{FD34AD60-F177-4396-A917-E7C4FF81D4BA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "and_test", "examples\and_test\and_test.vcxproj", "{FD34AD60-F177-4396-A917-E7C4FF81D4BA}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hopfield_test", "hopfield_test\hopfield_test.vcxproj", "{FB611738-A485-445A-88BD-9DCB3B94323B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hopfield_test", "examples\hopfield_test\hopfield_test.vcxproj", "{FB611738-A485-445A-88BD-9DCB3B94323B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 	EndProjectSection
@@ -52,7 +52,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nunn_topo", "nunn_topo\nunn
 		{E44C4C52-77B2-4B16-80CF-6D66F59D468F} = {E44C4C52-77B2-4B16-80CF-6D66F59D468F}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "counter_test", "counter_test\counter_test.vcxproj", "{A37C9F94-4802-41AA-8B9F-986CB37A4343}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "counter_test", "examples\counter_test\counter_test.vcxproj", "{A37C9F94-4802-41AA-8B9F-986CB37A4343}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

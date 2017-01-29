@@ -88,8 +88,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-sbin_PROGRAMS = mnist_test$(EXEEXT)
-subdir = mnist_test
+sbin_PROGRAMS = hopfield_test$(EXEEXT)
+subdir = examples/hopfield_test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -104,16 +104,17 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
-am_mnist_test_OBJECTS = mnist_test-mnist_test.$(OBJEXT)
-mnist_test_OBJECTS = $(am_mnist_test_OBJECTS)
-mnist_test_DEPENDENCIES =
+am_hopfield_test_OBJECTS = hopfield_test-hopfield_test.$(OBJEXT)
+hopfield_test_OBJECTS = $(am_hopfield_test_OBJECTS)
+hopfield_test_DEPENDENCIES =
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-mnist_test_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(mnist_test_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+hopfield_test_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(hopfield_test_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -148,8 +149,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(mnist_test_SOURCES)
-DIST_SOURCES = $(mnist_test_SOURCES)
+SOURCES = $(hopfield_test_SOURCES)
+DIST_SOURCES = $(hopfield_test_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -191,7 +192,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 DIST_SUBDIRS = $(SUBDIRS)
-am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp README
+am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \
   dir0=`pwd`; \
@@ -342,20 +343,18 @@ top_srcdir = @top_srcdir@
 SUBDIRS = 
 AM_CPPFLAGS = \
    -g \
-   -I$(top_srcdir)/mnist \
    -I$(top_srcdir)/nunn
 
-mnist_test_CXXFLAGS = \
+hopfield_test_CXXFLAGS = \
    -std=c++11 \
    -g 
 
-mnist_test_SOURCES = \
-   mnist_test.cc
+hopfield_test_SOURCES = \
+   hopfield_test.cc
 
-AM_CXXFLAGS = ${mnist_test_CXXFLAGS}
-mnist_test_LDADD = \
-   -L../nunn/.libs -lnunn \
-   -L../mnist/.libs -lmnist
+AM_CXXFLAGS = ${hopfield_test_CXXFLAGS}
+hopfield_test_LDADD = \
+   -L../../nunn/.libs -lnunn 
 
 all: all-recursive
 
@@ -370,9 +369,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu mnist_test/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu examples/hopfield_test/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu mnist_test/Makefile
+	  $(AUTOMAKE) --gnu examples/hopfield_test/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -440,9 +439,9 @@ clean-sbinPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
-mnist_test$(EXEEXT): $(mnist_test_OBJECTS) $(mnist_test_DEPENDENCIES) $(EXTRA_mnist_test_DEPENDENCIES) 
-	@rm -f mnist_test$(EXEEXT)
-	$(AM_V_CXXLD)$(mnist_test_LINK) $(mnist_test_OBJECTS) $(mnist_test_LDADD) $(LIBS)
+hopfield_test$(EXEEXT): $(hopfield_test_OBJECTS) $(hopfield_test_DEPENDENCIES) $(EXTRA_hopfield_test_DEPENDENCIES) 
+	@rm -f hopfield_test$(EXEEXT)
+	$(AM_V_CXXLD)$(hopfield_test_LINK) $(hopfield_test_OBJECTS) $(hopfield_test_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -450,7 +449,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mnist_test-mnist_test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hopfield_test-hopfield_test.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -473,19 +472,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-mnist_test-mnist_test.o: mnist_test.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mnist_test_CXXFLAGS) $(CXXFLAGS) -MT mnist_test-mnist_test.o -MD -MP -MF $(DEPDIR)/mnist_test-mnist_test.Tpo -c -o mnist_test-mnist_test.o `test -f 'mnist_test.cc' || echo '$(srcdir)/'`mnist_test.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mnist_test-mnist_test.Tpo $(DEPDIR)/mnist_test-mnist_test.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='mnist_test.cc' object='mnist_test-mnist_test.o' libtool=no @AMDEPBACKSLASH@
+hopfield_test-hopfield_test.o: hopfield_test.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hopfield_test_CXXFLAGS) $(CXXFLAGS) -MT hopfield_test-hopfield_test.o -MD -MP -MF $(DEPDIR)/hopfield_test-hopfield_test.Tpo -c -o hopfield_test-hopfield_test.o `test -f 'hopfield_test.cc' || echo '$(srcdir)/'`hopfield_test.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/hopfield_test-hopfield_test.Tpo $(DEPDIR)/hopfield_test-hopfield_test.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hopfield_test.cc' object='hopfield_test-hopfield_test.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mnist_test_CXXFLAGS) $(CXXFLAGS) -c -o mnist_test-mnist_test.o `test -f 'mnist_test.cc' || echo '$(srcdir)/'`mnist_test.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hopfield_test_CXXFLAGS) $(CXXFLAGS) -c -o hopfield_test-hopfield_test.o `test -f 'hopfield_test.cc' || echo '$(srcdir)/'`hopfield_test.cc
 
-mnist_test-mnist_test.obj: mnist_test.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mnist_test_CXXFLAGS) $(CXXFLAGS) -MT mnist_test-mnist_test.obj -MD -MP -MF $(DEPDIR)/mnist_test-mnist_test.Tpo -c -o mnist_test-mnist_test.obj `if test -f 'mnist_test.cc'; then $(CYGPATH_W) 'mnist_test.cc'; else $(CYGPATH_W) '$(srcdir)/mnist_test.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mnist_test-mnist_test.Tpo $(DEPDIR)/mnist_test-mnist_test.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='mnist_test.cc' object='mnist_test-mnist_test.obj' libtool=no @AMDEPBACKSLASH@
+hopfield_test-hopfield_test.obj: hopfield_test.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hopfield_test_CXXFLAGS) $(CXXFLAGS) -MT hopfield_test-hopfield_test.obj -MD -MP -MF $(DEPDIR)/hopfield_test-hopfield_test.Tpo -c -o hopfield_test-hopfield_test.obj `if test -f 'hopfield_test.cc'; then $(CYGPATH_W) 'hopfield_test.cc'; else $(CYGPATH_W) '$(srcdir)/hopfield_test.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/hopfield_test-hopfield_test.Tpo $(DEPDIR)/hopfield_test-hopfield_test.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hopfield_test.cc' object='hopfield_test-hopfield_test.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mnist_test_CXXFLAGS) $(CXXFLAGS) -c -o mnist_test-mnist_test.obj `if test -f 'mnist_test.cc'; then $(CYGPATH_W) 'mnist_test.cc'; else $(CYGPATH_W) '$(srcdir)/mnist_test.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hopfield_test_CXXFLAGS) $(CXXFLAGS) -c -o hopfield_test-hopfield_test.obj `if test -f 'hopfield_test.cc'; then $(CYGPATH_W) 'hopfield_test.cc'; else $(CYGPATH_W) '$(srcdir)/hopfield_test.cc'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

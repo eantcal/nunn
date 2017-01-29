@@ -15,7 +15,7 @@ tictactoe_SOURCES = \
 AM_CXXFLAGS = ${tictactoe_CXXFLAGS}
 
 tictactoe_LDADD = \
-   -L../nunn/.libs -lnunn 
+   -L../../nunn/.libs -lnunn 
 
 sbin_PROGRAMS += \
    tictactoe 

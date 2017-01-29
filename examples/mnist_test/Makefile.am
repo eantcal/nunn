@@ -16,8 +16,8 @@ mnist_test_SOURCES = \
 AM_CXXFLAGS = ${mnist_test_CXXFLAGS}
 
 mnist_test_LDADD = \
-   -L../nunn/.libs -lnunn \
-   -L../mnist/.libs -lmnist
+   -L../../nunn/.libs -lnunn \
+   -L../../mnist/.libs -lmnist
 
 sbin_PROGRAMS += \
    mnist_test 

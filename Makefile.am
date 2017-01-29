@@ -1,22 +1,31 @@
 ACLOCAL_AMFLAGS=-I m4
 
-SUBDIRS = nunn nunn_topo mnist mnist_test tictactoe and_test xor_test counter_test hopfield_test
+SUBDIRS = \
+   nunn \
+   nunn_topo \
+   mnist \
+   examples/mnist_test \
+   examples/tictactoe \
+   examples/and_test \
+   examples/xor_test \
+   examples/counter_test \
+   examples/hopfield_test
 
 EXTRA_DIST= \
    ocr_test \
    *.sln \
    *.iss \
+   *.net \
    nunn/*.vcxproj* \
    nunn_topo/*.vcxproj* \
    mnist/*.vcxproj* \
-   mnist_test/*.vcxproj* \
-   mnist_test/*ubyte \
-   *.net \
-   tictactoe/*.vcxproj* \
-   tictactoe/*.net \
-   tictactoe/*.sh \
-   xor_test/*.vcxproj* \
-   counter_test/*.vcxproj* \
-   hopfield_test/*.vcxproj* \
-   and_test/*.vcxproj* \
-   winttt
+   examples/mnist_test/*.vcxproj* \
+   examples/mnist_test/*ubyte \
+   examples/tictactoe/*.vcxproj* \
+   examples/tictactoe/*.net \
+   examples/tictactoe/*.sh \
+   examples/xor_test/*.vcxproj* \
+   examples/counter_test/*.vcxproj* \
+   examples/hopfield_test/*.vcxproj* \
+   examples/and_test/*.vcxproj* \
+   examples/winttt
