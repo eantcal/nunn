@@ -9,6 +9,7 @@ SUBDIRS = \
    examples/and_test \
    examples/xor_test \
    examples/counter_test \
+   examples/path_finder \
    examples/hopfield_test
 
 EXTRA_DIST= \
@@ -25,6 +26,7 @@ EXTRA_DIST= \
    examples/tictactoe/*.net \
    examples/tictactoe/*.sh \
    examples/xor_test/*.vcxproj* \
+   examples/path_finder/*.vcxproj* \
    examples/counter_test/*.vcxproj* \
    examples/hopfield_test/*.vcxproj* \
    examples/and_test/*.vcxproj* \

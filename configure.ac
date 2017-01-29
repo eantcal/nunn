@@ -41,6 +41,7 @@ AC_CONFIG_FILES([
   examples/xor_test/Makefile
   examples/counter_test/Makefile
   examples/and_test/Makefile
+  examples/path_finder/Makefile
   examples/hopfield_test/Makefile
 ])
 AC_OUTPUT
