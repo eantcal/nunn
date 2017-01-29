@@ -57,6 +57,14 @@ public:
         const size_t& goal_state, 
         const topology_t& topology);
 
+    qlearn_t(const qmtx_t& reward_mtx) :
+      _n_of_states(reward_mtx.size()),
+      _reward_mtx(reward_mtx),
+      _q_mtx(reward_mtx.size())
+    {
+        assert(_n_of_states>0);
+    }
+
     void set_learning_rate(const double& lr) noexcept {
         _learning_rate = lr;
     }

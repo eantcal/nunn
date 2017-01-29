@@ -51,6 +51,14 @@ public:
     qmtx_t(const data_t& m) : _data(m) {}
     qmtx_t() = delete;
     qmtx_t(size_t size);
+    qmtx_t(const qmtx_t& other) : _data(other._data) {}
+
+    qmtx_t& operator=(const qmtx_t& other) {
+        if (this != &other) {
+            _data = other._data;
+        }
+        return *this;
+    }
 
     void fill(const double& value) noexcept;
 
