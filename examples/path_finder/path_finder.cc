@@ -78,7 +78,7 @@ int main()
        << std::endl << "Goal is state [" << GoalState << "]" << std::endl;
 
 
-    nu::qlearn_t ql(
+    nu::qlgraph_t ql(
         NumberOfStates, 
         GoalState,
 
@@ -93,9 +93,7 @@ int main()
             { 5,   {1, 4, 5 } } }
         );
 
-    nu::qlearn_t::cbk_t cbk;
-
-    ql.learn(NumberOfEpisodies, cbk);
+    ql.learn(NumberOfEpisodies);
 
 #ifdef _DEBUG
     auto & q = ql.get_q_mtx();

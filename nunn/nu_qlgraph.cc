@@ -32,7 +32,7 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-qlearn_t::qlearn_t(
+qlgraph_t::qlgraph_t(
         const size_t& n_of_states,
         const size_t& goal_state,
         const topology_t& topology) :
@@ -59,28 +59,28 @@ qlearn_t::qlearn_t(
 
 /* -------------------------------------------------------------------------- */
 
-bool qlearn_t::learn(const size_t& n_of_episodes, cbk_t & cbk) 
+bool qlgraph_t::learn(const size_t& n_of_episodes, const helper_t & helper) 
 {
     for (auto episode = 0; episode < n_of_episodes; ++episode) {
 
-        cbk.begin_episode(episode, *this);
+        helper.begin_episode(episode, *this);
 
-        if (cbk.quit_request_pending()) {
+        if (helper.quit_request_pending()) {
             return false;
         }
 
-        auto current_state = cbk.rnd() % _n_of_states;
+        auto current_state = helper.rnd() % _n_of_states;
 
         bool goal = false;
 
         while (!goal) {
 
-            if (cbk.quit_request_pending()) {
+            if (helper.quit_request_pending()) {
                 return false;
             }
 
             auto valid_actions = retrieve_valid_actions(_reward_mtx, current_state);
-            auto next_state = valid_actions[cbk.rnd() % valid_actions.size()];
+            auto next_state = valid_actions[helper.rnd() % valid_actions.size()];
 
             goal = _goal_state == current_state;
 
@@ -94,9 +94,9 @@ bool qlearn_t::learn(const size_t& n_of_episodes, cbk_t & cbk)
             current_state = next_state;
         }
 
-        cbk.end_episode(episode, *this);
+        helper.end_episode(episode, *this);
 
-        if (cbk.quit_request_pending()) {
+        if (helper.quit_request_pending()) {
             return false;
         }
     }
@@ -109,8 +109,8 @@ bool qlearn_t::learn(const size_t& n_of_episodes, cbk_t & cbk)
 
 /* -------------------------------------------------------------------------- */
 
-qlearn_t::valid_actions_t 
-qlearn_t::retrieve_valid_actions(const qmtx_t& r, size_t state) 
+qlgraph_t::valid_actions_t 
+qlgraph_t::retrieve_valid_actions(const qmtx_t& r, size_t state) 
 {
     assert(state < r.size());
 

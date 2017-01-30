@@ -43,7 +43,7 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-class qlearn_t {
+class qlgraph_t {
 public:
     using valid_actions_t = std::vector<size_t>;
 
@@ -52,12 +52,12 @@ public:
                                             // from   to
     using topology_t = std::unordered_map< size_t, std::list<size_t> >;
     
-    qlearn_t( 
+    qlgraph_t( 
         const size_t& n_of_states, 
         const size_t& goal_state, 
         const topology_t& topology);
 
-    qlearn_t(const qmtx_t& reward_mtx) :
+    qlgraph_t(const qmtx_t& reward_mtx) :
       _n_of_states(reward_mtx.size()),
       _reward_mtx(reward_mtx),
       _q_mtx(reward_mtx.size())
@@ -81,26 +81,30 @@ public:
         return _discount_rate;
     }
 
-    struct cbk_t {
-        virtual ~cbk_t() {};
-        virtual void begin_episode(const size_t& /*episode*/, qlearn_t & /*qlobj*/) {};
-        virtual void end_episode(const size_t& /*episode*/, qlearn_t & /*qlobj*/) {};
+    struct helper_t {
+        virtual ~helper_t() {};
+        virtual void begin_episode(const size_t& /*episode*/, qlgraph_t & /*qlobj*/) const {};
+        virtual void end_episode(const size_t& /*episode*/, qlgraph_t & /*qlobj*/) const {};
         virtual bool quit_request_pending() const { return false; }
-        virtual size_t rnd() noexcept { return size_t(rand()); }
+        virtual size_t rnd() const noexcept { return size_t(rand()); }
     };
 
-    bool learn(const size_t& n_of_episodes, cbk_t & cbk);
+    bool learn(
+        const size_t& n_of_episodes, 
+        const helper_t & helper = helper_t());
 
     const qmtx_t& get_q_mtx() const noexcept {
         return _q_mtx;
     }
 
-    const size_t get_next_state_for(const size_t& state) {
+    const size_t get_next_state_for(const size_t& state) const {
         return _q_mtx.maxarg(state);
     }
 
 private:
-    static valid_actions_t retrieve_valid_actions(const qmtx_t& r, size_t state);
+    static valid_actions_t retrieve_valid_actions(
+        const qmtx_t& r, 
+        size_t state);
 
     size_t rand_of(const valid_actions_t& va) {
         assert(!va.empty());
