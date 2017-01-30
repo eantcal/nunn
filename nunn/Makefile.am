@@ -14,8 +14,8 @@ libnunn_la_SOURCES = \
     nu_neuron.h \
     nu_perceptron.cc \
     nu_perceptron.h \
-    nu_qlearn.cc \
-    nu_qlearn.h \
+    nu_qlgraph.cc \
+    nu_qlgraph.h \
     nu_qmtx.cc \
     nu_qmtx.h \
     nu_rmlpnn.cc \

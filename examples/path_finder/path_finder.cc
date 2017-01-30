@@ -25,7 +25,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_qlearn.h"
+#include "nu_qlgraph.h"
 #include <iostream>
 
 

@@ -221,7 +221,7 @@
     <ClCompile Include="nu_hopfieldnn.cc" />
     <ClCompile Include="nu_mlpnn.cc" />
     <ClCompile Include="nu_perceptron.cc" />
-    <ClCompile Include="nu_qlearn.cc" />
+    <ClCompile Include="nu_qlgraph.cc" />
     <ClCompile Include="nu_qmtx.cc" />
     <ClCompile Include="nu_rmlpnn.cc" />
   </ItemGroup>
@@ -231,7 +231,7 @@
     <ClInclude Include="nu_mlpnn.h" />
     <ClInclude Include="nu_neuron.h" />
     <ClInclude Include="nu_perceptron.h" />
-    <ClInclude Include="nu_qlearn.h" />
+    <ClInclude Include="nu_qlgraph.h" />
     <ClInclude Include="nu_qmtx.h" />
     <ClInclude Include="nu_rmlpnn.h" />
     <ClInclude Include="nu_rneuron.h" />

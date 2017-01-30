@@ -132,7 +132,7 @@ am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libnunn_la_LIBADD =
 am_libnunn_la_OBJECTS = nu_costfuncs.lo nu_hopfieldnn.lo nu_mlpnn.lo \
-	nu_perceptron.lo nu_qlearn.lo nu_qmtx.lo nu_rmlpnn.lo
+	nu_perceptron.lo nu_qlgraph.lo nu_qmtx.lo nu_rmlpnn.lo
 libnunn_la_OBJECTS = $(am_libnunn_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -355,8 +355,8 @@ libnunn_la_SOURCES = \
     nu_neuron.h \
     nu_perceptron.cc \
     nu_perceptron.h \
-    nu_qlearn.cc \
-    nu_qlearn.h \
+    nu_qlgraph.cc \
+    nu_qlgraph.h \
     nu_qmtx.cc \
     nu_qmtx.h \
     nu_rmlpnn.cc \
@@ -451,7 +451,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nu_hopfieldnn.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nu_mlpnn.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nu_perceptron.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nu_qlearn.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nu_qlgraph.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nu_qmtx.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nu_rmlpnn.Plo@am__quote@
 
