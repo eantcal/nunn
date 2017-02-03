@@ -10,6 +10,7 @@ SUBDIRS = \
    examples/xor_test \
    examples/counter_test \
    examples/path_finder \
+   examples/maze \
    examples/hopfield_test
 
 EXTRA_DIST= \
@@ -30,4 +31,5 @@ EXTRA_DIST= \
    examples/counter_test/*.vcxproj* \
    examples/hopfield_test/*.vcxproj* \
    examples/and_test/*.vcxproj* \
+   examples/maze/*.vcxproj* \
    examples/winttt

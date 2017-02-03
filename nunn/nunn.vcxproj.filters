@@ -57,6 +57,18 @@
     <ClInclude Include="nu_qmtx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nu_qlearn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nu_nu_greedy_policy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nu_softmax.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nu_random_gen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nu_mlpnn.cc">

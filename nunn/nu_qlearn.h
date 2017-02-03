@@ -143,8 +143,8 @@ protected:
 
 
 private:
-    value_t _learning_rate = 0.5;
-    value_t _discount_rate = 0.5;
+    value_t _learning_rate = 0.1;
+    value_t _discount_rate = 0.9;
 
     q_map_t _q_map;
 

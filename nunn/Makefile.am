@@ -25,7 +25,11 @@ libnunn_la_SOURCES = \
     nu_stepf.h \
     nu_trainer.h \
     nu_vector.h \
-    nu_xmlpnn.h    
+    nu_xmlpnn.h \
+    nu_qlearn.h \
+    nu_greedy_policy.h \
+    nu_softmax.h \
+    nu_random_gen.h 
 
 AM_CXXFLAGS = $(INTI_CFLAGS) -std=c++11 
 
