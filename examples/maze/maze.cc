@@ -26,6 +26,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_qlearn.h"
+#include "nu_sarsa.h"
 #include "nu_greedy_policy.h"
 
 
@@ -356,12 +357,24 @@ static void cls()
 
 /* -------------------------------------------------------------------------- */
 
+// define USE_SARSA to switch over Sarsa algorithm at compile time
+
+#ifdef USE_SARSA
+using learner_t = 
+    nu::sarsa_t<
+        action_t, 
+        state_t, 
+        agent_t, 
+        nu::greedy_policy_t<action_t, agent_t>>;
+
+#else // USE_QLEARN
 using learner_t = 
     nu::qlearn_t<
         action_t, 
         state_t, 
         agent_t, 
         nu::greedy_policy_t<action_t, agent_t>>;
+#endif
 
 
 /* -------------------------------------------------------------------------- */

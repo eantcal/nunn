@@ -1,5 +1,4 @@
-SUBDIRS =
-sbin_PROGRAMS = 
+sbin_PROGRAMS = maze mazesarsa
 
 AM_CPPFLAGS = \
    -g \
@@ -12,12 +11,18 @@ maze_CXXFLAGS = \
 maze_SOURCES = \
    maze.cc
 
-AM_CXXFLAGS = ${maze_CXXFLAGS}
-
 maze_LDADD = \
    -L../../nunn/.libs -lnunn 
 
-sbin_PROGRAMS += \
-   maze 
+mazesarsa_CXXFLAGS = \
+   -std=c++11 -DUSE_SARSA \
+   -g 
+
+mazesarsa_SOURCES = \
+   maze.cc
+
+mazesarsa_LDADD = \
+   -L../../nunn/.libs -lnunn 
+
 
 
