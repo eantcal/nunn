@@ -27,7 +27,8 @@
 
 #include "nu_qlearn.h"
 #include "nu_sarsa.h"
-#include "nu_greedy_policy.h"
+#include "nu_e_greedy_policy.h"
+#include "nu_softmax_policy.h"
 
 
 /* -------------------------------------------------------------------------- */
@@ -44,6 +45,7 @@
 #include <iostream>
 #include <vector>
 #include <thread>
+#include <iomanip>
 
 
 /* -------------------------------------------------------------------------- */
@@ -85,6 +87,8 @@ struct env_t
     { 1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1 },
     { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 } };
     
+    env_t() = default;
+
     constexpr int max_x() const { return _X; }
     constexpr int max_y() const { return _Y; }
 };
@@ -357,15 +361,20 @@ static void cls()
 
 /* -------------------------------------------------------------------------- */
 
-// define USE_SARSA to switch over Sarsa algorithm at compile time
+#ifdef E_GREEDY_POLICY
+using policy_t = nu::e_greedy_policy_t<action_t, agent_t>;
+#else
+using policy_t = nu::softmax_policy_t<action_t, agent_t>;
+#endif
 
+// define USE_SARSA to switch over Sarsa algorithm at compile time
 #ifdef USE_SARSA
 using learner_t = 
     nu::sarsa_t<
         action_t, 
         state_t, 
         agent_t, 
-        nu::greedy_policy_t<action_t, agent_t>>;
+        policy_t>;
 
 #else // USE_QLEARN
 using learner_t = 
@@ -373,7 +382,7 @@ using learner_t =
         action_t, 
         state_t, 
         agent_t, 
-        nu::greedy_policy_t<action_t, agent_t>>;
+        policy_t>;
 #endif
 
 
@@ -456,37 +465,41 @@ int main()
     render_t r;
     learner_t ql;
 
-    const int episodies = 1000;
+    const int episodies = 10000;
     const int timeout = 300;
+    const double greward = 1000;
 
     cls();
 
     simulator_t simulator;
 
-    for (auto i = 0; i < episodies; ++i) {
-        locate(1, 1);
-        std::cout << "Learning... episode # " << i << "    " << std::endl;
+    auto line=[](size_t n) {
+        while (n-->0) {
+            std::cout << "-";
+        }
+        std::cout << std::endl;
+    };
 
+    std::cout << "Learning... " << std::endl;
+
+    int episode = 0;
+    for (;  episode < episodies; ++episode) {
         state_t st(1, 1);
         agent_t agent(env, st, goal);
 
-        size_t moves = ql.learn(agent);
+        auto reward = size_t(ql.learn(agent));
                 
-        locate(2, 1);
-        std::cout 
-            << "Solved in " << moves 
-            << " moves                        " 
-            << std::endl;
+        std::cout << std::setw(5) << reward << " ";
+        line(size_t(10 * log(double(reward))));
 
-        if (i>170 && ((i % 15) == 0) ) {
-           simulator.play<render_t>(
-               i, r, env, goal, ql, timeout /* max moves before timeout !*/ );
+        if (reward>greward) {
+            break;
         }
     }
 
     while (true) {
         simulator.play<render_t>(
-            episodies, r, env, goal, ql, timeout);
+            episode, r, env, goal, ql, timeout);
     }
     
     return 0;

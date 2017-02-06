@@ -22,13 +22,13 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __NU_RANDOM_GEN_H__
-#define __NU_RANDOM_GEN_H__
+#ifndef __NU_LEARNER_LISTENER_H__
+#define __NU_LEARNER_LISTENER_H__
 
 
 /* -------------------------------------------------------------------------- */
 
-#include <random>
+#include <cstddef>
 
 
 /* -------------------------------------------------------------------------- */
@@ -38,33 +38,13 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-template <
-    class T = double, 
-    class E = std::mt19937,
-    class D = std::uniform_real_distribution<T>
->
-class random_gen_t {
-public:
+template<class T = double>
+struct learner_listener_t
+{
     using real_t = T;
-    using engine_t = E;
-    using distribution_t = D;
 
-    random_gen_t(const real_t& min_value = 0,
-                 const real_t& max_value = 1) : 
-            _distribution(min_value, max_value) 
-    {
-        std::random_device rd;
-
-        _engine.seed(rd());
-    }
-
-    real_t operator ()() {
-        return _distribution(_engine);
-    }
-
-private:
-    engine_t _engine;
-    distribution_t _distribution;
+    virtual ~learner_listener_t() {}
+    virtual bool notify(const real_t& reward, const size_t& move) = 0;
 };
 
 
@@ -73,5 +53,7 @@ private:
 }
 
 
-#endif // __NU_RANDOM_GEN_H__
+/* -------------------------------------------------------------------------- */
+
+#endif // __NU_LEARNER_LISTENER_H__
 
