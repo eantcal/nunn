@@ -21,12 +21,10 @@
 
 /**
   This is an implementation of a Artificial Neural Network which learns by
-  example
-  by using Back Propagation algorithm.
+  example by using Back Propagation algorithm.
   You can give it examples of what you want the network to do and the algorithm
   changes the network's weights. When training is finished, the net will give
-  you
-  the required output for a particular input.
+  you the required output for a particular input.
 
   Back Propagation algorithm
   1) Initializes the net by setting up all its weights to be small random
