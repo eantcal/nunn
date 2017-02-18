@@ -23,6 +23,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_costfuncs.h"
+#include <limits>
 
 
 /* -------------------------------------------------------------------------- */
@@ -43,7 +44,7 @@ double cross_entropy(vector_t<double> output, const vector_t<double>& target)
 
     for (auto& i : log_output)
         if (i == 0.0)
-            i = 0.00000001;
+            i = std::numeric_limits< double >::min();
 
     log_output.log();
 
@@ -55,7 +56,7 @@ double cross_entropy(vector_t<double> output, const vector_t<double>& target)
 
     for (auto& i : log_inv_output)
         if (i == 0.0)
-            i = 0.00000001;
+            i = std::numeric_limits< double >::min();
 
     log_inv_output.log();
 
