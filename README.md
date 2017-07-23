@@ -15,7 +15,7 @@ dot draws directed graphs. It reads attributed graph text files and writes drawi
 either as graph files or in a graphics format such as GIF, PNG, SVG or PostScript
 (which can be converted to PDF).
 
-# MNIST Test Demo (mnist_test)
+## MNIST Test Demo (mnist_test)
 This demo trains and tests (R)MLP neural network against the MNIST.
 The test is performed by using the MNIST data set, which contains 60K + 10K 
 scanned images of handwritten digits with their correct classifications
@@ -28,21 +28,21 @@ Each entry in the vector represents the grey value for a single pixel in the ima
 The corresponding desired output is a 10-dimensional vector.
 You may obtain info about MNIST at link http://yann.lecun.com/exdb/mnist/
 
-## Handwritten Digit OCR Demo (ocr_test)
+### Handwritten Digit OCR Demo (ocr_test)
 This is an interactive demo which uses MNIST trained neural network created 
 by using nunn library.
 nunn status files (.net) have been created by mnist_test application
 
 
-# TicTacToe Demo (tictactoe)
+## TicTacToe Demo (tictactoe)
 Basic Tic Tac Toe game which uses neural networks. 
 
-## TicTacToe Demo for Windows (winttt)
+### TicTacToe Demo for Windows (winttt)
 Winttt is an interactive Tic Tac Toe version for Windows which may be dynamically 
 trained or may use trained neural networks, including those nets created by
 using tictactoe program.
 
-# XOR Problem sample (xor_test)
+## XOR Problem sample (xor_test)
 A typical example of non-linealy separable function is the XOR.
 Implementing the XOR function is a classic problem in neural networks.
 XOR computes the logical exclusive-or, which yields 1 if and 
@@ -50,14 +50,14 @@ only if the two inputs have different values.
 So, this classification can not be solved with linear separation, 
 but is very easy for a neural network to generate a non-linear solution to.
  
-# Perceptron AND sample (and_test)
+## Perceptron AND sample (and_test)
 AND function implemented using a perceptron
 A typical example of linearly separable function is the AND. This type
 of function can be learned by a single preceptron neural net
 AND computes the logical-AND, which yields 1 if and 
 only if the two inputs have 1 values.
 
-# Hopfield Test (hopfield_test)
+## Hopfield Test (hopfield_test)
 The Hopfield networks may be used to solve the recall problem of matching cues 
 for an input pattern to an associated pre-learned pattern.
 They are form of recurrent artificial neural networks, which
