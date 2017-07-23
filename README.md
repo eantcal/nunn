@@ -33,6 +33,7 @@ This is an interactive demo which uses MNIST trained neural network created
 by using nunn library.
 nunn status files (.net) have been created by mnist_test application
 
+![ocr_test](https://37bdcab3-a-62cb3a1a-s-sites.googlegroups.com/site/nunnlibrary/samples/ocr_test2..jpg)
 
 ## TicTacToe Demo (tictactoe)
 Basic Tic Tac Toe game which uses neural networks. 
