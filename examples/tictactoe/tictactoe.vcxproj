@@ -38,7 +38,7 @@
     <ProjectGuid>{AA1E5DA3-20A2-49F5-A27A-CF3C050FBCFC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>tictactoe</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -61,7 +61,7 @@ qlgraph_t::qlgraph_t(
 
 bool qlgraph_t::learn(const size_t& n_of_episodes, const helper_t & helper) 
 {
-    for (auto episode = 0; episode < n_of_episodes; ++episode) {
+    for (size_t episode = 0; episode < n_of_episodes; ++episode) {
 
         helper.begin_episode(episode, *this);
 

@@ -38,7 +38,7 @@
     <ProjectGuid>{EF52B110-FF72-4524-83B8-AD38FDA90F87}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ocr_test</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
