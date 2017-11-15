@@ -99,7 +99,7 @@ class hopfieldnn_t
     hopfieldnn_t(hopfieldnn_t&& nn) noexcept
       : _s(std::move(nn._s)),
         _w(std::move(nn._w)),
-        _pattern_size(std::move(_pattern_size))
+        _pattern_size(std::move(nn._pattern_size))
     {
     }
 

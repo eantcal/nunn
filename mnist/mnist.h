@@ -61,9 +61,9 @@ class digit_data_t
     //! ctor
     digit_data_t(size_t dx, size_t dy, int label,
                  const data_t& data) noexcept : _dx(dx),
-                                                   _dy(dy),
-                                                   _label(label),
-                                                   _data(data)
+                                                _dy(dy),
+                                                _label(label),
+                                                _data(data)
     {
     }
 
@@ -76,17 +76,16 @@ class digit_data_t
 
 
     //! move ctor
-    digit_data_t(digit_data_t&& other) noexcept : _dx(std::move(_dx)),
-                                                     _dy(std::move(_dy)),
-                                                     _label(std::move(_label)),
-                                                     _data(std::move(_data))
+    digit_data_t(digit_data_t&& other) noexcept : _dx(std::move(other._dx)),
+                                                  _dy(std::move(other._dy)),
+                                                  _label(std::move(other._label)),
+                                                  _data(std::move(other._data))
     {
     }
 
 
     //! move assign operator
-    digit_data_t& operator=(digit_data_t&& other) noexcept
-    {
+    digit_data_t& operator=(digit_data_t&& other) noexcept {
         if (this != &other) {
             _dx = std::move(_dx);
             _dy = std::move(_dy);
@@ -99,19 +98,27 @@ class digit_data_t
 
 
     //! Returns the digit width in pixels
-    size_t get_dx() const noexcept { return _dx; }
+    size_t get_dx() const noexcept { 
+        return _dx; 
+    }
 
 
     //! Returns the digit height in pixels
-    size_t get_dy() const noexcept { return _dy; }
+    size_t get_dy() const noexcept { 
+        return _dy; 
+    }
 
 
     //! Returns the digit classification
-    int get_label() const noexcept { return _label; }
+    int get_label() const noexcept { 
+        return _label; 
+    }
 
 
     //! Returns a reference to internal data
-    const data_t& data() const noexcept { return _data; }
+    const data_t& data() const noexcept { 
+        return _data; 
+    }
 
 
     //! Converts the image data into a vector normalizing each item
@@ -142,12 +149,13 @@ class training_data_t
     using data_t = std::list<std::unique_ptr<digit_data_t>>;
 
     //! Return a reference to a list of digit_data_t objects
-    const data_t& data() const noexcept { return _data; }
+    const data_t& data() const noexcept { 
+        return _data; 
+    }
 
 
     //! reshuffle objects
-    void reshuffle()
-    {
+    void reshuffle() {
         std::vector<std::unique_ptr<digit_data_t>> data;
 
         for (auto& e : _data)
@@ -161,8 +169,7 @@ class training_data_t
     }
 
 
-    enum class exception_t
-    {
+    enum class exception_t {
         lbls_file_not_found,
         imgs_file_not_found,
         lbls_file_read_error,
