@@ -1,6 +1,10 @@
 # nunn
 Nunn Library is a Free Open Source Machine Learning Library distributed under GPLv2 License and written in C++11/C++14
 
+
+
+
+
 ## Features
 - Supports fully connected multi-layers neural networks and other ML algorithms
 - Easy to use and understand
@@ -33,6 +37,7 @@ This is an interactive demo which uses MNIST trained neural network created
 by using nunn library.
 nunn status files (.net) have been created by mnist_test application
 
+### [![Click here for watching the video](https://youtu.be/ereeEG_1lmY)](https://youtu.be/ereeEG_1lmY)
 ![ocr_test](https://37bdcab3-a-62cb3a1a-s-sites.googlegroups.com/site/nunnlibrary/samples/ocr_test2..jpg)
 
 ## TicTacToe Demo (tictactoe)
