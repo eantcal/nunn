@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 2.8.12)
+project(nunnlib)
+
+add_subdirectory(and_test)
+add_subdirectory(counter_test)
+add_subdirectory(hopfield_test)
+add_subdirectory(maze)
+add_subdirectory(mnist_test)
+add_subdirectory(path_finder)
+add_subdirectory(tictactoe)
+add_subdirectory(xor_test)
