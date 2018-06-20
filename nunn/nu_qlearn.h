@@ -51,11 +51,11 @@ template<
 class qlearn_t {
 public:
     using real_t = T;
-    using action_t = A;
-    using state_t = S;
-    using agent_t = AG;
-    using policy_t = P;
-    using reward_t = real_t;
+    using action_t = A;       // possible action in state S
+    using state_t = S;        // representation of the environmental states
+    using agent_t = AG;       // the Q-learning agent
+    using policy_t = P;       // policy to follow
+    using reward_t = real_t;  // the reward
     using listener_t = learner_listener_t<real_t>;
 
     using action_reward_t = ARM;
