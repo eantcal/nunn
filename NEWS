@@ -3,6 +3,10 @@ Author - Antonino Calderone - <acaldmail@gmail.com> - (c) 2015, 2016
 
 Please send nunn bug reports to <acaldmail@gmail.com>.
 
+Mar 22, 2019
+- Change license to MIT
+- Switch to cmake for compiling (remove autotool support)
+
 Dec 13, 2016
 * Released nunn library 1.56
 - Improve ocr_test image capture
