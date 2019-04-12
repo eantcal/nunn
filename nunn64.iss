@@ -47,6 +47,7 @@ Source: "x64\Release64\xor_test.exe"; DestDir: "{app}"; Flags: ignoreversion; Ch
 Source: "x64\Release64\hopfield_test.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsWin64;
 Source: "x64\Release64\and_test.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsWin64;
 Source: "x64\Release64\nunn_topo.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsWin64;
+Source: "x64\Release64\titanic.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsWin64;
 Source: "ocr_test.net"; DestDir: "{app}\Nets"; Flags: ignoreversion
 Source: "tictactoe\tictactoe.net"; DestDir: "{app}\Nets"; Flags: ignoreversion
 Source: "*.tar.gz"; DestDir: "{app}\Source"; Flags: ignoreversion
@@ -68,6 +69,7 @@ Name: "{group}\hopfield_test"; Filename: "{app}\hopfield_test.exe"; IconFilename
 Name: "{group}\and_test"; Filename: "{app}\and_test.exe"; IconFilename: "{app}\and_test.exe"  
 Name: "{group}\counter_test"; Filename: "{app}\counter_test.exe"; IconFilename: "{app}\counter_test.exe"
 Name: "{group}\nunn_topo"; Filename: "{app}\nunn_topo.exe"; IconFilename: "{app}\nunn_topo.exe"  
+Name: "{group}\titanic"; Filename: "{app}\titanic.exe"; IconFilename: "{app}\titanic.exe"  
 ; Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{group}\Doc"; Filename: "{app}\Documentation"
 Name: "{group}\Nets"; Filename: "{app}\Nets"

@@ -22,6 +22,3 @@ add_subdirectory(mnist)
 add_subdirectory(nunn_topo)
 add_subdirectory(examples)
 
-
-
-
