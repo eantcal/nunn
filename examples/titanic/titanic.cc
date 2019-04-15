@@ -20,8 +20,10 @@
 
 /* -------------------------------------------------------------------------- */
 
-using DataSet =
-    std::map<std::vector<double>, std::vector<double>>;
+using DataSet = std::map<std::vector<double>, std::vector<double>>;
+
+/* -------------------------------------------------------------------------- */
+ 
 
 using TrainingSet = DataSet;
 using TestSet = DataSet;
@@ -32,7 +34,7 @@ using TestSet = DataSet;
 struct Passenger {
     double pclass = 0;
     const char * name = nullptr;
-    double sex = 0;
+    double gender = 0;
     double age = 0;
     double sibsp = 0;
     double parch = 0;
@@ -46,10 +48,7 @@ struct Passenger {
     std::vector<double> getInputVector() const {
         return {
             (pclass - 1) / 2.0, // 1->0, 2->0.5, 3->1
-            //pclass == 1.0 ? 1.0 : .0,
-            //pclass == 2.0 ? 1.0 : .0,
-            //pclass == 3.0 ? 1.0 : .0,
-            sex,
+            gender,
             age / 80.0,
             sibsp / 10.0,
             parch / 10.0,
@@ -79,6 +78,15 @@ struct Passenger {
             usedIndex.insert(rndIndex);
             return rndIndex;
         };
+        
+        // The data has been split into two groups: training set and test set
+        // The training set is used to train the neural network. 
+        // The training set is built on “features” like passengers’ gender, age, class, 
+        // etc.
+        //
+        // The test set is used to see how well a trained NN performs on unseen data. 
+        // For each passenger in the test set, is used an NN trained to predict whether 
+        // or not they survived the sinking of the Titanic.
 
         for (size_t i = 0; i < trainingSetSize; ++i) {
             size_t rndIndex = reshuffle();
@@ -116,28 +124,17 @@ static void test(const TestSet& testSet, neural_net_t& nn) {
         nn.feed_forward();
         nn.get_outputs(output);
 
-#ifdef _DEBUG
-        std::cout << "sample="
-            << input << " output="
-            << output << " sample.output="
-            << sample.second[0] << std::endl;
-#endif
         output[0] = output[0] >= 0.5 ? 1.0 : 0.0;
 
         ++sampleCnt;
         if (sample.second[0] != output[0]) {
             ++errCnt;
-#ifdef _DEBUG
-            std::cout << "Err=" << errCnt << " Sample=" << sampleCnt << std::endl;
-#endif
         }
-#ifdef _DEBUG
-        std::cout << std::endl;
-#endif
     }
 
     std::cout
-        << "Test " << errCnt << "/" << sampleCnt << " error rate " << double(errCnt) / double(sampleCnt)
+        << "Test (err/samples):" << errCnt << "/" << sampleCnt << " Success Rate (%):" 
+        << (1.0-double(errCnt) / double(sampleCnt)) * 100.0
         << std::endl;
 }
 
@@ -155,10 +152,7 @@ int main(int argc, char* argv[])
     neural_net_t::topology_t topology = {
         6,  // number of inputs
 
-        6,  // hidden layer
-        6,  // hidden layer
-        6,  // hidden layer
-        6,  // hidden layer
+        6,
 
         1   // output
     };
@@ -166,43 +160,35 @@ int main(int argc, char* argv[])
     // Construct the network using topology, learning rate and momentum
     neural_net_t nn{
         topology,
-        0.01,      // learning rate
-        0          // momentum
+        0.1,      // learning rate
+        0         // momentum
     };
 
     std::cout << "Non trained network test" << std::endl;
     test(testSet, nn);
 
-    const size_t EPOCHS = 50000;
+    const size_t EPOCHS = 5000;
     trainer_t trainer(nn, EPOCHS);
 
-    std::cout << "Titanic training start ( Max epochs count="
-        << trainer.get_epochs()
-        << " Minimum error=" << trainer.get_min_err() << " )"
+    std::cout 
+        << std::endl
+        << "Training Start ( Max epochs =" << trainer.get_epochs() << " )"
         << std::endl;
 
     // Called to print out training progress
-    double errSum = 0.0;
-    auto progress_cbk = [EPOCHS, &trainingSet, &errSum](neural_net_t& n,
+    auto progress_cbk = [EPOCHS, &trainingSet](neural_net_t& nn,
         const nu::vector_t<double>& i,
         const nu::vector_t<double>& t,
         size_t epoch, size_t sample, double err) 
     {
-        errSum = sample == 0 ? err : errSum + err;
-        const auto errAvg = errSum / (sample + 1);
-
-        if (sample == trainingSet.size() - 1 && epoch % 10000 == 0) {
-            std::cout << "Epoch: "
+        if (sample == trainingSet.size() - 1 && epoch % 1000 == 0) {
+            std::clog << "Epoch: "
                 << epoch
-                << " Err=" << errAvg << std::endl;
-        
-            if (errAvg < 0.02)
-                return true;
+                << " Err= " << err << std::endl;
         }
 
         return false;
     };
-
 
     auto err_cost_f = [](neural_net_t& net, const neural_net_t::rvector_t& target) {
         return net.mean_squared_error(target);
@@ -214,10 +200,53 @@ int main(int argc, char* argv[])
         err_cost_f, 
         progress_cbk);
 
-    std::cout << "Trained network test" << std::endl;
+    std::cout 
+        << std::endl
+        << "Trained network test" << std::endl;
+
     test(testSet, nn);
 
-	return 0;
+    do {
+        std::string searchFor;
+        std::cout << "Search for name: ";
+        std::getline( std::cin, searchFor );
+        std::cout << "--------------------";
+
+        if (searchFor.empty()) {
+            break;
+        }
+
+        size_t i = 0;
+        auto * db = & titanicDB[0];
+        while(db[i].valid()) {
+            const std::string name = db[i].name;
+            if (name.find(searchFor) != std::string::npos) {
+                std::cout << "Found " << name << std::endl;
+                std::cout << "  Age                            " << db[i].age << std::endl;
+                std::cout << "  Class                          " << db[i].pclass << std::endl;
+                std::cout << "  # of siblings / spouses aboard " << db[i].sibsp << std::endl;
+                std::cout << "  # of parents / children aboard " << db[i].parch << std::endl;
+                std::cout << "  Ticket Fare "                    << db[i].fare << std::endl;
+                std::cout << "  Survived: " << 
+                    std::string(db[i].survived ? "Yes":"No") << std::endl;
+
+                neural_net_t::rvector_t input{ db[i].getInputVector() };
+                neural_net_t::rvector_t output{ db[i].getOutputVector() };
+
+                nn.set_inputs(input);
+                nn.feed_forward();
+                nn.get_outputs(output);
+
+                std::cout 
+                    << "  Survived prediction: " << output[0] * 100 << "%" 
+                    << std::endl << std::endl;
+            }
+            ++i;
+        }
+    }
+    while (1);
+
+    return 0;
 }
 
 
@@ -226,7 +255,7 @@ int main(int argc, char* argv[])
 enum { Male = 0, Female = 1 };
 
 /* -------------------------------------------------------------------------- */
-// pclass,name,sex,age,sibsp,parch,fare,survived
+// pclass,name,gender,age,sibsp,parch,fare,survived
 const Passenger titanicDB[] = {
    { 1, "Crosby, Capt. Edward Gifford",Male,70,1,1,71.0000,0},
    { 2, "Mitchell, Mr. Henry Michael",Male,70,0,0,10.5000,0},
