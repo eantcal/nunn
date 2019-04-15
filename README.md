@@ -34,7 +34,7 @@ by using nunn library.
 nunn status files (.net) have been created by mnist_test application
 
 ### [![Click here for watching the video](https://youtu.be/ereeEG_1lmY)](https://youtu.be/ereeEG_1lmY)
-![ocr_test](https://37bdcab3-a-62cb3a1a-s-sites.googlegroups.com/site/nunnlibrary/samples/ocr_test2..jpg)
+![ocr_test](https://lh4.googleusercontent.com/sK5Zqt5VPr3I3Nx1k4RbfgO8QVYIRi1s2LP3kcfBRGcQgGWKH7Kjqeh_39WRtA4QaALrvDpHQVA7UZPA7bjJ59VzNH9pjbHHBMafl0qqQahC4Mmb4YU=w472)
 
 ## TicTacToe Demo (tictactoe)
 Basic Tic Tac Toe game which uses neural networks. 
@@ -44,7 +44,7 @@ Winttt is an interactive Tic Tac Toe version for Windows which may be dynamicall
 trained or may use trained neural networks, including those nets created by
 using tictactoe program.
 
-![tictactoe](https://37bdcab3-a-62cb3a1a-s-sites.googlegroups.com/site/nunnlibrary/samples/winttt2.jpg)
+![tictactoe](https://lh4.googleusercontent.com/pAT_v84zP1-ULJg98Vc0JtCrQOZ0EsoaqIZWxbisRD-dBHxpYeybXeAc1YcJhslBuzZFTfDFQJ13fBWU2H471uSxbWmciCkwLwgPcGQTVM2ft6u_W-0=w371)
 
 
 ## XOR Problem sample (xor_test)
