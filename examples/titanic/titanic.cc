@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
     neural_net_t::topology_t topology = {
         6,  // number of inputs
 
-        6,
+        6,  // hidden layer
 
         1   // output
     };
@@ -160,8 +160,8 @@ int main(int argc, char* argv[])
     // Construct the network using topology, learning rate and momentum
     neural_net_t nn{
         topology,
-        0.1,      // learning rate
-        0         // momentum
+        0.10,    // learning rate
+        0        // momentum
     };
 
     std::cout << "Non trained network test" << std::endl;
@@ -176,15 +176,16 @@ int main(int argc, char* argv[])
         << std::endl;
 
     // Called to print out training progress
-    auto progress_cbk = [EPOCHS, &trainingSet](neural_net_t& nn,
+    auto progress_cbk = [&trainingSet](neural_net_t& nn,
         const nu::vector_t<double>& i,
         const nu::vector_t<double>& t,
         size_t epoch, size_t sample, double err) 
     {
-        if (sample == trainingSet.size() - 1 && epoch % 1000 == 0) {
-            std::clog << "Epoch: "
-                << epoch
-                << " Err= " << err << std::endl;
+        if (sample == trainingSet.size() - 1 && epoch % 100 == 0) {
+            std::clog << ".";
+            //std::clog << "Epoch: "
+            //    << epoch
+            //    << " Err= " << err << std::endl;
         }
 
         return false;
@@ -208,40 +209,67 @@ int main(int argc, char* argv[])
 
     do {
         std::string searchFor;
-        std::cout << "Search for name: ";
+        std::cout << "Search for name (or new for a new unknown prediction, quit -> for exiting): ";
         std::getline( std::cin, searchFor );
-        std::cout << "--------------------";
+        std::cout << "--------------------" << std::endl;
 
-        if (searchFor.empty()) {
-            break;
+        if (searchFor == "quit") {
+            return 0;
         }
 
-        size_t i = 0;
-        auto * db = & titanicDB[0];
-        while(db[i].valid()) {
-            const std::string name = db[i].name;
-            if (name.find(searchFor) != std::string::npos) {
-                std::cout << "Found " << name << std::endl;
-                std::cout << "  Age                            " << db[i].age << std::endl;
-                std::cout << "  Class                          " << db[i].pclass << std::endl;
-                std::cout << "  # of siblings / spouses aboard " << db[i].sibsp << std::endl;
-                std::cout << "  # of parents / children aboard " << db[i].parch << std::endl;
-                std::cout << "  Ticket Fare "                    << db[i].fare << std::endl;
-                std::cout << "  Survived: " << 
-                    std::string(db[i].survived ? "Yes":"No") << std::endl;
+        if (searchFor == "new") {
+            Passenger p; 
+            std::cout << "Your age        : "; std::cin >> p.age;
+            std::cout << "Class           : "; std::cin >> p.pclass;
+            std::cout << "Gender 0-M 1-F  : "; std::cin >> p.gender;
+            std::cout << "Sblings/Spouse  : "; std::cin >> p.sibsp;
+            std::cout << "Parents/Children: "; std::cin >> p.parch;
 
-                neural_net_t::rvector_t input{ db[i].getInputVector() };
-                neural_net_t::rvector_t output{ db[i].getOutputVector() };
+            p.fare = p.pclass == 1 ? 150 : (p.pclass==2 ? 30 : 10);
+            
+            neural_net_t::rvector_t input{ p.getInputVector() };
+            neural_net_t::rvector_t output{ 0 };
 
-                nn.set_inputs(input);
-                nn.feed_forward();
-                nn.get_outputs(output);
+            nn.set_inputs(input);
+            nn.feed_forward();
+            nn.get_outputs(output);
 
-                std::cout 
-                    << "  Survived prediction: " << output[0] * 100 << "%" 
-                    << std::endl << std::endl;
+            std::cout 
+                << "Surviving chance      : " << output[0] * 100 << "%" 
+                << std::endl << std::endl;
+
+            std::cin.clear();
+            std::fflush(stdin);
+            std::getline( std::cin, searchFor );
+        }
+        else {
+            size_t i = 0;
+            auto * db = & titanicDB[0];
+            while(db[i].valid()) {
+                const std::string name = db[i].name;
+                if (name.find(searchFor) != std::string::npos) {
+                    std::cout << "Found " << name << std::endl;
+                    std::cout << "  Age                            " << db[i].age << std::endl;
+                    std::cout << "  Class                          " << db[i].pclass << std::endl;
+                    std::cout << "  # of siblings / spouses aboard " << db[i].sibsp << std::endl;
+                    std::cout << "  # of parents / children aboard " << db[i].parch << std::endl;
+                    std::cout << "  Ticket Fare                    " << db[i].fare << std::endl;
+                    std::cout << "  Survived:                      " << 
+                        std::string(db[i].survived ? "Yes":"No") << std::endl;
+
+                    neural_net_t::rvector_t input{ db[i].getInputVector() };
+                    neural_net_t::rvector_t output{ 0 };
+
+                    nn.set_inputs(input);
+                    nn.feed_forward();
+                    nn.get_outputs(output);
+
+                    std::cout 
+                        << "  Survived prediction:           " << output[0] * 100 << "%" 
+                        << std::endl << std::endl;
+                }
+                ++i;
             }
-            ++i;
         }
     }
     while (1);
