@@ -133,7 +133,7 @@ static void test(const TestSet& testSet, neural_net_t& nn) {
     }
 
     std::cout
-        << "Test (err/samples):" << errCnt << "/" << sampleCnt << " Success Rate (%):" 
+        << "Test result: (err/samples)=" << errCnt << "/" << sampleCnt << " Success Rate (%)=" 
         << (1.0-double(errCnt) / double(sampleCnt)) * 100.0
         << std::endl;
 }
@@ -164,54 +164,46 @@ int main(int argc, char* argv[])
         0        // momentum
     };
 
-    std::cout << "Non trained network test" << std::endl;
+    std::cout << "Untrained neural network ";
     test(testSet, nn);
 
-    const size_t EPOCHS = 5000;
-    trainer_t trainer(nn, EPOCHS);
+    trainer_t trainer(nn, 5000);
 
     std::cout 
         << std::endl
-        << "Training Start ( Max epochs =" << trainer.get_epochs() << " )"
+        << "Training Start ( Epochs =" << trainer.get_epochs() << " )"
         << std::endl;
-
-    // Called to print out training progress
-    auto progress_cbk = [&trainingSet](neural_net_t& nn,
-        const nu::vector_t<double>& i,
-        const nu::vector_t<double>& t,
-        size_t epoch, size_t sample, double err) 
-    {
-        if (sample == trainingSet.size() - 1 && epoch % 100 == 0) {
-            std::clog << ".";
-            //std::clog << "Epoch: "
-            //    << epoch
-            //    << " Err= " << err << std::endl;
-        }
-
-        return false;
-    };
-
-    auto err_cost_f = [](neural_net_t& net, const neural_net_t::rvector_t& target) {
-        return net.mean_squared_error(target);
-    };
 
     // Train the net
     trainer.run_training<DataSet>(
         trainingSet, 
-        err_cost_f, 
-        progress_cbk);
 
-    std::cout 
-        << std::endl
-        << "Trained network test" << std::endl;
+        // Error cost function
+        [](neural_net_t& net, const neural_net_t::rvector_t& target) {
+            return net.mean_squared_error(target); 
+        },
 
+        // Progress callback
+        [&trainingSet](neural_net_t& nn,
+            const nu::vector_t<double>& i,
+            const nu::vector_t<double>& t,
+            size_t epoch, size_t sample, double err) 
+        {
+            if (sample == trainingSet.size() - 1 && epoch % 1000 == 0)
+                std::clog << ".";
+            return false;
+        }
+    );
+
+    std::cout << std::endl << "Trained neural network   ";
     test(testSet, nn);
+    std::cout << "----------------------------------------" << std::endl;
 
     do {
         std::string searchFor;
         std::cout << "Search for name (or new for a new unknown prediction, quit -> for exiting): ";
         std::getline( std::cin, searchFor );
-        std::cout << "--------------------" << std::endl;
+        std::cout << "----------------------------------------" << std::endl;
 
         if (searchFor == "quit") {
             return 0;
@@ -220,10 +212,20 @@ int main(int argc, char* argv[])
         if (searchFor == "new") {
             Passenger p; 
             std::cout << "Your age        : "; std::cin >> p.age;
-            std::cout << "Class           : "; std::cin >> p.pclass;
-            std::cout << "Gender 0-M 1-F  : "; std::cin >> p.gender;
+            if (p.age < 0) p.age = 0;
+            if (p.age > 80) p.age = 80;
+            do {
+                std::cout << "Class 1,2,3     : "; std::cin >> p.pclass;
+            } while (! (p.pclass==1 || p.pclass==2 || p.pclass==3));
+            do {
+                std::cout << "Gender 0-M 1-F  : "; std::cin >> p.gender;
+            } while (! (p.gender == 0 || p.gender == 1));
             std::cout << "Sblings/Spouse  : "; std::cin >> p.sibsp;
+            if (p.sibsp < 0) p.sibsp = 0;
+            if (p.sibsp > 10) p.sibsp = 10;
             std::cout << "Parents/Children: "; std::cin >> p.parch;
+            if (p.parch < 0) p.parch = 0;
+            if (p.parch > 10) p.parch = 10;
 
             p.fare = p.pclass == 1 ? 150 : (p.pclass==2 ? 30 : 10);
             
@@ -235,7 +237,7 @@ int main(int argc, char* argv[])
             nn.get_outputs(output);
 
             std::cout 
-                << "Surviving chance      : " << output[0] * 100 << "%" 
+                << "Surviving chance: " << output[0] * 100 << "%" 
                 << std::endl << std::endl;
 
             std::cin.clear();
