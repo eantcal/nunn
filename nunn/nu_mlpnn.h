@@ -168,7 +168,7 @@ class mlp_nn_trainer_t
 {
   public:
     mlp_nn_trainer_t(mlp_neural_net_t& nn, size_t epochs,
-                     double min_err) noexcept
+                     double min_err = -1) noexcept
       : nn_trainer_t<mlp_neural_net_t, mlp_neural_net_t::rvector_t,
                      mlp_neural_net_t::rvector_t>(nn, epochs, min_err)
     {

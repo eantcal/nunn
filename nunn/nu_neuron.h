@@ -69,8 +69,7 @@ struct neuron_t
     }
 
     //! Resize both the weights and delta_weights vectors
-    void resize(size_t size) noexcept
-    {
+    void resize(size_t size) noexcept {
         weights.resize(size);
         delta_weights.resize(size);
     }

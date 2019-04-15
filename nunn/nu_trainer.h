@@ -36,7 +36,8 @@ class nn_trainer_t
     using cost_func_t = std::function<cost_fptr_t>;
 
     //! Progress call back function pointer
-    using progress_fptr_t = void(Net&, const Input&, const Target&,
+    //! It can break training session returning true
+    using progress_fptr_t = bool(Net&, const Input&, const Target&,
                                  size_t /*epoch*/, size_t /* sample_idx */,
                                  double /* err */);
 
@@ -72,8 +73,7 @@ class nn_trainer_t
         }
 
         //! Move assignment operator
-        iterator& operator=(iterator&& it) noexcept
-        {
+        iterator& operator=(iterator&& it) noexcept {
             if (&it != this) {
                 _trainer = std::move(it._trainer);
                 _epoch = std::move(it._epoch);
@@ -83,56 +83,62 @@ class nn_trainer_t
         }
 
         //! Return epoch number
-        size_t get_epoch() const noexcept { return _epoch; }
+        size_t get_epoch() const noexcept { 
+            return _epoch; 
+        }
 
         //! Pointer Dereference operator
-        type_t& operator*() const noexcept { return *_trainer; }
+        type_t& operator*() const noexcept { 
+            return *_trainer; 
+        }
 
         //! Arrow operator
-        type_t* operator->() const noexcept { return _trainer; }
+        type_t* operator->() const noexcept { 
+            return _trainer; 
+        }
 
         //! Increment operator
-        iterator operator++() noexcept
-        {
+        iterator operator++() noexcept {
             ++_epoch;
             return *this;
         }
 
         //! Post increment operator
-        iterator operator++(int)noexcept // post
-        {
+        iterator operator++(int)noexcept {
             iterator ret = *this;
             ++_epoch;
             return ret;
         }
 
         //! Equal-To operator
-        bool operator==(iterator& other) const noexcept
-        {
+        bool operator==(iterator& other) const noexcept {
             return (_trainer == other._trainer && _epoch == other._epoch);
         }
 
         //! Not-Equal-To operator
-        bool operator!=(iterator& other) const noexcept
-        {
+        bool operator!=(iterator& other) const noexcept {
             return !this->operator==(other);
         }
     };
 
 
     //! Return an iterator to the first epoch
-    iterator begin() noexcept { return iterator(*this, 0); }
+    iterator begin() noexcept { 
+        return iterator(*this, 0); 
+    }
 
 
     //! Return an iterator to the last epoch
-    iterator end() noexcept { return iterator(*this, this->_epochs + 1); }
+    iterator end() noexcept { 
+        return iterator(*this, this->_epochs + 1); 
+    }
 
 
     //! Constructor
     //! @nn:      the network to train
     //! @epochs:  max epoch count at which to stop training
     //! @min_err: min error value at which to stop training
-    nn_trainer_t(Net& nn, size_t epochs, double min_err) noexcept
+    nn_trainer_t(Net& nn, size_t epochs, double min_err = -1.0) noexcept
       : _nn(nn),
         _epochs(epochs),
         _min_err(min_err),
@@ -142,20 +148,27 @@ class nn_trainer_t
 
 
     //! Return the max number of epochs
-    size_t get_epochs() const noexcept { return _epochs; }
+    size_t get_epochs() const noexcept { 
+        return _epochs; 
+    }
 
 
-    //! Return the min error value at which to stop training
-    double get_min_err() const noexcept { return _min_err; }
+    //! Return the expected min error value at which to stop training 
+    //! on sample basis.
+    //! If negative it will be ignored
+    double get_min_err() const noexcept { 
+        return _min_err; 
+    }
 
 
     //! Return current epoch error
-    double get_error() const noexcept { return _err; }
+    double get_error() const noexcept { 
+        return _err; 
+    }
 
 
     //! Trains the net using a single sample
-    bool train(const Input& input, const Target& target, cost_func_t err_cost_f)
-    {
+    bool train(const Input& input, const Target& target, cost_func_t err_cost_f) {
         _nn.set_inputs(input);
         _nn.back_propagate(target);
 
@@ -169,19 +182,25 @@ class nn_trainer_t
     //! Trains the net using a training set of samples
     template <class TSet>
     size_t run_training(const TSet& training_set, cost_func_t err_cost_f,
-                        progress_cbk_t progress_cbk = nullptr)
+                        progress_cbk_t progress_cbk = nullptr,
+                        double p2use = 1.0)
     {
         size_t epoch = 0;
+        size_t end_idx = size_t(double(training_set.size()) * p2use);
+        bool continue_flag = true;
 
-        for (; epoch < _epochs; ++epoch) {
+        for (; continue_flag && epoch < _epochs; ++epoch) {
             size_t sample_idx = 0;
 
             for (const auto& sample : training_set) {
                 if (progress_cbk)
-                    progress_cbk(_nn, sample.first, sample.second, epoch,
-                                 sample_idx++, _err);
+                    continue_flag = !progress_cbk(
+                        _nn, sample.first, sample.second, epoch, sample_idx++, _err);
 
                 if (train(sample.first, sample.second, err_cost_f) == true)
+                    return epoch;
+
+                if (!continue_flag || (p2use < 1.0 && sample_idx >= end_idx)) 
                     return epoch;
             }
         }

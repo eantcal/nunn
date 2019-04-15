@@ -99,6 +99,8 @@ int main(int argc, char* argv[])
                 std::cout << "Epoch completed "
                           << (double(epoch) / double(EPOCHS)) * 100.0
                           << "% Err=" << err * 100.0 << "%" << std::endl;
+
+            return false;
         };
 
 

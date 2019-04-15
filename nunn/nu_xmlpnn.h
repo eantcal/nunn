@@ -201,7 +201,9 @@ class xmlp_neural_net_t
 
 
     //! Get the net inputs
-    const rvector_t& get_inputs() const noexcept { return _inputs; }
+    const rvector_t& get_inputs() const noexcept { 
+        return _inputs; 
+    }
 
 
     //! Get the net outputs

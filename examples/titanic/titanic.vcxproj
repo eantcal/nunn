@@ -35,7 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A88C4575-D641-4089-BD1C-E9CE99443755}</ProjectGuid>
+    <ProjectGuid>{18C12198-776A-42FE-B3C2-AFA46BC519DC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>titanic</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>

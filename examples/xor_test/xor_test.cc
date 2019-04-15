@@ -80,6 +80,7 @@ int main(int argc, char* argv[])
 
         using training_set_t =
           std::map<std::vector<double>, std::vector<double>>;
+
         training_set_t traing_set = { { { 0, 0 }, { 0 } },
                                       { { 0, 1 }, { 1 } },
                                       { { 1, 0 }, { 1 } },
@@ -112,6 +113,8 @@ int main(int argc, char* argv[])
                 std::cout << "Epoch completed "
                           << (double(epoch) / double(EPOCHS)) * 100.0
                           << "% Err=" << err * 100.0 << "%" << std::endl;
+
+            return false;
         };
 
 
