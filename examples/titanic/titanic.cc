@@ -115,9 +115,11 @@ void Passenger :: populateDataSet(
 
     auto reshuffle = [&usedIndex, dataSetSize]() {
         size_t rndIndex = 0;
+
         do {
             rndIndex = rand() % dataSetSize;
         } while (usedIndex.find(rndIndex) != usedIndex.end());
+
         usedIndex.insert(rndIndex);
         return rndIndex;
     };
@@ -132,12 +134,12 @@ void Passenger :: populateDataSet(
     // or not they survived the sinking of the Titanic.
 
     for (size_t i = 0; i < trainingSetSize; ++i) {
-        size_t rndIndex = reshuffle();
+        const size_t rndIndex = reshuffle();
         trainingSet[db[rndIndex].getInputVector()] = db[rndIndex].getOutputVector();
     }
 
     for (size_t i = trainingSetSize; i < dataSetSize; ++i) {
-        size_t rndIndex = reshuffle();
+        const size_t rndIndex = reshuffle();
         testSet[db[rndIndex].getInputVector()] = db[rndIndex].getOutputVector();
     }
 }
@@ -151,6 +153,7 @@ void test(const TestSet& testSet, NN& nn) {
     NN::rvector_t input{ 0 };
     size_t sampleCnt = 0;
     size_t errCnt = 0;
+
     for (const auto & sample : testSet) {
         input = sample.first;
         nn.set_inputs(input);
@@ -160,9 +163,8 @@ void test(const TestSet& testSet, NN& nn) {
         output[0] = output[0] >= 0.5 ? 1.0 : 0.0;
 
         ++sampleCnt;
-        if (sample.second[0] != output[0]) {
+        if (sample.second[0] != output[0])
             ++errCnt;
-        }
     }
 
     std::cout
@@ -174,11 +176,33 @@ void test(const TestSet& testSet, NN& nn) {
 
 /* -------------------------------------------------------------------------- */
 
+static void printDivider() {
+    for (size_t i=0; i<80; ++i)
+        std::cout << "-";
+    std::cout << std::endl;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 // Working in progress...
 int main(int argc, char* argv[])
 {
-    // -----------------------------------------------------------------------
-    // Create the training set
+    printDivider();
+
+    std::cout 
+        << " RMS Titanic was a British passenger liner that sank in the North Atlantic " << std::endl 
+        << " Ocean On April 15, 1912, during her maiden voyage, " << std::endl 
+        << " after colliding with an iceberg, killing 1502 out of 2224 passengers and crew." << std::endl
+        << " We created a database of 1046 passengers classified using “features” like" << std::endl
+        << " gender, age, ticket class, fare, etc, plus a survival status and divieded" << std::endl 
+        << " such database in two groups using a pseudo random algorithm:" << std::endl
+        << " - 946 passengers in a training set, used for training a Neural Network" << std::endl
+        << " - 100 passengers in a test set used on the trained NN to measure accurency of NN" << std::endl;
+
+    printDivider();
+
+    // Create training set and test set
     TrainingSet trainingSet;
     TestSet testSet;
     Passenger::populateDataSet(titanicDB, trainingSet, testSet, 0.905);
@@ -192,62 +216,63 @@ int main(int argc, char* argv[])
     // Construct the network using topology, learning rate and momentum
     NN nn{
         topology,
-            0.10,    // learning rate
-            0        // momentum
+        0.10,    // learning rate
+        0        // momentum
     };
 
-    std::cout << "Untrained neural network ";
+    printDivider();
+    std::cout << "UNTRAINED neural network ";
     test(testSet, nn);
+    printDivider();
 
     trainer_t trainer(nn, 5000);
 
-    std::cout 
-        << std::endl
-        << "Training Start ( Epochs =" << trainer.get_epochs() << " )"
-        << std::endl;
+    std::clog 
+        << "Training the NN ( Epochs =" << trainer.get_epochs() << " )";
 
     // Train the net
     trainer.run_training<DataSet>(
-            trainingSet, 
+        trainingSet, 
 
-            // Error cost function
-            [](NN& net, const NN::rvector_t& target) {
+        // Error cost function
+        [](NN& net, const NN::rvector_t& target) {
             return net.mean_squared_error(target); 
-            },
+        },
 
-            // Progress callback
-            [&trainingSet](NN& nn,
-                const nu::vector_t<double>& i,
-                const nu::vector_t<double>& t,
-                size_t epoch, size_t sample, double err) 
-            {
+        // Progress callback
+        [&trainingSet](NN& nn,
+            const nu::vector_t<double>& i,
+            const nu::vector_t<double>& t,
+            size_t epoch, size_t sample, double err) 
+        {
             if (sample == trainingSet.size() - 1 && epoch % 1000 == 0)
             std::clog << ".";
             return false;
-            }
-            );
+        }
+    );
 
-    std::cout << std::endl << "Trained neural network   ";
+    std::cout << " Done." << std::endl;
+
+    printDivider();
+    std::cout << "Trained neural network   ";
     test(testSet, nn);
-    std::cout << "----------------------------------------" << std::endl;
+    printDivider();
 
     do {
         std::string searchFor;
         std::cout << "Search for name (or new for a new unknown prediction, quit -> for exiting): ";
         std::getline( std::cin, searchFor );
-        std::cout << "----------------------------------------" << std::endl;
+        printDivider();
 
-        if (searchFor == "quit") {
+        if (searchFor == "quit")
             return 0;
-        }
 
         if (searchFor == "new") {
             Passenger p;
             p.processNew(nn);
         }
-        else {
+        else
             Passenger::find( titanicDB, searchFor, nn );
-        }
     }
     while (1);
 
