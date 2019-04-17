@@ -27,24 +27,53 @@ using DataSet = std::map<std::vector<double>, std::vector<double>>;
 
 using TrainingSet = DataSet;
 using TestSet = DataSet;
+using NN = nu::mlp_neural_net_t;
+using trainer_t = nu::mlp_nn_trainer_t;
+
 
 
 /* -------------------------------------------------------------------------- */
 
 struct Passenger {
+    // pclass: Ticket class
+    // 1 == 1st - Upper
+    // 2 == 2nd - Middle
+    // 3 == 3rd - Lower
     double pclass = 0;
+
+    // Passenger name
     const char * name = nullptr;
+
+    // gender: Male = 0, Female = 1
     double gender = 0;
+    
+    // age: Age is fractional if less than 1. 
+    // If the age is estimated, is it in the form of xx.5
     double age = 0;
+
+    // sibsp: The dataset defines family relations in this way...
+    // Sibling = brother, sister, stepbrother, stepsister
+    // Spouse = husband, wife (mistresses and fiancés were ignored)
     double sibsp = 0;
+
+    // parch: The dataset defines family relations in this way...
+    // Parent = mother, father
+    // Child = daughter, son, stepdaughter, stepson
+    // Some children travelled only with a nanny, therefore parch=0 for them.
     double parch = 0;
+
+    // Ticket cost
     double fare = 0;
+
+    // 0 = No, 1 = Yes
     double survived = 0;
 
+    // Return true if the Passenger data is valid
     bool valid() const noexcept {
         return pclass > 0;
     }
 
+    // Get normalized input vector for current Passenger
     std::vector<double> getInputVector() const {
         return {
             (pclass - 1) / 2.0, // 1->0, 2->0.5, 3->1
@@ -55,14 +84,97 @@ struct Passenger {
             fare / 512.3292 };
     }
 
+    // Get normalized output vector for current Passenger
     std::vector<double> getOutputVector() const {
         return { survived };
     }
 
+    void processNew(NN& nn) {
+        std::cout << "Your age        : "; 
+        std::cin >> age;
+
+        if (age < 0) age = 0;
+        if (age > 80) age = 80;
+
+        do {
+            std::cout << "Class 1,2,3     : "; 
+            std::cin >> pclass;
+        } while (! (pclass==1 || pclass==2 || pclass==3));
+
+        do {
+            std::cout << "Gender 0-M 1-F  : "; 
+            std::cin >> gender;
+        } while (! (gender == 0 || gender == 1));
+
+        std::cout << "Sblings/Spouse  : "; 
+        std::cin >> sibsp;
+
+        if (sibsp < 0) sibsp = 0;
+        if (sibsp > 10) sibsp = 10;
+
+        std::cout << "Parents/Children: "; 
+        std::cin >> parch;
+
+        if (parch < 0) parch = 0;
+        if (parch > 10) parch = 10;
+
+        fare = pclass == 1 ? 150 : (pclass==2 ? 30 : 10);
+
+        NN::rvector_t input{ getInputVector() };
+        NN::rvector_t output{ 0 };
+
+        nn.set_inputs(input);
+        nn.feed_forward();
+        nn.get_outputs(output);
+
+        std::cout 
+            << "Surviving chance: " << output[0] * 100 << "%" 
+            << std::endl << std::endl;
+
+        std::cin.clear();
+        std::fflush(stdin);
+
+        std::string tmp;
+        std::getline( std::cin, tmp );
+    }
+
+    static void find(const Passenger* db, const std::string& searchFor, NN & nn) {
+        size_t i = 0;
+
+        while(db[i].valid()) {
+            const std::string name = db[i].name;
+
+            if (name.find(searchFor) != std::string::npos) {
+                std::cout << "  " << name << std::endl;
+                std::cout << "  Age                            " << db[i].age << std::endl;
+                std::cout << "  Class                          " << db[i].pclass << std::endl;
+                std::cout << "  # of siblings / spouses aboard " << db[i].sibsp << std::endl;
+                std::cout << "  # of parents / children aboard " << db[i].parch << std::endl;
+                std::cout << "  Ticket Fare                    " << db[i].fare << std::endl;
+                std::cout << "  Survived:                      " << 
+                    std::string(db[i].survived ? "Yes":"No") << std::endl;
+
+                NN::rvector_t input{ db[i].getInputVector() };
+                NN::rvector_t output{ 0 };
+
+                nn.set_inputs(input);
+                nn.feed_forward();
+                nn.get_outputs(output);
+
+                std::cout 
+                    << "  Survived prediction:           " << output[0] * 100 << "%" 
+                    << std::endl << std::endl;
+            }
+            ++i;
+        }
+    }
+
+    // Function which can be used to genrate training and test sets
+    // from Passenger database
     static void populateDataSet(
         const Passenger * db, 
         TrainingSet & trainingSet,
-        TrainingSet & testSet,
+        TestSet & testSet,
         double trainingSetRate) 
     {
         const size_t dataSetSize = [db] { size_t i = 0;  while(db[i++].valid()){} return i; }();
@@ -104,18 +216,16 @@ struct Passenger {
 
 /* -------------------------------------------------------------------------- */
 
+// Reference to the prepopulated Titanic Database
 extern const Passenger titanicDB[];
 
 
 /* -------------------------------------------------------------------------- */
 
-using neural_net_t = nu::mlp_neural_net_t;
-using trainer_t = nu::mlp_nn_trainer_t;
-
-
-static void test(const TestSet& testSet, neural_net_t& nn) {
-    neural_net_t::rvector_t output{ 0 };
-    neural_net_t::rvector_t input{ 0 };
+// Test a NN against a given test set
+static void test(const TestSet& testSet, NN& nn) {
+    NN::rvector_t output{ 0 };
+    NN::rvector_t input{ 0 };
     size_t sampleCnt = 0;
     size_t errCnt = 0;
     for (const auto & sample : testSet) {
@@ -138,6 +248,7 @@ static void test(const TestSet& testSet, neural_net_t& nn) {
         << std::endl;
 }
 
+
 /* -------------------------------------------------------------------------- */
 
 // Working in progress...
@@ -149,16 +260,14 @@ int main(int argc, char* argv[])
     TestSet testSet;
     Passenger::populateDataSet(titanicDB, trainingSet, testSet, 0.905);
 
-    neural_net_t::topology_t topology = {
+    NN::topology_t topology = {
         6,  // number of inputs
-
         6,  // hidden layer
-
         1   // output
     };
 
     // Construct the network using topology, learning rate and momentum
-    neural_net_t nn{
+    NN nn{
         topology,
         0.10,    // learning rate
         0        // momentum
@@ -179,12 +288,12 @@ int main(int argc, char* argv[])
         trainingSet, 
 
         // Error cost function
-        [](neural_net_t& net, const neural_net_t::rvector_t& target) {
+        [](NN& net, const NN::rvector_t& target) {
             return net.mean_squared_error(target); 
         },
 
         // Progress callback
-        [&trainingSet](neural_net_t& nn,
+        [&trainingSet](NN& nn,
             const nu::vector_t<double>& i,
             const nu::vector_t<double>& t,
             size_t epoch, size_t sample, double err) 
@@ -210,68 +319,11 @@ int main(int argc, char* argv[])
         }
 
         if (searchFor == "new") {
-            Passenger p; 
-            std::cout << "Your age        : "; std::cin >> p.age;
-            if (p.age < 0) p.age = 0;
-            if (p.age > 80) p.age = 80;
-            do {
-                std::cout << "Class 1,2,3     : "; std::cin >> p.pclass;
-            } while (! (p.pclass==1 || p.pclass==2 || p.pclass==3));
-            do {
-                std::cout << "Gender 0-M 1-F  : "; std::cin >> p.gender;
-            } while (! (p.gender == 0 || p.gender == 1));
-            std::cout << "Sblings/Spouse  : "; std::cin >> p.sibsp;
-            if (p.sibsp < 0) p.sibsp = 0;
-            if (p.sibsp > 10) p.sibsp = 10;
-            std::cout << "Parents/Children: "; std::cin >> p.parch;
-            if (p.parch < 0) p.parch = 0;
-            if (p.parch > 10) p.parch = 10;
-
-            p.fare = p.pclass == 1 ? 150 : (p.pclass==2 ? 30 : 10);
-            
-            neural_net_t::rvector_t input{ p.getInputVector() };
-            neural_net_t::rvector_t output{ 0 };
-
-            nn.set_inputs(input);
-            nn.feed_forward();
-            nn.get_outputs(output);
-
-            std::cout 
-                << "Surviving chance: " << output[0] * 100 << "%" 
-                << std::endl << std::endl;
-
-            std::cin.clear();
-            std::fflush(stdin);
-            std::getline( std::cin, searchFor );
+            Passenger p;
+            p.processNew(nn);
         }
         else {
-            size_t i = 0;
-            auto * db = & titanicDB[0];
-            while(db[i].valid()) {
-                const std::string name = db[i].name;
-                if (name.find(searchFor) != std::string::npos) {
-                    std::cout << "Found " << name << std::endl;
-                    std::cout << "  Age                            " << db[i].age << std::endl;
-                    std::cout << "  Class                          " << db[i].pclass << std::endl;
-                    std::cout << "  # of siblings / spouses aboard " << db[i].sibsp << std::endl;
-                    std::cout << "  # of parents / children aboard " << db[i].parch << std::endl;
-                    std::cout << "  Ticket Fare                    " << db[i].fare << std::endl;
-                    std::cout << "  Survived:                      " << 
-                        std::string(db[i].survived ? "Yes":"No") << std::endl;
-
-                    neural_net_t::rvector_t input{ db[i].getInputVector() };
-                    neural_net_t::rvector_t output{ 0 };
-
-                    nn.set_inputs(input);
-                    nn.feed_forward();
-                    nn.get_outputs(output);
-
-                    std::cout 
-                        << "  Survived prediction:           " << output[0] * 100 << "%" 
-                        << std::endl << std::endl;
-                }
-                ++i;
-            }
+            Passenger::find( titanicDB, searchFor, nn );
         }
     }
     while (1);
@@ -282,10 +334,9 @@ int main(int argc, char* argv[])
 
 /* -------------------------------------------------------------------------- */
 
-enum { Male = 0, Female = 1 };
-
-/* -------------------------------------------------------------------------- */
 // pclass,name,gender,age,sibsp,parch,fare,survived
+// Dataset imported from http://biostat.mc.vanderbilt.edu/wiki/pub/Main/DataSets/titanic3.xls
+enum { Male = 0, Female = 1 };
 const Passenger titanicDB[] = {
    { 1, "Crosby, Capt. Edward Gifford",Male,70,1,1,71.0000,0},
    { 2, "Mitchell, Mr. Henry Michael",Male,70,0,0,10.5000,0},
