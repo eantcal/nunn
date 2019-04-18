@@ -361,4 +361,9 @@ This test shows an use-case of hopfield net used as auto-associative memory
 In this example we recognize 100-pixel picture with the 100-neuron neural 
 network.
 
-![hopfield test](https://37bdcab3-a-62cb3a1a-s-sites.googlegroups.com/site/nunnlibrary/samples/hopfield.jpg)
+![hopfield test](examples/images/hopfield.jpg)
+
+# Reinforcement learning
+This library provides algorithms for supporting the ![reinforcement learning](https://en.wikipedia.org/wiki/Reinforcement_learning) in particular ![Q-learning](https://en.wikipedia.org/wiki/Q-learning) and ![State–action–reward–state–action](https://en.wikipedia.org/wiki/State%E2%80%93action%E2%80%93reward%E2%80%93state%E2%80%93action)
+
+See the ![maze](examples/maze/maze.cc) example. 
