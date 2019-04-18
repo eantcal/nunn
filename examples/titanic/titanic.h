@@ -71,28 +71,35 @@ struct Passenger {
         return pclass > 0;
     }
 
-    // Get normalized input vector for current Passenger
+    // Get normalized input vector for current Passenger data
+    // The input vector is of 6 double precision numbers 
+    // Each of them in the range form 0 to 1.0
     std::vector<double> getInputVector() const {
         return {
-            (pclass - 1) / 2.0, // 1->0, 2->0.5, 3->1
-            gender,
-            age / 80.0,
-            sibsp / 10.0,
-            parch / 10.0,
-            fare / 512.3292 };
+            (pclass - 1) / 2.0, // 1st->0, 2nd->0.5, 3rd->1
+            gender,             // 0 or 1
+            age / 80.0,         // 80 age of older person in the DB
+            sibsp / 10.0,       // no more than 10 in the DB
+            parch / 10.0,       // no more than 10 in the DB
+            fare / 512.3292 };  // 512.3292 is hiest fare
     }
 
-    // Get normalized output vector for current Passenger
+    // Get normalized output vector for current Passenger data
+    // Which is represented here as a single double precition number 0 or 1.0
     std::vector<double> getOutputVector() const {
         return { survived };
     }
 
+    // Ask for new input data and display the survival chance given by
+    // the nn neural network prediction
     void processNew(NN& nn);
 
+    // Search by name in the database (db) using a given string (searchFor)
+    // Display any matching Passenger data and related survival chance
+    // computed by a given neural network (nn)
     static void find(const Passenger* db, const std::string& searchFor, NN & nn);
 
-    // Function which can be used to genrate training and test sets
-    // from Passenger database
+    // Genrate training and test data sets from a given Passenger database
     static void populateDataSet(
         const Passenger * db, 
         TrainingSet & trainingSet,
@@ -117,3 +124,4 @@ static void test(const TestSet& testSet, NN& nn);
 /* -------------------------------------------------------------------------- */
 
 #endif // __TITANIC_H__
+

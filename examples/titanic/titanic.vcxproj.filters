@@ -18,5 +18,13 @@
     <ClCompile Include="titanic.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="titanicDB.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="titanic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

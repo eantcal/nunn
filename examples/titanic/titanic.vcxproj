@@ -291,6 +291,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="titanic.cc" />
+    <ClCompile Include="titanicDB.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="titanic.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
