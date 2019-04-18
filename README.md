@@ -364,6 +364,6 @@ network.
 ![hopfield test](examples/images/hopfield.jpg)
 
 # Reinforcement learning
-This library provides algorithms for supporting the ![reinforcement learning](https://en.wikipedia.org/wiki/Reinforcement_learning) in particular ![Q-learning](https://en.wikipedia.org/wiki/Q-learning) and ![State–action–reward–state–action](https://en.wikipedia.org/wiki/State%E2%80%93action%E2%80%93reward%E2%80%93state%E2%80%93action)
+This library provides algorithms for supporting the reinforcement learning (https://en.wikipedia.org/wiki/Reinforcement_learning) in particular Q-learning (https://en.wikipedia.org/wiki/Q-learning) and State–action–reward–state–action  (https://en.wikipedia.org/wiki/State%E2%80%93action%E2%80%93reward%E2%80%93state%E2%80%93action) algorithms
 
-See the ![maze](examples/maze/maze.cc) example. 
+See the maze example (https://github.com/eantcal/nunn/blob/master/examples/maze/maze.cc) 
