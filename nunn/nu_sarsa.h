@@ -28,113 +28,103 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 template<
-    class A,
-    class S,
-    class AG,
-    class P,
-    class T = double,
-    class ARM = std::unordered_map<A, T>,
-    class Q = std::unordered_map<S, ARM>>
-class sarsa_t {
+    class Action,
+    class State,
+    class Agent,
+    class Policy,
+    class ActionRewardMap = std::unordered_map<Action, double>,
+    class QMap = std::unordered_map<State, ActionRewardMap>>
+class Sarsa {
 public:
-    using real_t = double;
-    using action_t = A;
-    using state_t = S;
-    using agent_t = AG;
-    using policy_t = P;
-    using reward_t = real_t;
-    using listener_t = learner_listener_t<real_t>;
+    using reward_t = double;
+    using Listener = LearnerListener;
 
-    using action_reward_t = ARM;
-    using q_map_t = Q;
-
-    sarsa_t(listener_t * listener = nullptr) noexcept 
+    Sarsa(Listener * listener = nullptr) noexcept 
         : _listener(listener) 
     {}
     
-    sarsa_t(const sarsa_t&) = default;
-    sarsa_t& operator=(const sarsa_t&) = default;
+    Sarsa(const Sarsa&) = default;
+    Sarsa& operator=(const Sarsa&) = default;
 
-    real_t get_learning_rate() const noexcept {
-        return _learning_rate;
+    double getLearningRate() const noexcept {
+        return _learningRate;
     }
 
-    real_t get_discount_rate() const noexcept {
-        return _discount_rate;
+    double getDiscountRate() const noexcept {
+        return _discountRate;
     }
 
-    void set_learning_rate(const real_t& lr) const noexcept {
-        _learning_rate = lr;
+    void setLearningRate(const double& lr) const noexcept {
+        _learningRate = lr;
     }
 
-    void set_discount_rate(const real_t& dr) const noexcept {
-        _discount_rate = dr;
+    void setDiscountRate(const double& dr) const noexcept {
+        _discountRate = dr;
     }
 
-    action_t select_action(
-        const agent_t& agent, 
-        const policy_t & policy = policy_t()) 
+    Action selectAction(
+        const Agent& agent, 
+        const Policy & policy = Policy()) 
     {
-        return policy.template get_learned_action<q_map_t>(agent, get_q());
+        return policy.template getLearnedAction<QMap>(agent, getQMap());
     }
 
     // learn episode
-    real_t learn(agent_t& agent, const policy_t & policy=policy_t()) {
+    double learn(Agent& agent, const Policy & policy=Policy()) {
 
-        size_t move_cnt = 0;
+        size_t moveCnt = 0;
 
-        action_t action = 
-            policy.template select_action<q_map_t>(agent, get_q());
+        Action action = 
+            policy.template selectAction<QMap>(agent, getQMap());
         
-        auto state = agent.get_current_state();
+        auto state = agent.getCurrentState();
 
-        real_t reward = 0;
+        double reward = 0;
 
         while (!agent.goal() ) {
-            if (_listener && !_listener->notify(reward, move_cnt++)) {
+            if (_listener && !_listener->notify(reward, moveCnt++)) {
                 break;
             }
 
-            reward += update_q(agent, policy, state, action);
-            ++move_cnt;
+            reward += updateQ(agent, policy, state, action);
+            ++moveCnt;
         }
 
         return reward;
     }
 
-    const q_map_t & get_q() const noexcept {
-        return _q_map;
+    const QMap & getQMap() const noexcept {
+        return _qMap;
     }
     
 protected:
-    q_map_t & get_q() noexcept {
-        return _q_map;
+    QMap & getQMap() noexcept {
+        return _qMap;
     }  
 
-    real_t update_q(
-        agent_t& agent, 
-        const policy_t & policy, 
-        state_t & state,
-        action_t & action) 
+    double updateQ(
+        Agent& agent, 
+        const Policy & policy, 
+        State & state,
+        Action & action) 
     {
-
-        auto & qsa = get_q()[agent.get_current_state()][action];
+        auto & qsa = getQMap()[agent.getCurrentState()][action];
 
         // update agent state
-        agent.do_action(action); 
+        agent.doAction(action); 
 
         // get current agent state
-        const auto & state1 = agent.get_current_state();
+        const auto & state1 = agent.getCurrentState();
 
         // get a reward for current state
         const auto reward = agent.reward(); 
 
         auto action1 = 
-            policy.template select_action<q_map_t>(agent, get_q());
+            policy.template selectAction<QMap>(agent, getQMap());
 
         qsa += 
-            get_learning_rate() * 
-            (reward + get_discount_rate() * get_q()[state1][action1] - qsa);
+            getLearningRate() * 
+            (reward + getDiscountRate() * getQMap()[state1][action1] - qsa);
 
         state = state1;
         action = action1;
@@ -143,13 +133,13 @@ protected:
     }
 
 private:
-    real_t _learning_rate = 0.1;
-    real_t _discount_rate = 0.9;
+    double _learningRate = 0.1;
+    double _discountRate = 0.9;
 
-    q_map_t _q_map;
-    policy_t _policy;
+    QMap _qMap;
+    Policy _policy;
 
-    listener_t * _listener = nullptr;
+    Listener * _listener = nullptr;
 };
 
 

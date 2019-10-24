@@ -45,12 +45,12 @@ void Passenger :: processNew(NN& nn) {
 
     fare = pclass == 1 ? 150 : (pclass==2 ? 30 : 10);
 
-    NN::rvector_t input{ getInputVector() };
-    NN::rvector_t output{ 0 };
+    NN::FpVector input{ getInputVector() };
+    NN::FpVector output{ 0 };
 
-    nn.set_inputs(input);
-    nn.feed_forward();
-    nn.get_outputs(output);
+    nn.setInputVector(input);
+    nn.feedForward();
+    nn.copyOutputVector(output);
 
     std::cout 
         << "Surviving chance: " << output[0] * 100 << "%" 
@@ -82,12 +82,12 @@ void Passenger :: find(const Passenger* db, const std::string& searchFor, NN & n
             std::cout << "  Survived:                      " << 
                 std::string(db[i].survived ? "Yes":"No") << std::endl;
 
-            NN::rvector_t input{ db[i].getInputVector() };
-            NN::rvector_t output{ 0 };
+            NN::FpVector input{ db[i].getInputVector() };
+            NN::FpVector output{ 0 };
 
-            nn.set_inputs(input);
-            nn.feed_forward();
-            nn.get_outputs(output);
+            nn.setInputVector(input);
+            nn.feedForward();
+            nn.copyOutputVector(output);
 
             std::cout 
                 << "  Survived prediction:           " << output[0] * 100 << "%" 
@@ -149,16 +149,16 @@ void Passenger :: populateDataSet(
 // Test a NN against a given test set
 
 void test(const TestSet& testSet, NN& nn) {
-    NN::rvector_t output{ 0 };
-    NN::rvector_t input{ 0 };
+    NN::FpVector output{ 0 };
+    NN::FpVector input{ 0 };
     size_t sampleCnt = 0;
     size_t errCnt = 0;
 
     for (const auto & sample : testSet) {
         input = sample.first;
-        nn.set_inputs(input);
-        nn.feed_forward();
-        nn.get_outputs(output);
+        nn.setInputVector(input);
+        nn.feedForward();
+        nn.copyOutputVector(output);
 
         output[0] = output[0] >= 0.5 ? 1.0 : 0.0;
 
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
     TestSet testSet;
     Passenger::populateDataSet(titanicDB, trainingSet, testSet, 0.905);
 
-    NN::topology_t topology = {
+    NN::Topology topology = {
         6,  // number of inputs
         6,  // hidden layer
         1   // output
@@ -228,21 +228,21 @@ int main(int argc, char* argv[])
     trainer_t trainer(nn, 5000);
 
     std::clog 
-        << "Training the NN ( Epochs =" << trainer.get_epochs() << " )";
+        << "Training the NN ( Epochs =" << trainer.getEpochs() << " )";
 
     // Train the net
-    trainer.run_training<DataSet>(
+    trainer.runTraining<DataSet>(
         trainingSet, 
 
         // Error cost function
-        [](NN& net, const NN::rvector_t& target) {
-            return net.mean_squared_error(target); 
+        [](NN& net, const NN::FpVector& target) {
+            return net.calcMSE(target); 
         },
 
         // Progress callback
         [&trainingSet](NN& nn,
-            const nu::vector_t<double>& i,
-            const nu::vector_t<double>& t,
+            const nu::Vector<double>& i,
+            const nu::Vector<double>& t,
             size_t epoch, size_t sample, double err) 
         {
             if (sample == trainingSet.size() - 1 && epoch % 1000 == 0)

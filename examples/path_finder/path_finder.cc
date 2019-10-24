@@ -65,7 +65,7 @@ int main()
        << std::endl << "Goal is state [" << GoalState << "]" << std::endl;
 
 
-    nu::qlgraph_t ql(
+    nu::QLGraph ql(
         NumberOfStates, 
         GoalState,
 
@@ -100,7 +100,7 @@ int main()
 
         while (!goal) {
 
-            auto next_state = ql.get_next_state_for(current_state);
+            auto next_state = ql.getNextStateFor(current_state);
 
             current_state = next_state;
             goal = current_state == GoalState;

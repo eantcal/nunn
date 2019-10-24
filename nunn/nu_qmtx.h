@@ -26,21 +26,21 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-struct qmtx_t {
+struct QMatrix {
 public:
-    using vect_t = vector_t< double >;
+    using vect_t = Vector< double >;
     using data_t = std::vector< vect_t >;
 
-    enum class exception_t {
+    enum class Exception {
         invalid_index
     };
 
-    qmtx_t(const data_t& m) : _data(m) {}
-    qmtx_t() = delete;
-    qmtx_t(size_t size);
-    qmtx_t(const qmtx_t& other) : _data(other._data) {}
+    QMatrix(const data_t& m) : _data(m) {}
+    QMatrix() = delete;
+    QMatrix(size_t size);
+    QMatrix(const QMatrix& other) : _data(other._data) {}
 
-    qmtx_t& operator=(const qmtx_t& other) {
+    QMatrix& operator=(const QMatrix& other) {
         if (this != &other) {
             _data = other._data;
         }
@@ -53,7 +53,7 @@ public:
         return data().size();
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const qmtx_t& m) {
+    friend std::ostream& operator<<(std::ostream& os, const QMatrix& m) {
         m.show(os);
         return os;
     }

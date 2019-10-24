@@ -95,8 +95,8 @@ class toolbar_t
 
 struct sample_t
 {
-    nu::vector_t<double> inputs;
-    nu::vector_t<double> outputs;
+    nu::Vector<double> inputs;
+    nu::Vector<double> outputs;
 
     bool operator<(const sample_t& other) const noexcept
     {
@@ -116,18 +116,18 @@ static TCHAR szTitle[MAX_LOADSTRING];       // The title bar text
 static TCHAR szWindowClass[MAX_LOADSTRING]; // the main window class name
 static HFONT g_hfFont = nullptr;
 
-static std::unique_ptr<nu::mlp_neural_net_t> g_neural_net;
+static std::unique_ptr<nu::MlpNN> g_neural_net;
 static samples_t g_training_samples;
 
 static double g_last_mse = 1.0;
 static std::string g_current_file_name;
 static std::string g_net_desc;
-static nu::mlp_neural_net_t::topology_t g_topology({ 10, 30, 9 });
+static nu::MlpNN::Topology g_topology({ 10, 30, 9 });
 static double g_learning_rate = 0.030;
 static double g_momentum = 0.50;
 
 static std::mutex g_tsync_mtx;
-static std::unique_ptr<nu::mlp_neural_net_t> g_neural_net_copy;
+static std::unique_ptr<nu::MlpNN> g_neural_net_copy;
 static samples_t g_training_samples_copy;
 
 
@@ -203,8 +203,8 @@ static void realignNNCopy()
     g_tsync_mtx.lock();
 
     if (g_neural_net)
-        g_neural_net_copy = std::move(std::unique_ptr<nu::mlp_neural_net_t>(
-          new nu::mlp_neural_net_t(*g_neural_net)));
+        g_neural_net_copy = std::move(std::unique_ptr<nu::MlpNN>(
+          new nu::MlpNN(*g_neural_net)));
 
     g_tsync_mtx.unlock();
 }
@@ -296,9 +296,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 void UpdateStatusBar(HWND hWnd)
 {
-    const double learning_rate = g_neural_net->get_learning_rate();
-    const double momentum = g_neural_net->get_momentum();
-    auto topology = g_neural_net->get_topology();
+    const double learningRate = g_neural_net->getLearningRate();
+    const double momentum = g_neural_net->getMomentum();
+    auto topology = g_neural_net->getTopology();
 
     std::string inputs;
     std::string outputs;
@@ -316,7 +316,7 @@ void UpdateStatusBar(HWND hWnd)
     const auto tsc = g_training_samples.size();
     const auto mse = g_last_mse;
 
-    g_net_desc = "   LR: " + std::to_string(learning_rate) + "   M: " +
+    g_net_desc = "   LR: " + std::to_string(learningRate) + "   M: " +
                  std::to_string(momentum) + "   HL(" +
                  std::to_string(topology.size() - 2) + ") :" + hl + "   SC: " +
                  std::to_string(tsc) + "   TL: " +
@@ -370,7 +370,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
         g_current_file_name = open_file_name.data();
 
         try {
-            g_neural_net = std::make_unique<nu::mlp_neural_net_t>();
+            g_neural_net = std::make_unique<nu::MlpNN>();
             if (g_neural_net)
                 g_neural_net->load(ss);
         } catch (...) {
@@ -416,13 +416,13 @@ void Training(HWND hWnd, HWND hwndPB)
         if (g_training_samples_copy.size() != g_training_samples.size()) {
             g_training_samples_copy = g_training_samples;
 
-            g_neural_net_copy = std::unique_ptr<nu::mlp_neural_net_t>(
-              new nu::mlp_neural_net_t(*g_neural_net));
+            g_neural_net_copy = std::unique_ptr<nu::MlpNN>(
+              new nu::MlpNN(*g_neural_net));
         }
     } else {
         if (g_neural_net_copy)
-            g_neural_net = std::unique_ptr<nu::mlp_neural_net_t>(
-              new nu::mlp_neural_net_t(*g_neural_net_copy));
+            g_neural_net = std::unique_ptr<nu::MlpNN>(
+              new nu::MlpNN(*g_neural_net_copy));
     }
 
     g_tsync_mtx.unlock();
@@ -449,19 +449,16 @@ void TrainingThread()
         }
 
         double err = 0;
-        nu::vector_t<double> outputs;
-
-        g_neural_net_copy->select_error_cost_function(
-          nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY);
+        nu::Vector<double> outputs;
 
         for (int i = 0; i < TRAINING_EPERT; ++i) {
             for (const auto& sample : samples) {
                 if (g_neural_net_copy) {
-                    g_neural_net_copy->set_inputs(sample.inputs);
-                    g_neural_net_copy->back_propagate(sample.outputs, outputs);
+                    g_neural_net_copy->setInputVector(sample.inputs);
+                    g_neural_net_copy->runBackPropagationAlgo(sample.outputs, outputs);
                 }
 
-                err += nu::cf::cross_entropy(outputs, sample.outputs);
+                err += nu::cf::calcCrossEntropy(outputs, sample.outputs);
             }
 
             err /= samples.size();
@@ -894,8 +891,8 @@ class renderer_t
 class nn_io_converter_t
 {
   public:
-    static void get_inputs(const grid_t& grid, grid_t::symbol_t turn_of_symb,
-                           nu::vector_t<double>& inputs)
+    static void getInputVector(const grid_t& grid, grid_t::symbol_t turn_of_symb,
+                           nu::Vector<double>& inputs)
     {
         inputs.resize(10, 0.0);
         size_t i = 0;
@@ -908,8 +905,8 @@ class nn_io_converter_t
         inputs[9] = turn_of_symb == grid_t::O ? 1.0 : 0.5;
     }
 
-    static void get_outputs(const grid_t& grid, const grid_t& new_grid,
-                            nu::vector_t<double>& outputs)
+    static void copyOutputVector(const grid_t& grid, const grid_t& new_grid,
+                            nu::Vector<double>& outputs)
     {
         outputs.resize(grid.size(), 0.0);
 
@@ -1206,16 +1203,16 @@ static void ExpertAlgo(grid_t& new_grid, grid_t::symbol_t symbol)
 
 /* -------------------------------------------------------------------------- */
 
-static void NetAnswer(nu::mlp_neural_net_t& nn, grid_t& grid,
+static void NetAnswer(nu::MlpNN& nn, grid_t& grid,
                       grid_t::symbol_t symbol)
 {
     try {
-        nu::vector_t<double> inputs, outputs;
-        nn_io_converter_t::get_inputs(grid, symbol, inputs);
+        nu::Vector<double> inputs, outputs;
+        nn_io_converter_t::getInputVector(grid, symbol, inputs);
 
-        nn.set_inputs(inputs);
-        nn.feed_forward();
-        nn.get_outputs(outputs);
+        nn.setInputVector(inputs);
+        nn.feedForward();
+        nn.copyOutputVector(outputs);
 
         int i = 0;
         std::map<double, int> moves;
@@ -1244,7 +1241,7 @@ static void NetAnswer(nu::mlp_neural_net_t& nn, grid_t& grid,
 
 /* -------------------------------------------------------------------------- */
 
-static void ComputerPlay(HWND hWnd, HINSTANCE hInst, nu::mlp_neural_net_t& nn,
+static void ComputerPlay(HWND hWnd, HINSTANCE hInst, nu::MlpNN& nn,
                          grid_t& grid, grid_t::symbol_t symbol)
 {
     auto grid_old = grid;
@@ -1262,7 +1259,7 @@ static void ComputerPlay(HWND hWnd, HINSTANCE hInst, nu::mlp_neural_net_t& nn,
     // In case net answer with no expected move
     // train it with the expert algo answer
     if (grid != grid_expert_move) {
-        nu::vector_t<double> inputs, target;
+        nu::Vector<double> inputs, target;
 
         // From each example you have 4 different training samples,
         // one for each board's orientation
@@ -1270,8 +1267,8 @@ static void ComputerPlay(HWND hWnd, HINSTANCE hInst, nu::mlp_neural_net_t& nn,
             grid_old.rotate_cw();
             grid_expert_move.rotate_cw();
 
-            nn_io_converter_t::get_inputs(grid_old, symbol, inputs);
-            nn_io_converter_t::get_outputs(grid_old, grid_expert_move, target);
+            nn_io_converter_t::getInputVector(grid_old, symbol, inputs);
+            nn_io_converter_t::copyOutputVector(grid_old, grid_expert_move, target);
 
             g_training_samples.insert({ inputs, target });
         }
@@ -1310,8 +1307,8 @@ static bool GetGridPos(HWND hWnd, std::pair<int, int>& gpt)
 
 static void NewNN(HWND hWnd)
 {
-    g_neural_net = std::unique_ptr<nu::mlp_neural_net_t>(
-      new nu::mlp_neural_net_t(g_topology, g_learning_rate, g_momentum));
+    g_neural_net = std::unique_ptr<nu::MlpNN>(
+      new nu::MlpNN(g_topology, g_learning_rate, g_momentum));
 
     realignNNCopy();
     UpdateStatusBar(hWnd);
@@ -1330,7 +1327,7 @@ static void RotateCW(HWND hWnd, bool acw, grid_t& grid)
 
 /* -------------------------------------------------------------------------- */
 
-static void SetNewTopology(HWND hWnd, const nu::mlp_neural_net_t::topology_t& t)
+static void SetNewTopology(HWND hWnd, const nu::MlpNN::Topology& t)
 {
     g_topology = t;
     NewNN(hWnd);
@@ -1405,12 +1402,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_LR_35:
                 case IDM_LR_40:
                     if (g_neural_net) {
-                        g_neural_net->set_learning_rate(
+                        g_neural_net->setLearningRate(
                           wmId == IDM_LR_30
                             ? 0.030
                             : (wmId == IDM_LR_35 ? 0.035 : 0.040));
 
-                        g_learning_rate = g_neural_net->get_learning_rate();
+                        g_learning_rate = g_neural_net->getLearningRate();
                     }
 
                     UpdateStatusBar(hWnd);
@@ -1421,13 +1418,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_M_40:
                 case IDM_M_50:
                     if (g_neural_net) {
-                        g_neural_net->set_momentum(
+                        g_neural_net->setMomentum(
                           wmId == IDM_M_0
                             ? 0
                             : (wmId == IDM_M_30
                                  ? 0.30
                                  : (wmId == IDM_M_40 ? 0.40 : 0.50)));
-                        g_momentum = g_neural_net->get_momentum();
+                        g_momentum = g_neural_net->getMomentum();
                     }
                     UpdateStatusBar(hWnd);
                     break;

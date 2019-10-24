@@ -19,12 +19,12 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-qlgraph_t::qlgraph_t(
+QLGraph::QLGraph(
         const size_t& n_of_states,
         const size_t& goal_state,
-        const topology_t& topology) :
+        const Topology& topology) :
     _n_of_states(n_of_states),
-    _goal_state(goal_state),
+    _goalState(goal_state),
     _reward_mtx(n_of_states),
     _q_mtx(n_of_states)
 {
@@ -38,7 +38,7 @@ qlgraph_t::qlgraph_t(
 
         for (auto & destination : state.second) {
             _reward_mtx[state.first][destination] =
-                destination == _goal_state ? REWARD : NO_REWARD;
+                destination == _goalState ? REWARD : NO_REWARD;
         }
     }
 }
@@ -46,13 +46,13 @@ qlgraph_t::qlgraph_t(
 
 /* -------------------------------------------------------------------------- */
 
-bool qlgraph_t::learn(const size_t& n_of_episodes, const helper_t & helper) 
+bool QLGraph::learn(const size_t& nOfEpisodes, const Helper & helper) 
 {
-    for (size_t episode = 0; episode < n_of_episodes; ++episode) {
+    for (size_t episode = 0; episode < nOfEpisodes; ++episode) {
 
-        helper.begin_episode(episode, *this);
+        helper.beginEpisode(episode, *this);
 
-        if (helper.quit_request_pending()) {
+        if (helper.quitRequestPending()) {
             return false;
         }
 
@@ -62,28 +62,28 @@ bool qlgraph_t::learn(const size_t& n_of_episodes, const helper_t & helper)
 
         while (!goal) {
 
-            if (helper.quit_request_pending()) {
+            if (helper.quitRequestPending()) {
                 return false;
             }
 
-            auto valid_actions = retrieve_valid_actions(_reward_mtx, current_state);
-            auto next_state = valid_actions[helper.rnd() % valid_actions.size()];
+            auto validActions = retrieveValidActions(_reward_mtx, current_state);
+            auto next_state = validActions[helper.rnd() % validActions.size()];
 
-            goal = _goal_state == current_state;
+            goal = _goalState == current_state;
 
             auto & qsa = _q_mtx[current_state][next_state];
             auto & rsa = _reward_mtx[current_state][next_state];
 
             qsa +=
-                _learning_rate *
-                (rsa + _discount_rate * _q_mtx.max(next_state) - qsa);
+                _learningRate *
+                (rsa + _discountRate * _q_mtx.max(next_state) - qsa);
 
             current_state = next_state;
         }
 
-        helper.end_episode(episode, *this);
+        helper.endEpisode(episode, *this);
 
-        if (helper.quit_request_pending()) {
+        if (helper.quitRequestPending()) {
             return false;
         }
     }
@@ -96,8 +96,8 @@ bool qlgraph_t::learn(const size_t& n_of_episodes, const helper_t & helper)
 
 /* -------------------------------------------------------------------------- */
 
-qlgraph_t::valid_actions_t 
-qlgraph_t::retrieve_valid_actions(const qmtx_t& r, size_t state) 
+QLGraph::valid_actions_t 
+QLGraph::retrieveValidActions(const QMatrix& r, size_t state) 
 {
     assert(state < r.size());
 

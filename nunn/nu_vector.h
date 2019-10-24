@@ -32,7 +32,7 @@ namespace nu {
 //! math operations used by learning algorithms
 
 template <class T = double>
-class vector_t
+class Vector
 {
 public:
     using item_t = T;
@@ -41,47 +41,47 @@ public:
     using iterator = typename vr_t::iterator;
     using const_iterator = typename vr_t::const_iterator;
 
-    enum class exception_t {
+    enum class Exception {
         size_mismatch
     };
 
 
     //! Construct an empty vector, with no elements.
-    vector_t() = default;
+    Vector() = default;
 
 
     //! Copy constructor
-    vector_t(const vector_t&) = default;
+    Vector(const Vector&) = default;
 
 
     //! Construct a vector coping elements of a given c-style vector
-    vector_t(const double* v, size_t v_len) noexcept : _v(v_len) {
+    Vector(const double* v, size_t v_len) noexcept : _v(v_len) {
         memcpy(_v.data(), v, v_len);
     }
 
 
     //! Initializer list constructor
-    vector_t(const std::initializer_list<T> l) noexcept : _v(l) {}
+    Vector(const std::initializer_list<T> l) noexcept : _v(l) {}
 
 
     //! Move constructor
-    vector_t(vector_t&& other) noexcept : _v(std::move(other._v)) {}
+    Vector(Vector&& other) noexcept : _v(std::move(other._v)) {}
 
 
     //! Fill constructor
-    vector_t(const size_t& size, item_t v = 0.0) noexcept : _v(size, v) {}
+    Vector(const size_t& size, item_t v = 0.0) noexcept : _v(size, v) {}
 
 
     //! std::vector constructor
-    vector_t(const vr_t& v) noexcept : _v(v) {}
+    Vector(const vr_t& v) noexcept : _v(v) {}
 
 
     //! Copy assignment operator
-    vector_t& operator=(const vector_t&) = default;
+    Vector& operator=(const Vector&) = default;
 
 
     //! Fill assignment operator
-    vector_t& operator=(const T& value) noexcept {
+    Vector& operator=(const T& value) noexcept {
         if (!_v.empty())
             std::fill(_v.begin(), _v.end(), value);
 
@@ -89,7 +89,7 @@ public:
     }
 
     //! Move assignment operator
-    vector_t& operator=(vector_t&& other) noexcept {
+    Vector& operator=(Vector&& other) noexcept {
         if (this != &other)
             _v = std::move(other._v);
 
@@ -98,11 +98,15 @@ public:
 
 
     //! Return size
-    size_t size() const noexcept { return _v.size(); }
+    size_t size() const noexcept { 
+        return _v.size(); 
+    }
 
 
     //! Return whether the vector is empty
-    bool empty() const noexcept { return _v.empty(); }
+    bool empty() const noexcept { 
+        return _v.empty(); 
+    }
 
 
     //! Change size
@@ -112,31 +116,45 @@ public:
 
 
     //! Return iterator to beginning
-    iterator begin() noexcept { return _v.begin(); }
+    iterator begin() noexcept { 
+        return _v.begin(); 
+    }
 
 
     //! Return const_iterator to beginning
-    const_iterator cbegin() const noexcept { return _v.cbegin(); }
+    const_iterator cbegin() const noexcept { 
+        return _v.cbegin(); 
+    }
 
 
     //! Return iterator to end
-    iterator end() noexcept { return _v.end(); }
+    iterator end() noexcept {
+        return _v.end(); 
+    }
 
 
     //! Return const_iterator to end
-    const_iterator cend() const noexcept { return _v.cend(); }
+    const_iterator cend() const noexcept { 
+        return _v.cend(); 
+    }
 
 
     //! Access element
-    item_t operator[](size_t idx) const noexcept { return _v[idx]; }
+    item_t operator[](size_t idx) const noexcept { 
+        return _v[idx]; 
+    }
 
 
     //! Access element
-    item_t& operator[](size_t idx) noexcept { return _v[idx]; }
+    item_t& operator[](size_t idx) noexcept { 
+        return _v[idx]; 
+    }
 
 
     //! Add element at the end
-    void push_back(const item_t& item) { _v.push_back(item); }
+    void push_back(const item_t& item) { 
+        _v.push_back(item); 
+    }
 
 
     //! Return index of highest vector element
@@ -166,9 +184,9 @@ public:
 
 
     //! Return dot product
-    item_t dot(const vector_t& other) {
+    item_t dot(const Vector& other) {
         if (other.size() != size())
-            throw exception_t::size_mismatch;
+            throw Exception::size_mismatch;
 
         item_t sum = 0;
         size_t idx = 0;
@@ -182,7 +200,7 @@ public:
 
     //! Apply the function f to each vector element
     //! For each element x in vector, x=f(x)
-    const vector_t& apply(const std::function<T(T)>& f) {
+    const Vector& apply(const std::function<T(T)>& f) {
         for (auto& i : _v)
             i = f(i);
 
@@ -191,17 +209,17 @@ public:
 
 
     //! Apply the function abs to each vector item
-    const vector_t& abs() noexcept { return apply(::abs); }
+    const Vector& abs() noexcept { return apply(::abs); }
 
 
     //! Apply the function std::log to each vector item
-    const vector_t& log() noexcept {
+    const Vector& log() noexcept {
         return apply([](double x) { return std::log(x); });
     }
 
 
     //! Negates each vector item
-    const vector_t& negate() noexcept {
+    const Vector& negate() noexcept {
         return apply([](double x) { return -x; });
     }
 
@@ -216,96 +234,96 @@ public:
     }
 
     //! Relational operator ==
-    bool operator==(const vector_t& other) const noexcept {
+    bool operator==(const Vector& other) const noexcept {
         return (this == &other) || _v == other._v;
     }
 
 
     //! Relational operator !=
-    bool operator!=(const vector_t& other) const noexcept {
+    bool operator!=(const Vector& other) const noexcept {
         return (this != &other) && _v != other._v;
     }
 
 
     //! Relational operator <
-    bool operator<(const vector_t& other) const noexcept {
+    bool operator<(const Vector& other) const noexcept {
         return _v < other._v;
     }
 
 
     //! Relational operator <=
-    bool operator<=(const vector_t& other) const noexcept {
+    bool operator<=(const Vector& other) const noexcept {
         return _v <= other._v;
     }
 
 
     //! Relational operator >=
-    bool operator>=(const vector_t& other) const noexcept {
+    bool operator>=(const Vector& other) const noexcept {
         return _v >= other._v;
     }
 
 
     //! Relational operator >
-    bool operator>(const vector_t& other) const noexcept {
+    bool operator>(const Vector& other) const noexcept {
         return _v > other._v;
     }
 
 
     //! Operator +=
-    vector_t& operator+=(const vector_t& other) {
+    Vector& operator+=(const Vector& other) {
         return _op(other, [](item_t& d, const item_t& s) { d += s; });
     }
 
 
     //! Operator (hadamard product) *=
-    vector_t& operator*=(const vector_t& other) {
+    Vector& operator*=(const Vector& other) {
         return _op(other, [](item_t& d, const item_t& s) { d *= s; });
     }
 
 
     //! Operator -=
-    vector_t& operator-=(const vector_t& other) {
+    Vector& operator-=(const Vector& other) {
         return _op(other, [](item_t& d, const item_t& s) { d -= s; });
     }
 
 
     //! Operator /= (entrywise division)
-    vector_t& operator/=(const vector_t& other) {
+    Vector& operator/=(const Vector& other) {
         return _op(other, [](item_t& d, const item_t& s) { d /= s; });
     }
 
 
     //! Multiply a scalar s to the vector
-    vector_t& operator*=(const item_t& s) {
-        vector_t other(size(), s);
+    Vector& operator*=(const item_t& s) {
+        Vector other(size(), s);
         return this->operator*=(other);
     }
 
 
     //! Sum scalar s to each vector element
-    vector_t& operator+=(const item_t& s) {
-        vector_t other(size(), s);
+    Vector& operator+=(const item_t& s) {
+        Vector other(size(), s);
         return this->operator+=(other);
     }
 
 
     //! Subtract scalar s to each vector element
-    vector_t& operator-=(const item_t& s) {
-        vector_t other(size(), s);
+    Vector& operator-=(const item_t& s) {
+        Vector other(size(), s);
         return this->operator-=(other);
     }
 
 
     //! Divide each vector element by s
-    vector_t& operator/=(const item_t& s) {
-        vector_t other(size(), s);
+    Vector& operator/=(const item_t& s) {
+        Vector other(size(), s);
         return this->operator/=(other);
     }
 
 
     //! Writes the vector v status into the give string stream ss
     friend std::stringstream& operator<<(std::stringstream& ss,
-                                         const vector_t& v) noexcept
+                                         const Vector& v) noexcept
     {
         ss << v.size() << std::endl;
 
@@ -318,7 +336,7 @@ public:
 
     //! Copies the vector status from the stream ss into vector v
     friend std::stringstream& operator>>(std::stringstream& ss,
-                                         vector_t& v) noexcept
+                                         Vector& v) noexcept
     {
         size_t size = 0;
         ss >> size;
@@ -334,7 +352,7 @@ public:
 
     //! Prints out to the os stream vector v
     friend std::ostream& operator<<(std::ostream& os,
-                                    const vector_t& v) noexcept
+                                    const Vector& v) noexcept
     {
         os << "[ ";
 
@@ -348,7 +366,7 @@ public:
 
 
     //! Binary sum vector operator
-    friend vector_t operator+(const vector_t& v1, const vector_t& v2) {
+    friend Vector operator+(const Vector& v1, const Vector& v2) {
         auto vr = v1;
         vr += v2;
         return vr;
@@ -356,7 +374,7 @@ public:
 
 
     //! Binary sub vector operator
-    friend vector_t operator-(const vector_t& v1, const vector_t& v2) {
+    friend Vector operator-(const Vector& v1, const Vector& v2) {
         auto vr = v1;
         vr -= v2;
         return vr;
@@ -364,7 +382,7 @@ public:
 
 
     //! Return the square euclidean norm of vector
-    item_t euclidean_norm2() const noexcept {
+    item_t euclideanNorm2() const noexcept {
         item_t res = 0.0;
 
         for (size_t i = 0; i < _v.size(); ++i)
@@ -376,7 +394,7 @@ public:
 
     //! Return the euclidean norm of vector
     item_t euclidean_norm() const noexcept {
-        return std::sqrt(euclidean_norm2());
+        return std::sqrt(euclideanNorm2());
     }
 
 
@@ -390,11 +408,11 @@ public:
 private:
     vr_t _v;
 
-    vector_t& _op(const vector_t& other,
+    Vector& _op(const Vector& other,
                   std::function<void(item_t&, const item_t&)> f)
     {
         if (other.size() != size())
-            throw exception_t::size_mismatch;
+            throw Exception::size_mismatch;
 
         size_t idx = 0;
         for (auto& i : _v)

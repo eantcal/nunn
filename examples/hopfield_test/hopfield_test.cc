@@ -162,7 +162,7 @@ static void print_pattern(const std::string& pattern)
 
 /* -------------------------------------------------------------------------- */
 
-static void print_pattern(const nu::hopfieldnn_t::rvector_t& pattern)
+static void print_pattern(const nu::hopfieldnn_t::FpVector& pattern)
 {
     std::string s_pattern;
     for (int y = 0; y < 10; ++y)
@@ -176,7 +176,7 @@ static void print_pattern(const nu::hopfieldnn_t::rvector_t& pattern)
 /* -------------------------------------------------------------------------- */
 
 static void convert_pattern_into_input_v(
-  const std::string& pattern, nu::hopfieldnn_t::rvector_t& input_vector)
+  const std::string& pattern, nu::hopfieldnn_t::FpVector& input_vector)
 {
     size_t i = 0;
     for (auto c : pattern)
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
     std::cout << "LEARNING THE FOLLOWING IMAGES:" << std::endl;
 
     for (int i = 0; i < n_of_patterns; ++i) {
-        nu::hopfieldnn_t::rvector_t input_v(pattern_size);
+        nu::hopfieldnn_t::FpVector input_v(pattern_size);
         convert_pattern_into_input_v(g_learning_patterns[i], input_v);
         net.add_pattern(input_v);
         print_pattern(g_learning_patterns[i]);
@@ -201,8 +201,8 @@ int main(int argc, char* argv[])
 
     // Test the net
     for (int i = 0; i < n_of_patterns; ++i) {
-        nu::hopfieldnn_t::rvector_t input_v(pattern_size);
-        nu::hopfieldnn_t::rvector_t output_pattern(pattern_size);
+        nu::hopfieldnn_t::FpVector input_v(pattern_size);
+        nu::hopfieldnn_t::FpVector output_pattern(pattern_size);
 
         convert_pattern_into_input_v(g_test_patterns[i], input_v);
         net.recall(input_v, output_pattern);

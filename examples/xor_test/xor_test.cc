@@ -44,14 +44,14 @@
 
 /* -------------------------------------------------------------------------- */
 
-using neural_net_t = nu::mlp_neural_net_t;
-using trainer_t = nu::mlp_nn_trainer_t;
+using neural_net_t = nu::MlpNN;
+using trainer_t = nu::MlpNNTrainer;
 
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char* argv[])
 {
-    using vect_t = neural_net_t::rvector_t;
+    using vect_t = neural_net_t::FpVector;
 
     // Topology is a vector of positive integers
     // First one represents the input layer size
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
     // All other values represent the hidden layers from input to output
     // The topology vector must be at least of 3 items and all of them must be
     // non-zero positive integer values
-    neural_net_t::topology_t topology = {
+    neural_net_t::Topology topology = {
         2, // input layer takes a two dimensional vector as input
         2, // hidden layer size
         1  // output
@@ -100,14 +100,14 @@ int main(int argc, char* argv[])
                           );
 
         std::cout << "XOR training start ( Max epochs count="
-                  << trainer.get_epochs()
-                  << " Minimum error=" << trainer.get_min_err() << " )"
+                  << trainer.getEpochs()
+                  << " Minimum error=" << trainer.getMinErr() << " )"
                   << std::endl;
 
         // Called to print out training progress
-        auto progress_cbk = [EPOCHS](neural_net_t& n,
-                                     const nu::vector_t<double>& i,
-                                     const nu::vector_t<double>& t,
+        auto progressCbk = [EPOCHS](neural_net_t& n,
+                                     const nu::Vector<double>& i,
+                                     const nu::Vector<double>& t,
                                      size_t epoch, size_t sample, double err) {
             if (epoch % 400 == 0 && sample == 0)
                 std::cout << "Epoch completed "
@@ -120,15 +120,15 @@ int main(int argc, char* argv[])
 
         // Used by trainer to calculate the net error to
         // be compared with min error (MIN_ERR)
-        auto err_cost_f = [](neural_net_t& net,
-                             const neural_net_t::rvector_t& target) {
-            return net.mean_squared_error(target);
+        auto errCost = [](neural_net_t& net,
+                             const neural_net_t::FpVector& target) {
+            return net.calcMSE(target);
         };
 
 
         // Train the net
-        trainer.run_training<training_set_t>(traing_set, err_cost_f,
-                                             progress_cbk);
+        trainer.runTraining<training_set_t>(traing_set, errCost,
+                                             progressCbk);
 
 
         /*------------- Do final XOR test -------------------------------------
@@ -136,16 +136,16 @@ int main(int argc, char* argv[])
 
         // Step function
         auto step_f =
-          nu::step_func_t(0.5 /*threshold*/, 0 /* LO */, 1 /* HI */);
+          nu::StepFunction(0.5 /*threshold*/, 0 /* LO */, 1 /* HI */);
 
         std::cout << std::endl << "XOR Test " << std::endl;
 
         for (const auto& sample : traing_set) {
             vect_t output_vec{ 0.0 };
 
-            nn.set_inputs(sample.first);
-            nn.feed_forward();
-            nn.get_outputs(output_vec);
+            nn.setInputVector(sample.first);
+            nn.feedForward();
+            nn.copyOutputVector(output_vec);
 
             // Dump the network status
             std::cout << nn;
@@ -174,8 +174,8 @@ int main(int argc, char* argv[])
         }
 
         std::cout << "Test completed successfully" << std::endl;
-    } catch (neural_net_t::exception_t& e) {
-        std::cerr << "nu::mlp_neural_net_t::exception_t n# " << int(e)
+    } catch (neural_net_t::Exception& e) {
+        std::cerr << "nu::MlpNN::Exception n# " << int(e)
                   << std::endl;
 
         std::cerr << "Check for configuration parameters and retry"

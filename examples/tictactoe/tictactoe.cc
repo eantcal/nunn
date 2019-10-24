@@ -299,8 +299,8 @@ class renderer_t
 class nn_io_converter_t
 {
   public:
-    static void get_inputs(const grid_t& grid, grid_t::symbol_t turn_of_symb,
-                           nu::vector_t<double>& inputs)
+    static void getInputVector(const grid_t& grid, grid_t::symbol_t turn_of_symb,
+                           nu::Vector<double>& inputs)
     {
         inputs.resize(10, 0.0);
         size_t i = 0;
@@ -313,8 +313,8 @@ class nn_io_converter_t
         inputs[9] = turn_of_symb == grid_t::O ? 1.0 : 0.5;
     }
 
-    static void get_outputs(const grid_t& grid, const grid_t& new_grid,
-                            nu::vector_t<double>& outputs)
+    static void copyOutputVector(const grid_t& grid, const grid_t& new_grid,
+                            nu::Vector<double>& outputs)
     {
         outputs.resize(grid.size(), 0.0);
 
@@ -332,13 +332,13 @@ class nn_io_converter_t
 
 /* -------------------------------------------------------------------------- */
 
-class nn_trainer_t
+class NNTrainer
 {
   public:
     struct sample_t
     {
-        nu::vector_t<double> inputs;
-        nu::vector_t<double> outputs;
+        nu::Vector<double> inputs;
+        nu::Vector<double> outputs;
 
         bool operator<(const sample_t& other) const noexcept
         {
@@ -697,14 +697,14 @@ class nn_trainer_t
 
 
     void _create_sample(const grid_t& init_grid_st, grid_t::symbol_t symb_turn,
-                        nu::vector_t<double>& inputs,
-                        nu::vector_t<double>& outputs)
+                        nu::Vector<double>& inputs,
+                        nu::Vector<double>& outputs)
     {
         auto res = init_grid_st;
         _play(res, symb_turn);
 
-        nn_io_converter_t::get_inputs(init_grid_st, symb_turn, inputs);
-        nn_io_converter_t::get_outputs(init_grid_st, res, outputs);
+        nn_io_converter_t::getInputVector(init_grid_st, symb_turn, inputs);
+        nn_io_converter_t::copyOutputVector(init_grid_st, res, outputs);
     }
 
   public:
@@ -721,7 +721,7 @@ class nn_trainer_t
             int x_cnt = 0;
             item.get_xo_cnt(o_cnt, x_cnt);
 
-            nu::vector_t<double> inputs, outputs;
+            nu::Vector<double> inputs, outputs;
 
             if (o_cnt >= x_cnt) {
                 grid_t grid = item;
@@ -750,7 +750,7 @@ class game_t
   private:
     grid_t _grid;
     renderer_t& _renderer;
-    nu::mlp_neural_net_t& _nn;
+    nu::MlpNN& _nn;
     bool _computer_alone = false;
 
     void _show_verdict(grid_t::symbol_t symbol,
@@ -774,7 +774,7 @@ class game_t
     }
 
   public:
-    game_t(renderer_t& renderer, nu::mlp_neural_net_t& nn,
+    game_t(renderer_t& renderer, nu::MlpNN& nn,
            bool computer_alone = false) noexcept
       : _renderer(renderer),
         _nn(nn),
@@ -784,12 +784,12 @@ class game_t
 
     void play_computer(grid_t::symbol_t symbol)
     {
-        nu::vector_t<double> inputs, outputs;
-        nn_io_converter_t::get_inputs(_grid, symbol, inputs);
+        nu::Vector<double> inputs, outputs;
+        nn_io_converter_t::getInputVector(_grid, symbol, inputs);
 
-        _nn.set_inputs(inputs);
-        _nn.feed_forward();
-        _nn.get_outputs(outputs);
+        _nn.setInputVector(inputs);
+        _nn.feedForward();
+        _nn.copyOutputVector(outputs);
 
         int i = 0;
         std::map<double, int> moves;
@@ -908,7 +908,7 @@ static void usage(const char* appname)
       << "\t[--load|-l <net_description_file_name>] " << std::endl
       << "\t[--skip_training|-n] " << std::endl
       << "\t[--use_cross_entropy|-c] " << std::endl
-      << "\t[--learning_rate|-r <rate>] " << std::endl
+      << "\t[--learningRate|-r <rate>] " << std::endl
       << "\t[--momentum|-m <value>] " << std::endl
       << "\t[--epoch_cnt|-e <count>] " << std::endl
       << "\t[--stop_on_err_tr|-x <error rate>] " << std::endl
@@ -928,7 +928,7 @@ static void usage(const char* appname)
       << "\tskip net training" << std::endl
       << "--use_cross_entropy or -c" << std::endl
       << "\tuse the cross entropy cost function instead of MSE" << std::endl
-      << "--learning_rate or -r" << std::endl
+      << "--learningRate or -r" << std::endl
       << "\tset learning rate (default " << LEARNING_RATE << ")" << std::endl
       << "--momentum or -m" << std::endl
       << "\tset momentum (default " << MOMENTUM << ")" << std::endl
@@ -947,7 +947,7 @@ static void usage(const char* appname)
 
 static bool process_cl(int argc, char* argv[], std::string& files_path,
                        std::string& load_file_name, std::string& save_file_name,
-                       bool& skip_training, double& learning_rate,
+                       bool& skip_training, double& learningRate,
                        bool& change_lr, double& momentum, bool& change_m,
                        int& epoch, double& threshold,
                        std::vector<size_t>& hidden_layer,
@@ -964,7 +964,7 @@ static bool process_cl(int argc, char* argv[], std::string& files_path,
 
         if ((arg == "--version" || arg == "-v")) {
             std::cout << "nunnlib TicTacToe " PROG_VERSION
-                         " (c) acaldmail@gmail.com"
+                         " (c) antonino.calderone@gmail.com"
                       << std::endl;
             continue;
         }
@@ -1001,9 +1001,9 @@ static bool process_cl(int argc, char* argv[], std::string& files_path,
             continue;
         }
 
-        if ((arg == "--learning_rate" || arg == "-r") && (pidx + 1) < argc) {
+        if ((arg == "--learningRate" || arg == "-r") && (pidx + 1) < argc) {
             try {
-                learning_rate = std::stod(argv[++pidx]);
+                learningRate = std::stod(argv[++pidx]);
                 change_lr = true;
             } catch (...) {
                 return false;
@@ -1088,10 +1088,10 @@ int main(int argc, char* argv[])
     std::string save_file_name;
     bool save_to_file = false;
     bool skip_training = false;
-    double learning_rate = LEARNING_RATE;
+    double learningRate = LEARNING_RATE;
     double momentum = MOMENTUM;
     int epoch_cnt = TRAINING_EPOCH_NUMBER;
-    double min_err = 1.0;
+    double minErr = 1.0;
 
     std::vector<size_t> hidden_layer;
 
@@ -1103,7 +1103,7 @@ int main(int argc, char* argv[])
 
     if (argc > 1) {
         if (!process_cl(argc, argv, files_path, load_file_name, save_file_name,
-                        skip_training, learning_rate, change_lr, momentum,
+                        skip_training, learningRate, change_lr, momentum,
                         change_m, epoch_cnt, threshold, hidden_layer,
                         use_cross_entropy)) {
             usage(argv[0]);
@@ -1114,11 +1114,11 @@ int main(int argc, char* argv[])
     if (hidden_layer.empty())
         hidden_layer.push_back(HIDDEN_LAYER_SIZE);
 
-    std::unique_ptr<nu::mlp_neural_net_t> net;
+    std::unique_ptr<nu::MlpNN> net;
 
     if (!skip_training) {
         // Set up the topology
-        nu::mlp_neural_net_t::topology_t topology;
+        nu::MlpNN::Topology topology;
 
         topology.push_back(TICTACTOE_CELLS + 1);
 
@@ -1127,8 +1127,8 @@ int main(int argc, char* argv[])
 
         topology.push_back(TICTACTOE_CELLS /*outputs*/);
 
-        net = std::unique_ptr<nu::mlp_neural_net_t>(
-          new nu::mlp_neural_net_t(topology, learning_rate, MOMENTUM));
+        net = std::unique_ptr<nu::MlpNN>(
+          new nu::MlpNN(topology, learningRate, MOMENTUM));
     }
 
     if (!load_file_name.empty()) {
@@ -1143,7 +1143,7 @@ int main(int argc, char* argv[])
         ss << nf.rdbuf();
         nf.close();
 
-        net = std::unique_ptr<nu::mlp_neural_net_t>(new nu::mlp_neural_net_t);
+        net = std::unique_ptr<nu::MlpNN>(new nu::MlpNN);
 
         if (net)
             net->load(ss);
@@ -1157,13 +1157,13 @@ int main(int argc, char* argv[])
     }
 
     if (change_lr)
-        net->set_learning_rate(learning_rate);
+        net->setLearningRate(learningRate);
 
     if (change_m)
-        net->set_momentum(momentum);
+        net->setMomentum(momentum);
 
     size_t hl_cnt = 0;
-    auto top = net->get_topology();
+    auto top = net->getTopology();
 
     std::string net_desc = "Net:";
 
@@ -1187,10 +1187,10 @@ int main(int argc, char* argv[])
         ++hl_cnt;
     }
 
-    std::cout << "Net Learning rate  ( LR )  : " << net->get_learning_rate()
+    std::cout << "Net Learning rate  ( LR )  : " << net->getLearningRate()
               << std::endl;
 
-    std::cout << "Net Momentum       ( M )   : " << net->get_momentum()
+    std::cout << "Net Momentum       ( M )   : " << net->getMomentum()
               << std::endl;
 
     std::cout << "MSE Threshold      ( T )   : " << threshold << std::endl;
@@ -1202,22 +1202,18 @@ int main(int argc, char* argv[])
 
     if (!skip_training) {
         std::cout << "Creating training set... ";
-        nn_trainer_t::samples_t samples;
-        nn_trainer_t trainer;
+        NNTrainer::samples_t samples;
+        NNTrainer trainer;
         trainer.build_training_set(samples);
         std::cout << "done." << std::endl;
         std::cout << std::endl;
-
-        net->select_error_cost_function(
-          use_cross_entropy ? nu::mlp_neural_net_t::err_cost_t::CROSSENTROPY
-                            : nu::mlp_neural_net_t::err_cost_t::MSE);
 
         for (int epoch = 0; epoch < max_epoch_number; ++epoch) {
             std::cout << net_desc << " "
                       << "Learning epoch " << epoch + 1 << " of "
                       << max_epoch_number
-                      << " ( LR = " << net->get_learning_rate()
-                      << ", M = " << net->get_momentum()
+                      << " ( LR = " << net->getLearningRate()
+                      << ", M = " << net->getMomentum()
                       << ", T = " << threshold << " )"
 
                       << std::endl
@@ -1230,14 +1226,14 @@ int main(int argc, char* argv[])
 
             for (const auto& sample : samples) {
                 auto& target = sample.outputs;
-                nu::vector_t<double> outputs;
+                nu::Vector<double> outputs;
 
-                net->set_inputs(sample.inputs);
+                net->setInputVector(sample.inputs);
 
-                net->back_propagate(target, outputs);
+                net->runBackPropagationAlgo(target, outputs);
 
-                err += nu::cf::mean_squared_error(outputs, target);
-                cross_err += nu::cf::cross_entropy(outputs, target);
+                err += nu::cf::calcMSE(outputs, target);
+                cross_err += nu::cf::calcCrossEntropy(outputs, target);
             }
 
             double mean_err = err / samples.size();
@@ -1248,9 +1244,9 @@ int main(int argc, char* argv[])
 
             double err_tr = use_cross_entropy ? mean_entropy : mean_err;
 
-            if (err_tr < min_err) {
-                min_err = err_tr;
-                std::cout << "New min err " << min_err << std::endl;
+            if (err_tr < minErr) {
+                minErr = err_tr;
+                std::cout << "New min err " << minErr << std::endl;
 
                 if (!save_file_name.empty()) {
                     std::cout << "Saving net status" << std::endl;

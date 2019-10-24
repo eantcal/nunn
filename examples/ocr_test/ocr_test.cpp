@@ -107,10 +107,10 @@ TCHAR szWindowClass[MAX_LOADSTRING];	// the main window class name
 
 static HFONT g_hfFont = nullptr;
 
-std::unique_ptr<nu::mlp_neural_net_t> neural_net;
+std::unique_ptr<nu::MlpNN> neural_net;
 std::string current_file_name;
 std::string net_description = "Load a net description file (File->Load)";
-nu::vector_t<double> g_hwdigit;
+nu::Vector<double> g_hwdigit;
 
 
 /* -------------------------------------------------------------------------- */
@@ -275,15 +275,15 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
         current_file_name = open_file_name.data();
 
-        auto nn = std::make_unique< nu::mlp_neural_net_t >();
+        auto nn = std::make_unique< nu::MlpNN >();
 
         try {
             if (nn)
                 nn->load(ss);
 
             if (!nn ||
-                nn->get_inputs_count() != NN_INPUTS ||
-                nn->get_outputs_count() != NN_OUTPUTS)
+                nn->getInputSize() != NN_INPUTS ||
+                nn->getOutputSize() != NN_OUTPUTS)
             {
                 MessageBox(
                     hWnd,
@@ -314,8 +314,8 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
     if (!neural_net)
         return false;
 
-    const double learning_rate = neural_net->get_learning_rate();
-    const auto & topology = neural_net->get_topology();
+    const double learningRate = neural_net->getLearningRate();
+    const auto & topology = neural_net->getTopology();
 
     std::string inputs;
     std::string outputs;
@@ -439,14 +439,14 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 
     for (int i = 0; i < TRAINING_NET_EPOCHS; ++i)
     {
-        nu::vector_t<double> target(10, 0.0);
-        nu::vector_t<double> output(10, 0.0);
+        nu::Vector<double> target(10, 0.0);
+        nu::Vector<double> output(10, 0.0);
         target[digit] = 1.0;
 
-        neural_net->set_inputs(g_hwdigit);
-        neural_net->back_propagate(target, output);
+        neural_net->setInputVector(g_hwdigit);
+        neural_net->runBackPropagationAlgo(target, output);
 
-        err = neural_net->mean_squared_error(target);
+        err = neural_net->calcMSE(target);
 
         SendMessage(hwndPB, PBM_STEPIT, 0, 0);
 
@@ -686,7 +686,7 @@ void PrintGrayscaleDigit(
     int xo,
     int yo,
     HDC hdc,
-    const nu::vector_t<double>& hwdigit)
+    const nu::Vector<double>& hwdigit)
 {
     size_t idx = 0;
     const int zoom = 3;
@@ -717,7 +717,7 @@ void PrintGrayscaleDigit(
 
 /* -------------------------------------------------------------------------- */
 
-bool GetDigitInfo(HDC hdc, nu::vector_t<double>& hwdigit, const RECT & r, bmpImage& image)
+bool GetDigitInfo(HDC hdc, nu::Vector<double>& hwdigit, const RECT & r, bmpImage& image)
 {
     size_t vec_idx = 0;
     double sum = 0.0;
@@ -742,7 +742,7 @@ bool GetDigitInfo(HDC hdc, nu::vector_t<double>& hwdigit, const RECT & r, bmpIma
 
 /* -------------------------------------------------------------------------- */
 
-void WriteBars(int xo, int yo, HDC hdc, nu::vector_t<double>& results)
+void WriteBars(int xo, int yo, HDC hdc, nu::Vector<double>& results)
 {
     int digit = 0;
 
@@ -786,7 +786,7 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
     InvalidateRect(hWnd, &ri, TRUE);
     UpdateWindow(hWnd);
 
-    nu::vector_t<double> hwdigit(neural_net->get_inputs_count());
+    nu::Vector<double> hwdigit(neural_net->getInputSize());
 
     HDC hdc = GetDC(hWnd);
 
@@ -802,11 +802,11 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
 
         PrintGrayscaleDigit(xo1, yo1, hdc, hwdigit);
 
-        neural_net->set_inputs(hwdigit);
-        neural_net->feed_forward();
+        neural_net->setInputVector(hwdigit);
+        neural_net->feedForward();
 
-        nu::vector_t<double> outputs;
-        neural_net->get_outputs(outputs);
+        nu::Vector<double> outputs;
+        neural_net->copyOutputVector(outputs);
 
         WriteBars(530, 90, hdc, outputs);
 

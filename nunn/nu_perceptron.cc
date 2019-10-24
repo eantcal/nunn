@@ -20,66 +20,53 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-perceptron_t::perceptron_t(const size_t& n_of_inputs, double learning_rate,
-                           step_func_t step_f)
-  : _inputs_count(n_of_inputs)
-  , _learning_rate(learning_rate)
+Perceptron::Perceptron(const size_t& inputSize, double learningRate, StepFunction step_f)
+  : _inputSize(inputSize)
+  , _learningRate(learningRate)
   , _step_f(step_f)
 {
-    if (n_of_inputs < 1)
-        throw exception_t::size_mismatch;
+    if (inputSize < 1)
+        throw Exception::size_mismatch;
 
-    _inputs.resize(n_of_inputs, 0.0);
-    _neuron.delta_weights.resize(n_of_inputs, 0.0);
-    _neuron.weights.resize(n_of_inputs, 0.0);
+    _inputVector.resize(inputSize, 0.0);
+    _neuron.deltaW.resize(inputSize, 0.0);
+    _neuron.weights.resize(inputSize, 0.0);
 
-    reshuffle_weights();
+    reshuffleWeights();
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-void perceptron_t::feed_forward() noexcept
+void Perceptron::feedForward() noexcept
 {
     // For each layer (excluding input one) of neurons do...
-    auto& neuron = _neuron;
     double sum = 0.0;
 
     // Sum of all the weights * input value
-    for (size_t i = 0; i < _inputs.size(); ++i)
-        sum += _inputs[i] * _neuron.weights[i];
+    for (size_t i = 0; i < _inputVector.size(); ++i)
+        sum += _inputVector[i] * _neuron.weights[i];
 
     sum += _neuron.bias;
 
-    neuron.output = sigmoid_t()(sum);
+    _neuron.output = Sigmoid()(sum);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-void perceptron_t::back_propagate(const double& target,
-                                  double& output) noexcept
+void Perceptron::runBackPropagationAlgo(const double& target, double& output) noexcept
 {
     // Calculate and get the outputs
-    feed_forward();
+    feedForward();
+    output = getOutput();
 
-    output = get_output();
-
-    // Apply back_propagate algo
-    _back_propagate(target, output);
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-void perceptron_t::_back_propagate(const double& target,
-                                   const double& output) noexcept
-{
+    // Apply runBackPropagationAlgo algo
     _neuron.error = (target - output);
-    const double e = _learning_rate * _neuron.error;
+    const double e = _learningRate * _neuron.error;
 
-    for (size_t i = 0; i < _inputs.size(); ++i)
-        _neuron.weights[i] += e * _inputs[i];
+    for (size_t i = 0; i < _inputVector.size(); ++i)
+        _neuron.weights[i] += e * _inputVector[i];
 
     _neuron.bias += e;
 }
@@ -87,24 +74,24 @@ void perceptron_t::_back_propagate(const double& target,
 
 /* -------------------------------------------------------------------------- */
 
-std::stringstream& perceptron_t::load(std::stringstream& ss)
+std::stringstream& Perceptron::load(std::stringstream& ss)
 {
     std::string s;
     ss >> s;
-    if (s != perceptron_t::ID_ANN)
-        throw exception_t::invalid_sstream_format;
+    if (s != Perceptron::ID_ANN)
+        throw Exception::invalid_sstream_format;
 
-    ss >> _learning_rate;
-
-    ss >> s;
-    if (s != perceptron_t::ID_INPUTS)
-        throw exception_t::invalid_sstream_format;
-
-    ss >> _inputs;
+    ss >> _learningRate;
 
     ss >> s;
-    if (s != perceptron_t::ID_NEURON)
-        throw exception_t::invalid_sstream_format;
+    if (s != Perceptron::ID_INPUTS)
+        throw Exception::invalid_sstream_format;
+
+    ss >> _inputVector;
+
+    ss >> s;
+    if (s != Perceptron::ID_NEURON)
+        throw Exception::invalid_sstream_format;
 
     ss >> _neuron;
 
@@ -114,18 +101,18 @@ std::stringstream& perceptron_t::load(std::stringstream& ss)
 
 /* -------------------------------------------------------------------------- */
 
-std::stringstream& perceptron_t::save(std::stringstream& ss) noexcept
+std::stringstream& Perceptron::save(std::stringstream& ss) noexcept
 {
     ss.clear();
 
-    ss << perceptron_t::ID_ANN << std::endl;
+    ss << Perceptron::ID_ANN << std::endl;
 
-    ss << _learning_rate << std::endl;
+    ss << _learningRate << std::endl;
 
-    ss << perceptron_t::ID_INPUTS << std::endl;
-    ss << _inputs << std::endl;
+    ss << Perceptron::ID_INPUTS << std::endl;
+    ss << _inputVector << std::endl;
 
-    ss << perceptron_t::ID_NEURON << std::endl;
+    ss << Perceptron::ID_NEURON << std::endl;
     ss << _neuron << std::endl;
 
     return ss;
@@ -134,7 +121,7 @@ std::stringstream& perceptron_t::save(std::stringstream& ss) noexcept
 
 /* -------------------------------------------------------------------------- */
 
-void perceptron_t::reshuffle_weights() noexcept
+void Perceptron::reshuffleWeights() noexcept
 {
     double weights_cnt = double(_neuron.weights.size());
 
@@ -147,7 +134,7 @@ void perceptron_t::reshuffle_weights() noexcept
         w = random_n / weights_cnt;
     }
 
-    for (auto& dw : _neuron.delta_weights)
+    for (auto& dw : _neuron.deltaW)
         dw = 0;
 
     _neuron.bias = double(rand()) / double(RAND_MAX);
@@ -157,12 +144,12 @@ void perceptron_t::reshuffle_weights() noexcept
 /* -------------------------------------------------------------------------- */
 
 //! Print the net state out to the given ostream
-std::ostream& perceptron_t::dump(std::ostream& os) noexcept
+std::ostream& Perceptron::dump(std::ostream& os) noexcept
 {
     os << "Perceptron " << std::endl;
 
     for (size_t in_idx = 0; in_idx < _neuron.weights.size(); ++in_idx) {
-        os << "\t\tInput  [" << in_idx << "] = " << _inputs[in_idx]
+        os << "\t\tInput  [" << in_idx << "] = " << _inputVector[in_idx]
            << std::endl;
 
         os << "\t\tWeight [" << in_idx << "] = " << _neuron.weights[in_idx]
@@ -179,13 +166,6 @@ std::ostream& perceptron_t::dump(std::ostream& os) noexcept
 
     return os;
 }
-
-
-/* -------------------------------------------------------------------------- */
-
-const char* perceptron_t::ID_ANN = "perceptron";
-const char* perceptron_t::ID_NEURON = "neuron";
-const char* perceptron_t::ID_INPUTS = "inputs";
 
 
 /* -------------------------------------------------------------------------- */

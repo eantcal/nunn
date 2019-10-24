@@ -84,7 +84,7 @@ static void usage(const char* appname)
 /* -------------------------------------------------------------------------- */
 
 bool save_topo(const std::string& filename,
-               nu::mlp_neural_net_t::topology_t& topology)
+               nu::MlpNN::Topology& topology)
 {
     const size_t buf_size = 1024;
 
@@ -220,7 +220,7 @@ int main(int argc, char* argv[])
     std::string load_file_name;
     std::string save_file_name;
 
-    std::unique_ptr<nu::mlp_neural_net_t> net;
+    std::unique_ptr<nu::MlpNN> net;
 
     if (argc > 1) {
         if (!process_cl(argc, argv, load_file_name, save_file_name)) {
@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
     ss << nf.rdbuf();
     nf.close();
 
-    net = std::make_unique<nu::mlp_neural_net_t>();
+    net = std::make_unique<nu::MlpNN>();
 
     if (net == nullptr) {
         std::cerr << "Error: out of memory" << std::endl;
@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
 
     net->load(ss);
 
-    auto topology = net->get_topology();
+    auto topology = net->getTopology();
 
     if (topology.size() < 3) {
         std::cerr << "Bad topology format" << std::endl;

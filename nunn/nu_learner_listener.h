@@ -25,13 +25,10 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-template<class T = double>
-struct learner_listener_t
+struct LearnerListener
 {
-    using real_t = T;
-
-    virtual ~learner_listener_t() {}
-    virtual bool notify(const real_t& reward, const size_t& move) = 0;
+    virtual ~LearnerListener() {}
+    virtual bool notify(const double& reward, const size_t& move) = 0;
 };
 
 

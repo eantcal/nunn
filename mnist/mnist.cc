@@ -51,7 +51,7 @@ Pixel values are 0 to 255. 0 means background (white), 255 means foreground
 
 /* -------------------------------------------------------------------------- */
 
-void digit_data_t::to_vect(nu::vector_t<double>& v) const noexcept
+void digit_data_t::to_vect(nu::Vector<double>& v) const noexcept
 {
     size_t vsize = data().size();
     v.resize(vsize);
@@ -63,7 +63,7 @@ void digit_data_t::to_vect(nu::vector_t<double>& v) const noexcept
 
 /* -------------------------------------------------------------------------- */
 
-void digit_data_t::label_to_target(nu::vector_t<double>& v) const noexcept
+void digit_data_t::label_to_target(nu::Vector<double>& v) const noexcept
 {
     v.resize(10);
     std::fill(v.begin(), v.end(), 0.0);
@@ -125,53 +125,53 @@ int training_data_t::load()
         flbls = fopen(_lbls_file.c_str(), "rb");
 
         if (!flbls)
-            throw exception_t::lbls_file_not_found;
+            throw Exception::lbls_file_not_found;
 
         fimgs = fopen(_imgs_file.c_str(), "rb");
 
         if (!fimgs)
-            throw exception_t::imgs_file_not_found;
+            throw Exception::imgs_file_not_found;
 
         std::vector<char> buf(4);
 
         if (fread(buf.data(), 1, 4, flbls) != 4)
-            throw exception_t::lbls_file_read_error;
+            throw Exception::lbls_file_read_error;
 
         if (buf[0] != magic_lbls[0] || buf[1] != magic_lbls[1] ||
             buf[2] != magic_lbls[2] || buf[3] != magic_lbls[3])
-            throw exception_t::lbls_file_wrong_magic;
+            throw Exception::lbls_file_wrong_magic;
 
         if (fread(buf.data(), 1, 4, fimgs) != 4)
-            throw exception_t::imgs_file_read_error;
+            throw Exception::imgs_file_read_error;
 
 
         if (buf[0] != magic_imgs[0] || buf[1] != magic_imgs[1] ||
             buf[2] != magic_imgs[2] || buf[3] != magic_imgs[3])
-            throw exception_t::imgs_file_wrong_magic;
+            throw Exception::imgs_file_wrong_magic;
 
 
         if (fread(buf.data(), 1, 4, flbls) != 4)
-            throw exception_t::lbls_file_read_error;
+            throw Exception::lbls_file_read_error;
 
         int32_t n_of_lbls = to_int32(buf);
 
         if (fread(buf.data(), 1, 4, fimgs) != 4)
-            throw exception_t::imgs_file_read_error;
+            throw Exception::imgs_file_read_error;
 
         int32_t n_of_imgs = to_int32(buf);
 
         if (n_of_lbls != n_of_imgs)
-            throw exception_t::n_of_items_mismatch;
+            throw Exception::n_of_items_mismatch;
 
         ret = int(n_of_imgs);
 
         if (fread(buf.data(), 1, 4, fimgs) != 4)
-            throw exception_t::imgs_file_read_error;
+            throw Exception::imgs_file_read_error;
 
         int32_t n_rows = to_int32(buf);
 
         if (fread(buf.data(), 1, 4, fimgs) != 4)
-            throw exception_t::imgs_file_read_error;
+            throw Exception::imgs_file_read_error;
 
         int32_t n_cols = to_int32(buf);
 
@@ -194,7 +194,7 @@ int training_data_t::load()
             _data.push_back(std::move(digit_info));
         }
 
-    } catch (exception_t) {
+    } catch (Exception) {
         if (flbls)
             fclose(flbls);
 

@@ -38,7 +38,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-struct env_t
+struct Envirnoment
 {
     enum {_X=46, _Y=31};
     
@@ -75,7 +75,7 @@ struct env_t
     { 1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1 },
     { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 } };
     
-    env_t() = default;
+    Envirnoment() = default;
 
     constexpr int max_x() const { return _X; }
     constexpr int max_y() const { return _Y; }
@@ -84,31 +84,31 @@ struct env_t
 
 /* -------------------------------------------------------------------------- */
 
-struct action_t
+struct Action
 {
     enum class move_t : int { Left, Right, Up, Down };
 
-    using list_t = std::vector<action_t>;
+    using list_t = std::vector<Action>;
 
-    action_t(const move_t& m) noexcept : _move(m) {}
+    Action(const move_t& m) noexcept : _move(m) {}
 
-    action_t(const action_t&) = default;
-    action_t& operator=(const action_t&) = default;
+    Action(const Action&) = default;
+    Action& operator=(const Action&) = default;
 
     const move_t& get() const noexcept {
         return _move;
     }
 
-    bool operator==(const action_t& other) const noexcept {
+    bool operator==(const Action& other) const noexcept {
         return _move == other._move;
     }
     
     static list_t make_complete_list() noexcept {
         return {
-            action_t(move_t::Left),
-            action_t(move_t::Right),
-            action_t(move_t::Up),
-            action_t(move_t::Down)
+            Action(move_t::Left),
+            Action(move_t::Right),
+            Action(move_t::Up),
+            Action(move_t::Down)
         };
     }
 
@@ -119,35 +119,35 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-struct state_t
+struct State
 {
 public:
-    state_t() = default;
+    State() = default;
 
-    state_t(const int& x, const int& y) noexcept : _x(x), _y(y) {}
+    State(const int& x, const int& y) noexcept : _x(x), _y(y) {}
 
-    state_t(const state_t&) = default;
-    state_t& operator=(const state_t&) = default;
+    State(const State&) = default;
+    State& operator=(const State&) = default;
 
     int get_x() const noexcept { return _x; }
     int get_y() const noexcept { return _y; }
 
-    void apply(const action_t& action) noexcept {
-        if (action.get() == action_t::move_t::Left) {
+    void apply(const Action& action) noexcept {
+        if (action.get() == Action::move_t::Left) {
             --_x;
         }
-        else if (action.get() == action_t::move_t::Right) {
+        else if (action.get() == Action::move_t::Right) {
             ++_x;
         }
-        else if (action.get() == action_t::move_t::Up) {
+        else if (action.get() == Action::move_t::Up) {
             --_y;
         }
-        else if (action.get() == action_t::move_t::Down) {
+        else if (action.get() == Action::move_t::Down) {
             ++_y;
         }
     }
 
-    bool operator==(const state_t& other) const noexcept {
+    bool operator==(const State& other) const noexcept {
         return _x == other._x && _y == other._y;
     }
 
@@ -159,46 +159,45 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-class agent_t
-{
+class Agent {
 public:
-    agent_t(
-        const env_t & env, 
-        const state_t& init, 
-        const state_t& goal) noexcept 
+    Agent(
+        const Envirnoment & env, 
+        const State& init, 
+        const State& goal) noexcept 
         : 
         _env(env),
         _state(init),
-        _goal_state(goal)
+        _goalState(goal)
     {}
 
-    bool is_valid(const action_t& action) const noexcept {
+    bool isValid(const Action& action) const noexcept {
         const auto x = _state.get_x();
         const auto y = _state.get_y();
 
-        if (action.get() == action_t::move_t::Left) {
+        if (action.get() == Action::move_t::Left) {
             return (x > 0 && _env.map[y][x - 1] == false);
         }
-        else if (action.get() == action_t::move_t::Right) {
+        else if (action.get() == Action::move_t::Right) {
             return (x < (_env.max_x()-1) && _env.map[y][x + 1] == false);
         }
-        else if (action.get() == action_t::move_t::Up) {
+        else if (action.get() == Action::move_t::Up) {
             return (y > 0 && _env.map[y - 1][x] == false);
         }
-        else if (action.get() == action_t::move_t::Down) {
+        else if (action.get() == Action::move_t::Down) {
             return (y < (_env.max_y()-1) && _env.map[y + 1][x] == false);
         }
 
         return false;
     }
 
-    action_t::list_t valid_actions() const noexcept {
-        const auto list = action_t::make_complete_list();
+    Action::list_t getValidActions() const noexcept {
+        const auto list = Action::make_complete_list();
 
-        action_t::list_t vlist;
+        Action::list_t vlist;
 
         for (const auto& action : list) {
-            if (is_valid(action)) {
+            if (isValid(action)) {
                 vlist.push_back(action);
             }
         }
@@ -206,9 +205,9 @@ public:
         return vlist;
     }
 
-    bool do_action(const action_t& action) {
+    bool doAction(const Action& action) {
 
-        if (is_valid(action)) {
+        if (isValid(action)) {
             _state.apply(action);
             return true;
         }
@@ -216,28 +215,28 @@ public:
         return false;
     }
 
-    const state_t& get_current_state() const noexcept {
+    const State& getCurrentState() const noexcept {
         return _state;
     }
 
-    const state_t& get_goal_state() const noexcept {
-        return _goal_state;
+    const State& getGoalState() const noexcept {
+        return _goalState;
     }
 
-    void set_current_state(const state_t& state) noexcept {
+    void setCurrentState(const State& state) noexcept {
         _state = state;
     }
 
-    void set_goal_state(const state_t& state) noexcept {
-        _goal_state = state;
+    void setGoalState(const State& state) noexcept {
+        _goalState = state;
     }
 
-    const env_t& get_env() const noexcept {
+    const Envirnoment& getEnv() const noexcept {
         return _env;
     }
 
     bool goal() const noexcept {
-        return _state == _goal_state;
+        return _state == _goalState;
     }
 
     double reward() const noexcept {
@@ -245,25 +244,24 @@ public:
     }
 
 private:
-    const env_t & _env;
-    state_t _state;
-    state_t _goal_state;
+    const Envirnoment & _env;
+    State _state;
+    State _goalState;
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-struct render_t
+struct Render
 {
-    void show(const agent_t& a, std::ostream & os) const
-    {
-        const auto x = a.get_current_state().get_x();
-        const auto y = a.get_current_state().get_y();
+    void show(const Agent& a, std::ostream & os) const {
+        const auto x = a.getCurrentState().get_x();
+        const auto y = a.getCurrentState().get_y();
 
-        const auto gx = a.get_goal_state().get_x();
-        const auto gy = a.get_goal_state().get_y();
+        const auto gx = a.getGoalState().get_x();
+        const auto gy = a.getGoalState().get_y();
 
-        const auto& env = a.get_env();
+        const auto& env = a.getEnv();
 
         for (auto row = 0; row < env.max_y(); ++row) {
             for (auto col = 0; col < env.max_x(); ++col) {
@@ -297,9 +295,9 @@ struct render_t
 namespace std {
 
 template <>
-struct hash<state_t>
+struct hash<State>
 {
-    std::size_t operator()(const state_t& k) const
+    std::size_t operator()(const State& k) const
     {
         return std::hash<int>{} (k.get_x()) ^ 
                std::hash<int>{} (k.get_y() << 1);
@@ -310,9 +308,9 @@ struct hash<state_t>
 /* -------------------------------------------------------------------------- */
 
 template <>
-struct hash<action_t>
+struct hash<Action>
 {
-    std::size_t operator()(const action_t& k) const
+    std::size_t operator()(const Action& k) const
     {
         return std::hash<int>{}(int(k.get()));
     }
@@ -348,29 +346,30 @@ static void cls()
 
 
 /* -------------------------------------------------------------------------- */
-
+#define E_GREEDY_POLICY
 #ifdef E_GREEDY_POLICY
-using policy_t = nu::e_greedy_policy_t<action_t, agent_t>;
+using Policy = nu::EGreedyPolicy<Action, Agent>;
 #else
-using policy_t = nu::softmax_policy_t<action_t, agent_t>;
+using Policy = nu::SoftmaxPolicy<Action, Agent>;
 #endif
 
+#define USE_SARSA
 // define USE_SARSA to switch over Sarsa algorithm at compile time
 #ifdef USE_SARSA
-using learner_t = 
-    nu::sarsa_t<
-        action_t, 
-        state_t, 
-        agent_t, 
-        policy_t>;
+using Learner = 
+    nu::Sarsa<
+        Action, 
+        State, 
+        Agent, 
+        Policy>;
 
 #else // USE_QLEARN
-using learner_t = 
-    nu::qlearn_t<
-        action_t, 
-        state_t, 
-        agent_t, 
-        policy_t>;
+using Learner = 
+    nu::QLearn<
+        Action, 
+        State, 
+        Agent, 
+        Policy>;
 #endif
 
 
@@ -382,15 +381,15 @@ struct simulator_t {
     size_t play(
         int episode,
         const Render& r,
-        const env_t& env,
-        const state_t & goal,
-        learner_t & ql,
+        const Envirnoment& env,
+        const State & goal,
+        Learner & ql,
         int timeout)
     {
-        size_t move_cnt = 0;
+        size_t moveCnt = 0;
 
-        state_t st(1, 1);
-        agent_t agent(env, st, goal);
+        State st(1, 1);
+        Agent agent(env, st, goal);
 
         while (!agent.goal() && timeout--) {
 
@@ -403,21 +402,21 @@ struct simulator_t {
             std::cout << std::endl;
             r.show(agent, std::cout);
 
-            auto vlist = agent.valid_actions();
+            auto vlist = agent.getValidActions();
 
             if (!vlist.empty()) {
                 double reward = 0;
-                auto action = ql.select_action(agent);
+                auto action = ql.selectAction(agent);
 
-                if (!agent.do_action(action)) {
+                if (!agent.doAction(action)) {
                     std::cerr << "Invalid operation, bug?!" << std::endl;
                     exit(1);
                 }
 
-                ++move_cnt;
+                ++moveCnt;
             }
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(40));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
         if (timeout < 1) {
@@ -430,14 +429,14 @@ struct simulator_t {
             locate(1, 1);
             std::cout
                 << "Episode #" << episode
-                << " completed in " << move_cnt
+                << " completed in " << moveCnt
                 << " moves" << std::endl;
         }
 
         r.show(agent, std::cout);
         std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-        return move_cnt;
+        return moveCnt;
     }
 
 };
@@ -448,13 +447,13 @@ struct simulator_t {
 int main()
 {
     // envirnoment
-    env_t env;
-    state_t goal(44,29);
-    render_t r;
-    learner_t ql;
+    Envirnoment env;
+    State goal(44,29);
+    Render r;
+    Learner ql;
 
-    const int episodies = 10000;
-    const int timeout = 300;
+    const int episodies = 100000;
+    const int timeout = 3000;
     const double greward = 1000;
 
     cls();
@@ -472,8 +471,8 @@ int main()
 
     int episode = 0;
     for (;  episode < episodies; ++episode) {
-        state_t st(1, 1);
-        agent_t agent(env, st, goal);
+        State st(1, 1);
+        Agent agent(env, st, goal);
 
         auto reward = size_t(ql.learn(agent));
                 
@@ -486,7 +485,7 @@ int main()
     }
 
     while (true) {
-        simulator.play<render_t>(
+        simulator.play<Render>(
             episode, r, env, goal, ql, timeout);
     }
     

@@ -33,9 +33,9 @@ namespace nu {
 class hopfieldnn_t
 {
   public:
-    using rvector_t = vector_t<double>;
+    using FpVector = Vector<double>;
 
-    enum class exception_t
+    enum class Exception
     {
         size_mismatch,
         invalid_sstream_format
@@ -46,10 +46,10 @@ class hopfieldnn_t
     hopfieldnn_t() = default;
 
 
-    //! Create a net with pattern size equal to n_of_inputs
-    hopfieldnn_t(const size_t& n_of_inputs) noexcept
-      : _s(n_of_inputs),
-        _w(n_of_inputs* n_of_inputs)
+    //! Create a net with pattern size equal to inputSize
+    hopfieldnn_t(const size_t& inputSize) noexcept
+      : _s(inputSize),
+        _w(inputSize* inputSize)
     {
     }
 
@@ -66,12 +66,12 @@ class hopfieldnn_t
 
 
     //! Adds specified pattern
-    void add_pattern(const rvector_t& input_pattern);
+    void add_pattern(const FpVector& input_pattern);
 
 
     //! Recall a pattern using as key the input one (it must be a vector
     //! containing [-1,1] values
-    void recall(const rvector_t& input_pattern, rvector_t& output_pattern);
+    void recall(const FpVector& input_pattern, FpVector& output_pattern);
 
 
     //! Create a perceptron using data serialized into
@@ -100,7 +100,7 @@ class hopfieldnn_t
 
 
     //! Returns the number of inputs
-    size_t get_inputs_count() const noexcept { return _s.size(); }
+    size_t getInputSize() const noexcept { return _s.size(); }
 
     //! Build the net by using data of the given string stream
     std::stringstream& load(std::stringstream& ss);
@@ -153,13 +153,13 @@ class hopfieldnn_t
     static const char* ID_WEIGHTS;
     static const char* ID_NEURON_ST;
 
-    step_func_t step_f = step_func_t(0, -1, 1);
+    StepFunction step_f = StepFunction(0, -1, 1);
 
     void _propagate() noexcept;
     bool _propagate_neuron(size_t i) noexcept;
 
-    rvector_t _s; // neuron states
-    rvector_t _w; // weights matrix
+    FpVector _s; // neuron states
+    FpVector _w; // weights matrix
     size_t _pattern_size = 0;
 };
 

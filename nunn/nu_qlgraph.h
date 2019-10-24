@@ -30,21 +30,21 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-class qlgraph_t {
+class QLGraph {
 public:
     using valid_actions_t = std::vector<size_t>;
 
     enum { NO_REWARD = 0, REWARD = 100, FORBIDDEN = -1 };
 
                                             // from   to
-    using topology_t = std::unordered_map< size_t, std::list<size_t> >;
+    using Topology = std::unordered_map< size_t, std::list<size_t> >;
     
-    qlgraph_t( 
+    QLGraph( 
         const size_t& n_of_states, 
         const size_t& goal_state, 
-        const topology_t& topology);
+        const Topology& topology);
 
-    qlgraph_t(const qmtx_t& reward_mtx) :
+    QLGraph(const QMatrix& reward_mtx) :
       _n_of_states(reward_mtx.size()),
       _reward_mtx(reward_mtx),
       _q_mtx(reward_mtx.size())
@@ -52,45 +52,45 @@ public:
         assert(_n_of_states>0);
     }
 
-    void set_learning_rate(const double& lr) noexcept {
-        _learning_rate = lr;
+    void setLearningRate(const double& lr) noexcept {
+        _learningRate = lr;
     }
 
-    void set_discount_rate(const double& dr) noexcept {
-        _discount_rate = dr;
+    void setDiscountRate(const double& dr) noexcept {
+        _discountRate = dr;
     }
 
-    double get_learning_rate() const noexcept {
-        return _learning_rate;
+    double getLearningRate() const noexcept {
+        return _learningRate;
     }
 
-    double get_discount_rate() const noexcept {
-        return _discount_rate;
+    double getDiscountRate() const noexcept {
+        return _discountRate;
     }
 
-    struct helper_t {
-        virtual ~helper_t() {};
-        virtual void begin_episode(const size_t& /*episode*/, qlgraph_t & /*qlobj*/) const {};
-        virtual void end_episode(const size_t& /*episode*/, qlgraph_t & /*qlobj*/) const {};
-        virtual bool quit_request_pending() const { return false; }
+    struct Helper {
+        virtual ~Helper() {};
+        virtual void beginEpisode(const size_t& /*episode*/, QLGraph & /*qlobj*/) const {};
+        virtual void endEpisode(const size_t& /*episode*/, QLGraph & /*qlobj*/) const {};
+        virtual bool quitRequestPending() const { return false; }
         virtual size_t rnd() const noexcept { return size_t(rand()); }
     };
 
     bool learn(
-        const size_t& n_of_episodes, 
-        const helper_t & helper = helper_t());
+        const size_t& nOfEpisodes, 
+        const Helper & helper = Helper());
 
-    const qmtx_t& get_q_mtx() const noexcept {
+    const QMatrix& get_q_mtx() const noexcept {
         return _q_mtx;
     }
 
-    const size_t get_next_state_for(const size_t& state) const {
+    const size_t getNextStateFor(const size_t& state) const {
         return _q_mtx.maxarg(state);
     }
 
 private:
-    static valid_actions_t retrieve_valid_actions(
-        const qmtx_t& r, 
+    static valid_actions_t retrieveValidActions( 
+        const QMatrix& r, 
         size_t state);
 
     size_t rand_of(const valid_actions_t& va) {
@@ -99,13 +99,13 @@ private:
     }
 
     size_t _n_of_states;
-    size_t _goal_state;
+    size_t _goalState;
 
-    qmtx_t _reward_mtx;
-    qmtx_t _q_mtx;
+    QMatrix _reward_mtx;
+    QMatrix _q_mtx;
 
-    double _learning_rate = 0.8;
-    double _discount_rate = 0.8;
+    double _learningRate = 0.8;
+    double _discountRate = 0.8;
 };
 
 

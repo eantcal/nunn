@@ -8,20 +8,20 @@
 
 
 /**
-  This is an implementation of a Artificial Neural Network which learns by
-  example by using Back Propagation algorithm.
-  You can give it examples of what you want the network to do and the algorithm
-  changes the network's weights. When training is finished, the net will give
-  you the required output for a particular input.
+    This is an implementation of a Artificial Neural Network which learns by
+    example by using Back Propagation algorithm.
+    You can give it examples of what you want the network to do and the algorithm
+    changes the network's weights. When training is finished, the net will give
+    you the required output for a particular input.
 
-  Back Propagation algorithm
-  1) Initializes the net by setting up all its weights to be small random
+    Back Propagation algorithm
+    1) Initializes the net by setting up all its weights to be small random
     numbers between -1 and +1.
-  2) Applies input and calculates the output (forward pass).
-  3) Calculates the Error of each neuron which is essentially Target-Output
-  4) Changes the weights in such a way that the Error will get smaller
+    2) Applies input and calculates the output (forward pass).
+    3) Calculates the Error of each neuron which is essentially Target-Output
+    4) Changes the weights in such a way that the Error will get smaller
 
-  Steps from 2 to 4 are repeated again and again until the Error is minimal
+    Steps from 2 to 4 are repeated again and again until the Error is minimal
 */
 
 
@@ -34,7 +34,20 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_neuron.h"
-#include "nu_xmlpnn.h"
+#include "nu_costfuncs.h"
+
+#include "nu_sigmoid.h"
+#include "nu_trainer.h"
+#include "nu_vector.h"
+
+#include <cassert>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <functional>
+#include <iostream>
+#include <sstream>
+#include <vector>
 
 #include <utility>
 
@@ -47,132 +60,248 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! This class represents a MLP neural net
-class mlp_neural_net_t : public xmlp_neural_net_t<neuron_t<double>>
-{
-  protected:
-    using super_t = xmlp_neural_net_t<neuron_t<double>>;
+class MlpNN {
+public:
+    using FpVector = Vector<double>;
 
+    using costFunction_t = std::function<cf::costfunc_t>;
 
-    //! Called for serializing network status, returns NN id string
-    const char* _get_id_ann() const noexcept override { return ID_ANN; }
+    //! This class represents a neuron layer of a neural net.
+    using NeuronLayer = std::vector<Neuron>;
 
+    //! NN topology
+    using Topology = Vector<size_t>;
 
-    //! Called for serializing network status, returns neuron id string
-    const char* _get_id_neuron() const noexcept override
-    {
-        return ID_NEURON;
-    }
+    //! List of execption errors
+    enum class Exception {
+        size_mismatch,
+        invalid_sstream_format,
+        userdef_costf_not_defined
+    };
 
-
-    //! Called for serializing network status, returns neuron-layer id string
-    const char* _get_id_neuron_layer() const noexcept override
-    {
-        return ID_NEURON_LAYER;
-    }
-
-
-    //! Called for serializing network status, returns topology id string
-    const char* _get_id_topology() const noexcept override
-    {
-        return ID_TOPOLOGY;
-    }
-
-
-    //! Called for serializing network status, returns inputs id string
-    const char* _get_id_inputs() const noexcept override
-    {
-        return ID_INPUTS;
-    }
-
-
-  public:
     //! default ctor
-    mlp_neural_net_t() = default;
-
+    MlpNN() = default;
 
     //! ctor
-    mlp_neural_net_t(const topology_t& topology, double learning_rate = 0.1,
-                     double momentum = 0.5, err_cost_t ec = err_cost_t::MSE);
-
+    MlpNN(
+        const Topology& topology, 
+        double learningRate = 0.1,
+        double momentum = 0.5);
 
     //! copy-ctor
-    mlp_neural_net_t(const mlp_neural_net_t& nn) = default;
-
+    MlpNN(const MlpNN& nn) = default;
 
     //! move-ctor
-    mlp_neural_net_t(mlp_neural_net_t&& nn)
-      : super_t(nn)
+    MlpNN(MlpNN&& nn) noexcept
+        : 
+        _topology(std::move(nn._topology)),
+        _learningRate(std::move(nn._learningRate)),
+        _momentum(std::move(nn._momentum)),
+        _inputVector(std::move(nn._inputVector)),
+        _neuronLayers(std::move(nn._neuronLayers))
     {
     }
 
-
     //! copy-assignment operator
-    mlp_neural_net_t& operator=(const mlp_neural_net_t& nn) = default;
-
+    MlpNN& operator=(const MlpNN& nn) = default;
 
     //! move-assignment operator
-    mlp_neural_net_t& operator=(mlp_neural_net_t&& nn)
-    {
-        super_t::operator=(std::move(nn));
+    MlpNN& operator=(MlpNN&& nn) noexcept {
+        if (this != &nn) {
+            _topology = std::move(nn._topology);
+            _learningRate = std::move(nn._learningRate);
+            _momentum = std::move(nn._momentum);
+            _inputVector = std::move(nn._inputVector);
+            _neuronLayers = std::move(nn._neuronLayers);
+        }
+
         return *this;
     }
 
+    //! Return the number of inputs
+    size_t getInputSize() const noexcept { 
+        return _inputVector.size(); 
+    }
+
+    //! Return the number of outputs
+    size_t getOutputSize() const noexcept {
+        if (_topology.empty())
+            return 0;
+
+        return _topology[_topology.size() - 1];
+    }
+
+    //! Return a const reference to topology vector
+    const Topology& getTopology() const noexcept { 
+        return _topology; 
+    }
+
+    //! Return current learning rate
+    double getLearningRate() const noexcept {
+        return _learningRate; 
+    }
+
+    //! Change the learning rate of the net
+    void setLearningRate(double rate) noexcept {
+        _learningRate = rate;
+    }
+
+    //! Return current momentum
+    double getMomentum() const noexcept { 
+        return _momentum; 
+    }
+
+    //! Change the momentum of the net
+    void setMomentum(double new_momentum) noexcept {
+        _momentum = new_momentum;
+    }
+
+    //! Set net inputs
+    void setInputVector(const FpVector& inputs) {
+        if (inputs.size() != _inputVector.size())
+            throw Exception::size_mismatch;
+
+        _inputVector = inputs;
+    }
+
+    //! Get the net inputs
+    const FpVector& getInputVector() const noexcept {
+        return _inputVector;
+    }
+
+    //! Copy content of output vector to outputs
+    void copyOutputVector(FpVector& outputs) noexcept;
+
+    //! Fire all neurons of the net and calculate the outputs
+    void feedForward() noexcept;
+
+    //! Fire all neurons of the net and calculate the outputs
+    //! and then apply the Back Propagation Algorithm to the net
+    void runBackPropagationAlgo(const FpVector& target_v, FpVector& output_v);
+
+    //! Fire all neurons of the net and calculate the outputs
+    //! and then apply the Back Propagation Algorithm to the net
+    void runBackPropagationAlgo(const FpVector& target_v);
+
+    //! Build the net by using data of the given string stream
+    std::stringstream& load(std::stringstream& ss);
+
+    //! Save net status into the given string stream
+    std::stringstream& save(std::stringstream& ss) noexcept;
+
+    //! Print the net state out to the given ostream
+    std::ostream& dump(std::ostream& os) noexcept;
+        
+    //! Calculate mean squared error
+    double calcMSE(const FpVector& target);
+
+    //! Calculate cross-entropy cost defined as
+    //! C=(target*Log(output)+(1-target)*Log(1-output))/output.size()
+    double calcCrossEntropy(const FpVector& target);
+
     //! Build the net by using data of given string stream
-    friend std::stringstream& operator>>(std::stringstream& ss,
-                                         mlp_neural_net_t& net)
-    {
+    friend 
+    std::stringstream& operator>>(std::stringstream& ss, MlpNN& net) {
         return net.load(ss);
     }
 
-
     //! Save net status into given string stream
-    friend std::stringstream& operator<<(std::stringstream& ss,
-                                         mlp_neural_net_t& net)
-    {
+    friend 
+    std::stringstream& operator<<(std::stringstream& ss, MlpNN& net) {
         return net.save(ss);
     }
 
-
     //! Dump the net status out to given ostream
-    friend std::ostream& operator<<(std::ostream& os, mlp_neural_net_t& net)
-    {
+    friend 
+    std::ostream& operator<<(std::ostream& os, MlpNN& net) {
         return net.dump(os);
     }
 
     //! Reset all net weights using new random values
-    void reshuffle_weights() noexcept;
+    void reshuffleWeights() noexcept;
 
+    //! Called for serializing network status, returns NN id string
+    constexpr const char* getNetId() const noexcept {
+        return ID_ANN;
+    }
 
-  protected:
-    //! This method is implemented in order to update
-    //! network weights according to BP learning algorithm
-    void _update_neuron_weights(neuron_t<double>& neuron,
-                                size_t layer_idx) override;
+    // Called for serializing network status, returns neuron id string
+    constexpr const char* getNeuronId() const noexcept {
+        return ID_NEURON;
+    }
 
+    // Called for serializing network status, returns neuron-layer id string
+    constexpr const char* getNeuronLayerId() const noexcept {
+        return ID_NEURON_LAYER;
+    }
 
-  private:
-    static const char* ID_ANN;
-    static const char* ID_NEURON;
-    static const char* ID_NEURON_LAYER;
-    static const char* ID_TOPOLOGY;
-    static const char* ID_INPUTS;
+    // Called for serializing network status, returns topology id string
+    constexpr const char* getTopologyId() const noexcept {
+        return ID_TOPOLOGY;
+    }
+
+    //! Called for serializing network status, returns inputs id string
+    constexpr const char* getInputVectorId() const noexcept {
+        return ID_INPUTS;
+    }
+
+private:
+    // Update network weights according to BP learning algorithm
+    void _updateNeuronWeights(Neuron& neuron, size_t layer_idx);
+
+    // Get input value for a neuron belonging to a given layer
+    // If layer is 0, it is related to input of the net
+    double _getInput(size_t layer, size_t idx) noexcept {
+        if (layer < 1)
+            return _inputVector[idx];
+
+        const auto& neuronLayer = _neuronLayers[layer - 1];
+
+        return neuronLayer[idx].output;
+    }
+
+    // Fire all neurons of a given layer
+    void _fireNeuron(NeuronLayer& nlayer, size_t layer_idx, size_t out_idx) noexcept;
+
+    // Do back propagation
+    void _backPropagate(const FpVector& target_v, const FpVector& output_v);
+
+    // Initialize inputs and neuron layers of a net using a given topology
+    static void _build(const Topology& topology,
+        std::vector<NeuronLayer>& neuronLayers,
+        FpVector& inputs);
+
+    // Calculate error vector in using MSE function
+    static void _calcMSE(
+        const FpVector& target_v,
+        const FpVector& outputs_v,
+        FpVector& res_v) noexcept;
+    
+
+    // Attributes
+    costFunction_t _userdef_costf = nullptr;
+    Topology _topology;
+    double _learningRate = 0.1;
+    double _momentum = 0.1;
+    FpVector _inputVector;
+    std::vector<NeuronLayer> _neuronLayers;
+    
+    constexpr static const char* MlpNN::ID_ANN = "ann";
+    constexpr static const char* MlpNN::ID_NEURON = "neuron";
+    constexpr static const char* MlpNN::ID_NEURON_LAYER = "layer";
+    constexpr static const char* MlpNN::ID_TOPOLOGY = "topology";
+    constexpr static const char* MlpNN::ID_INPUTS = "inputs";
 };
 
 
 /* -------------------------------------------------------------------------- */
 
 //! The trainer class is a helper class for MLP network training
-class mlp_nn_trainer_t
-  : public nn_trainer_t<mlp_neural_net_t, mlp_neural_net_t::rvector_t,
-                        mlp_neural_net_t::rvector_t>
-{
-  public:
-    mlp_nn_trainer_t(mlp_neural_net_t& nn, size_t epochs,
-                     double min_err = -1) noexcept
-      : nn_trainer_t<mlp_neural_net_t, mlp_neural_net_t::rvector_t,
-                     mlp_neural_net_t::rvector_t>(nn, epochs, min_err)
-    {
-    }
+struct MlpNNTrainer : public NNTrainer<MlpNN, MlpNN::FpVector, MlpNN::FpVector> {
+    
+    MlpNNTrainer(MlpNN& nn, size_t epochs, double minErr = -1) noexcept : 
+        NNTrainer<MlpNN, MlpNN::FpVector, MlpNN::FpVector>(nn, epochs, minErr) {}
+
 };
 
 

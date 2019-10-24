@@ -25,7 +25,7 @@ namespace cf {
 /* --------------------------------------------------------------------------
  */
 
-double cross_entropy(vector_t<double> output, const vector_t<double>& target)
+double calcCrossEntropy(Vector<double> output, const Vector<double>& target)
 {
     auto log_output = output;
 
@@ -35,10 +35,10 @@ double cross_entropy(vector_t<double> output, const vector_t<double>& target)
 
     log_output.log();
 
-    vector_t<double> inv_target(target.size(), 1.0);
+    Vector<double> inv_target(target.size(), 1.0);
     inv_target -= target;
 
-    vector_t<double> log_inv_output(output.size(), 1.0);
+    Vector<double> log_inv_output(output.size(), 1.0);
     log_inv_output -= output;
 
     for (auto& i : log_inv_output)

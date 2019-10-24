@@ -42,10 +42,10 @@
 int main(int argc, char* argv[])
 {
     try {
-        nu::step_func_t step_f(0.5 /* Lo/Hi-threshold */, 0 /* Lo - Output */,
+        nu::StepFunction step_f(0.5 /* Lo/Hi-threshold */, 0 /* Lo - Output */,
                                1 /* Hi - Output */);
 
-        nu::perceptron_t nn(2 /* inputs */, 0.2 /* learning rate */, step_f);
+        nu::Perceptron nn(2 /* inputs */, 0.2 /* learning rate */, step_f);
 
         // This is the bipolar-and function used for the training
         auto and_function = [](int a, int b) { return a & b; };
@@ -54,14 +54,14 @@ int main(int argc, char* argv[])
         // ---- TRAINING
         // ---------------------------------------------------------
 
-        nu::perceptron_trainer_t trainer(nn,
+        nu::PerceptronTrainer trainer(nn,
                                          2000, // Max number of epochs
                                          0.01  // Min error
                                          );
 
         std::cout << "AND training start ( Max epochs count="
-                  << trainer.get_epochs()
-                  << " Minimum error=" << trainer.get_min_err() << " )"
+                  << trainer.getEpochs()
+                  << " Minimum error=" << trainer.getMinErr() << " )"
                   << std::endl;
 
         size_t epoch_n = 0;
@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
                       { double(and_function(a, b)) }, // target
 
                       // cost function
-                      [&err](nu::perceptron_t& net, const double& target) {
+                      [&err](nu::Perceptron& net, const double& target) {
                           err = net.error(target);
                           return err;
                       });
@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
                 std::cout << "Epoch #" << epoch_n << " Err = " << err
                           << std::endl;
 
-            if (err < trainer.get_min_err())
+            if (err < trainer.getMinErr())
                 break;
         }
 
@@ -101,11 +101,11 @@ int main(int argc, char* argv[])
         for (int a = 0; a < 2; ++a) {
             for (int b = 0; b < 2; ++b) {
                 double output = 0.0;
-                nu::vector_t<double> input_vec{ double(a), double(b) };
+                nu::Vector<double> input_vec{ double(a), double(b) };
 
-                nn.set_inputs(input_vec);
-                nn.feed_forward();
-                output = nn.get_sharp_output();
+                nn.setInputVector(input_vec);
+                nn.feedForward();
+                output = nn.getSharpOutput();
 
                 // Dump the network status
                 std::cout << nn;
@@ -130,8 +130,8 @@ int main(int argc, char* argv[])
         }
 
         std::cout << "Test completed successfully" << std::endl;
-    } catch (nu::perceptron_t::exception_t& e) {
-        std::cerr << "nu::perceptron_t::exception_t n# " << int(e) << std::endl;
+    } catch (nu::Perceptron::Exception& e) {
+        std::cerr << "nu::Perceptron::Exception n# " << int(e) << std::endl;
 
         std::cerr << "Check for configuration parameters and retry"
                   << std::endl;

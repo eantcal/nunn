@@ -27,68 +27,62 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-template<class A, class AG, class T=double, class RG = random_gen_t<T>>
-class e_greedy_policy_t {
+template<class Action, class Agent, class RndGen = RandomGenerator<>>
+class EGreedyPolicy {
 public:
-    using real_t = T;
-    using action_t = A;
-    using agent_t = AG;
-    using rnd_gen_t = RG;   
-
-    void set_epsilon(const real_t & e) noexcept {
+    void setEpsilon(const double & e) noexcept {
         _epsilon = e;
     }
 
-    real_t get_epsilon() const noexcept {
+    double getEpsilon() const noexcept {
         return _epsilon;
     }
 
-    template<class Q>
-    action_t select_action(
-        const agent_t& agent, 
-        Q & q, 
-        bool dont_explore = false) const
+    template<class QMap>
+    Action selectAction(
+        const Agent& agent, 
+        QMap & qMap, 
+        bool dontExplore = false) const
     {
-        auto valid_actions = agent.valid_actions();
+        auto validActions = agent.getValidActions();
 
-        assert(!valid_actions.empty());
+        assert(!validActions.empty());
 
-        action_t action = valid_actions[0];
+        Action action = validActions[0];
 
-        real_t reward = 0;
+        double reward = 0;
 
-        if (dont_explore || _rnd_gen() > get_epsilon()) {
+        if (dontExplore || _rndGen() > getEpsilon()) {
             // get current agent state
-            const auto & agent_state = agent.get_current_state();
+            const auto & agentState = agent.getCurrentState();
 
-            reward = q[agent_state][action];
+            reward = qMap[agentState][action];
 
-            for (const auto & an_action : valid_actions) {
-                const auto & val = q[agent_state][an_action];
+            for (const auto & anAction : validActions) {
+                const auto & val = qMap[agentState][anAction];
                 if (val > reward) {
                     reward = val;
-                    action = an_action;
+                    action = anAction;
                 }
             }
         }
 
         if (reward == .0) {
             action =
-                valid_actions[size_t(_rnd_gen() *
-                    real_t(valid_actions.size()))];
+                validActions[size_t(_rndGen() * double(validActions.size()))];
         }
 
         return action;
     }
 
-    template<class Q>
-    action_t get_learned_action(const agent_t& agent, Q & q) const {
-        return select_action(agent, q, true);
+    template<class QMap>
+    Action getLearnedAction(const Agent& agent, QMap & qMap) const {
+        return selectAction(agent, qMap, true);
     }
 
 private:
-    real_t _epsilon = .1;
-    mutable rnd_gen_t _rnd_gen;
+    double _epsilon = .1;
+    mutable RndGen _rndGen;
 
 };
 

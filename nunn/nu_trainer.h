@@ -22,35 +22,37 @@ namespace nu {
 
 //! The trainer class is a helper class for neural networks training
 template <class Net, class Input, class Target>
-class nn_trainer_t
+class NNTrainer
 {
     friend class iterator;
-
-  public:
-    using type_t = nn_trainer_t<Net, Input, Target>;
+public:
+    using type_t = NNTrainer<Net, Input, Target>;
 
     //! Cost function pointer
     using cost_fptr_t = double(Net&, const Target&);
 
     //! Cost function object wrapper
-    using cost_func_t = std::function<cost_fptr_t>;
+    using costFunction_t = std::function<cost_fptr_t>;
 
-    //! Progress call back function pointer
+    //! Progress call back function prototype
     //! It can break training session returning true
-    using progress_fptr_t = bool(Net&, const Input&, const Target&,
-                                 size_t /*epoch*/, size_t /* sample_idx */,
-                                 double /* err */);
+    using progressCallbackPrototype_t =
+        bool(Net&, 
+             const Input&, 
+             const Target&,
+             size_t /*epoch*/, 
+             size_t /* sampleIdx */,
+             double /* err */);
 
     //! Progress call back function object wrapper
-    using progress_cbk_t = std::function<progress_fptr_t>;
+    using progressCallback_t = std::function<progressCallbackPrototype_t>;
 
     //! Trainer iterator
-    struct iterator
-    {
-        friend class nn_trainer_t;
+    struct iterator {
+        friend class NNTrainer;
 
-      private:
-        nn_trainer_t* _trainer = nullptr;
+    private:
+        NNTrainer* _trainer = nullptr;
         size_t _epoch = 0;
 
         iterator(type_t& trainer, size_t epoch) noexcept
@@ -59,7 +61,7 @@ class nn_trainer_t
         {
         }
 
-      public:
+    public:
         //! Copy constructor
         iterator(const iterator& it) = default;
 
@@ -67,8 +69,9 @@ class nn_trainer_t
         iterator& operator=(const iterator& it) = default;
 
         //! Move constructor
-        iterator(iterator&& it) noexcept : _trainer(std::move(it._trainer)),
-                                              _epoch(std::move(it._epoch))
+        iterator(iterator&& it) noexcept : 
+            _trainer(std::move(it._trainer)),
+            _epoch(std::move(it._epoch))
         {
         }
 
@@ -127,80 +130,78 @@ class nn_trainer_t
         return iterator(*this, 0); 
     }
 
-
     //! Return an iterator to the last epoch
     iterator end() noexcept { 
         return iterator(*this, this->_epochs + 1); 
     }
 
-
     //! Constructor
     //! @nn:      the network to train
     //! @epochs:  max epoch count at which to stop training
-    //! @min_err: min error value at which to stop training
-    nn_trainer_t(Net& nn, size_t epochs, double min_err = -1.0) noexcept
+    //! @minErr: min error value at which to stop training
+    NNTrainer(Net& nn, size_t epochs, double minErr = -1.0) noexcept
       : _nn(nn),
         _epochs(epochs),
-        _min_err(min_err),
+        _minError(minErr),
         _err(0.0)
     {
     }
 
-
     //! Return the max number of epochs
-    size_t get_epochs() const noexcept { 
+    size_t getEpochs() const noexcept { 
         return _epochs; 
     }
-
 
     //! Return the expected min error value at which to stop training 
     //! on sample basis.
     //! If negative it will be ignored
-    double get_min_err() const noexcept { 
-        return _min_err; 
+    double getMinErr() const noexcept { 
+        return _minError; 
     }
 
-
     //! Return current epoch error
-    double get_error() const noexcept { 
+    double getError() const noexcept { 
         return _err; 
     }
 
-
     //! Trains the net using a single sample
-    bool train(const Input& input, const Target& target, cost_func_t err_cost_f) {
-        _nn.set_inputs(input);
-        _nn.back_propagate(target);
+    bool train(const Input& input, const Target& target, costFunction_t errCost) {
+        _nn.setInputVector(input);
+        _nn.runBackPropagationAlgo(target);
 
         // Compute error for this sample
-        _err = err_cost_f(_nn, target);
+        _err = errCost(_nn, target);
 
-        return _err < _min_err;
+        return _err < getMinErr();
     }
 
 
     //! Trains the net using a training set of samples
     template <class TSet>
-    size_t run_training(const TSet& training_set, cost_func_t err_cost_f,
-                        progress_cbk_t progress_cbk = nullptr,
-                        double p2use = 1.0)
+    size_t runTraining(
+        const TSet& trainingSet, 
+        costFunction_t errCost,
+        progressCallback_t progressCbk = nullptr,
+        double p2use = 1.0)
     {
         size_t epoch = 0;
-        size_t end_idx = size_t(double(training_set.size()) * p2use);
-        bool continue_flag = true;
+        size_t end_idx = size_t(double(trainingSet.size()) * p2use);
 
-        for (; continue_flag && epoch < _epochs; ++epoch) {
-            size_t sample_idx = 0;
+        for (bool bContinue = true; 
+             bContinue && epoch < _epochs; 
+             ++epoch) 
+        {
+            size_t sampleIdx = 0;
 
-            for (const auto& sample : training_set) {
-                if (progress_cbk)
-                    continue_flag = !progress_cbk(
-                        _nn, sample.first, sample.second, epoch, sample_idx++, _err);
+            for (const auto& [input, target] : trainingSet) {
+                if (progressCbk)
+                    bContinue = !progressCbk(
+                        _nn, input, target, epoch, sampleIdx++, _err);
 
-                if (train(sample.first, sample.second, err_cost_f) == true)
+                if (train(input, target, errCost) == true)
                     return epoch;
 
-                if (!continue_flag || (p2use < 1.0 && sample_idx >= end_idx)) 
+                if (!bContinue || (p2use < 1.0 && sampleIdx >= end_idx)) 
                     return epoch;
             }
         }
@@ -211,7 +212,7 @@ class nn_trainer_t
   protected:
     Net& _nn;
     size_t _epochs;
-    double _min_err;
+    double _minError;
     double _err;
 };
 

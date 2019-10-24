@@ -28,55 +28,52 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! This class represents a neuron of a neural net neuron layer
-template <class T>
-struct neuron_t
-{
+struct Neuron {
     //! neuron weights
-    vector_t<T> weights;
+    Vector<double> weights;
 
     //! amount by which weights will change
-    vector_t<T> delta_weights;
+    Vector<double> deltaW;
 
     //! neuron bias
-    T bias = T(0);
+    double bias = 0.0;
 
     //! neuron output
-    T output = T(0);
+    double output = 0.0;
 
     //! error field used by learning algorithm
-    T error = T(0);
+    double error = 0.0;
 
     //! Save neuron status into a given string stream
-    friend std::stringstream& operator<<(std::stringstream& ss,
-                                         const neuron_t<T>& n) noexcept
-    {
+    friend 
+    std::stringstream& operator<<(std::stringstream& ss, const Neuron& n) noexcept {
         ss << n.bias << std::endl;
         ss << n.weights << std::endl;
-        ss << n.delta_weights << std::endl;
+        ss << n.deltaW << std::endl;
 
         return ss;
     }
 
     //! Load neuron status from a given string stream
-    friend std::stringstream& operator>>(std::stringstream& ss,
-                                         neuron_t<T>& n) noexcept
-    {
+    friend 
+    std::stringstream& operator>>(std::stringstream& ss, Neuron& n) noexcept {
         ss >> n.bias;
         ss >> n.weights;
-        ss >> n.delta_weights;
+        ss >> n.deltaW;
 
         return ss;
     }
 
-    //! Resize both the weights and delta_weights vectors
+    //! Resize both the weights and deltaW vectors
     void resize(size_t size) noexcept {
         weights.resize(size);
-        delta_weights.resize(size);
+        deltaW.resize(size);
     }
 };
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

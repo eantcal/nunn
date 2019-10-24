@@ -20,7 +20,7 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-qmtx_t::qmtx_t(size_t n_of_states) 
+QMatrix::QMatrix(size_t n_of_states) 
 {
     _data.resize(n_of_states);
     for (auto & row : _data) {
@@ -31,7 +31,7 @@ qmtx_t::qmtx_t(size_t n_of_states)
 
 /* -------------------------------------------------------------------------- */
 
-void qmtx_t::fill(const double& value) noexcept {
+void QMatrix::fill(const double& value) noexcept {
     for (auto & row : data()) {
         for (auto & v : row) {
             v = value;
@@ -42,7 +42,7 @@ void qmtx_t::fill(const double& value) noexcept {
 
 /* -------------------------------------------------------------------------- */
 
-double qmtx_t::max(size_t rowidx) const {
+double QMatrix::max(size_t rowidx) const {
     size_t maxidx = 0;
     double maxvalue = 0;
     _max(rowidx, maxidx, maxvalue);
@@ -52,7 +52,7 @@ double qmtx_t::max(size_t rowidx) const {
 
 /* -------------------------------------------------------------------------- */
 
-size_t qmtx_t::maxarg(size_t rowidx) const {
+size_t QMatrix::maxarg(size_t rowidx) const {
     size_t maxidx = 0;
     double maxvalue = 0;
     _max(rowidx, maxidx, maxvalue);
@@ -62,7 +62,7 @@ size_t qmtx_t::maxarg(size_t rowidx) const {
 
 /* -------------------------------------------------------------------------- */
 
-void qmtx_t::normalize() {
+void QMatrix::normalize() {
     bool ft = true;
     double max = 0;
 
@@ -88,10 +88,10 @@ void qmtx_t::normalize() {
 
 /* -------------------------------------------------------------------------- */
 
-qmtx_t::vect_t & qmtx_t::operator[](const size_t& rowidx) {
+QMatrix::vect_t & QMatrix::operator[](const size_t& rowidx) {
     if (rowidx >= size()) {
         assert(0);
-        throw exception_t::invalid_index;
+        throw Exception::invalid_index;
     }
 
     return data()[rowidx];
@@ -100,10 +100,10 @@ qmtx_t::vect_t & qmtx_t::operator[](const size_t& rowidx) {
 
 /* -------------------------------------------------------------------------- */
 
-const qmtx_t::vect_t & qmtx_t::operator[](const size_t& rowidx) const {
+const QMatrix::vect_t & QMatrix::operator[](const size_t& rowidx) const {
     if (rowidx >= size()) {
         assert(0);
-        throw exception_t::invalid_index;
+        throw Exception::invalid_index;
     }
 
     return data()[rowidx];
@@ -112,7 +112,7 @@ const qmtx_t::vect_t & qmtx_t::operator[](const size_t& rowidx) const {
 
 /* -------------------------------------------------------------------------- */
 
-void qmtx_t::show(std::ostream & os, size_t width) const {
+void QMatrix::show(std::ostream & os, size_t width) const {
     if (data().empty())
         return;
 
@@ -128,10 +128,10 @@ void qmtx_t::show(std::ostream & os, size_t width) const {
 
 /* -------------------------------------------------------------------------- */
 
-void qmtx_t::_max(size_t rowidx, size_t & idx, double & max) const {
+void QMatrix::_max(size_t rowidx, size_t & idx, double & max) const {
     if (rowidx >= size()) {
         assert(0);
-        throw exception_t::invalid_index;
+        throw Exception::invalid_index;
     }
 
     const auto & row_vector = data()[rowidx];

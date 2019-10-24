@@ -25,33 +25,27 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-template <
-    class T = double, 
-    class E = std::mt19937,
-    class D = std::uniform_real_distribution<T>
->
-class random_gen_t {
-public:
-    using real_t = T;
-    using engine_t = E;
-    using distribution_t = D;
-
-    random_gen_t(const real_t& min_value = 0,
-                 const real_t& max_value = 1) : 
-            _distribution(min_value, max_value) 
+template <class Engine = std::mt19937,
+          class Distribution = std::uniform_real_distribution<double>>
+struct RandomGenerator {
+    RandomGenerator(
+        const double& min_value = 0,
+        const double& max_value = 1) 
+        : 
+        _distribution(min_value, max_value) 
     {
         std::random_device rd;
 
         _engine.seed(rd());
     }
 
-    real_t operator ()() {
+    double operator ()() {
         return _distribution(_engine);
     }
 
 private:
-    engine_t _engine;
-    distribution_t _distribution;
+    Engine _engine;
+    Distribution _distribution;
 };
 
 

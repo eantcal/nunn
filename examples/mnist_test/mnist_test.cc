@@ -35,7 +35,7 @@ See also http://yann.lecun.com/exdb/mnist/
 
 
 #include "mnist.h"
-#include "nu_rmlpnn.h"
+#include "nu_mlpnn.h"
 
 #include <cassert>
 #include <cstdint>
@@ -55,7 +55,7 @@ See also http://yann.lecun.com/exdb/mnist/
 
 /* -------------------------------------------------------------------------- */
 
-using neural_net_t = nu::rmlp_neural_net_t;
+using neural_net_t = nu::MlpNN;
 
 
 /* -------------------------------------------------------------------------- */
@@ -77,7 +77,7 @@ const int TRAINING_EPOCH_NUMBER = 100;
 
 static bool process_cl(int argc, char* argv[], std::string& files_path,
                        std::string& load_file_name, std::string& save_file_name,
-                       bool& skip_training, double& learning_rate,
+                       bool& skip_training, double& learningRate,
                        bool& change_lr, double& momentum, bool& change_m,
                        int& epoch, std::vector<size_t>& hidden_layer,
                        bool& use_cross_entropy)
@@ -92,7 +92,7 @@ static bool process_cl(int argc, char* argv[], std::string& files_path,
         }
 
         if ((arg == "--version" || arg == "-v")) {
-            std::cout << "nunnlib MNIST Test 1.01 (c) acaldmail@gmail.com"
+            std::cout << "nunnlib MNIST Test 1.01 (c) antonino.calderone@gmail.com"
                       << std::endl;
             continue;
         }
@@ -147,9 +147,9 @@ static bool process_cl(int argc, char* argv[], std::string& files_path,
             continue;
         }
 
-        if ((arg == "--learning_rate" || arg == "-r") && (pidx + 1) < argc) {
+        if ((arg == "--learningRate" || arg == "-r") && (pidx + 1) < argc) {
             try {
-                learning_rate = std::stod(argv[++pidx]);
+                learningRate = std::stod(argv[++pidx]);
                 change_lr = true;
             } catch (...) {
                 return false;
@@ -249,7 +249,7 @@ static void usage(const char* appname)
       << "\t[--load|-l <net_description_file_name>] " << std::endl
       << "\t[--skip_training|-n] " << std::endl
       << "\t[--use_cross_entropy|-c] " << std::endl
-      << "\t[--learning_rate|-r <rate>] " << std::endl
+      << "\t[--learningRate|-r <rate>] " << std::endl
       << "\t[--momentum|-m <value>] " << std::endl
       << "\t[--epoch_cnt|-e <count>] " << std::endl
       << "\t[[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]  "
@@ -278,7 +278,7 @@ static void usage(const char* appname)
       << "\tskip net training" << std::endl
       << "--use_cross_entropy or -c" << std::endl
       << "\tuse the cross entropy cost function instead of MSE" << std::endl
-      << "--learning_rate or -r" << std::endl
+      << "--learningRate or -r" << std::endl
       << "\tset learning rate (default " << NET_LEARNING_RATE << ")"
       << std::endl
       << "--momentum or -m" << std::endl
@@ -305,21 +305,21 @@ static double test_net(std::unique_ptr<neural_net_t>& net,
     entropy_cost = 0.0;
 
     for (auto i = test_data.begin(); i != test_data.end(); ++i) {
-        nu::vector_t<double> inputs;
+        nu::Vector<double> inputs;
         (*i)->to_vect(inputs);
 
-        nu::vector_t<double> target;
+        nu::Vector<double> target;
         (*i)->label_to_target(target);
 
-        net->set_inputs(inputs);
-        net->feed_forward();
+        net->setInputVector(inputs);
+        net->feedForward();
 
-        nu::vector_t<double> outputs;
-        net->get_outputs(outputs);
+        nu::Vector<double> outputs;
+        net->copyOutputVector(outputs);
 
-        mean_square_error += nu::cf::mean_squared_error(outputs, target);
+        mean_square_error += nu::cf::calcMSE(outputs, target);
 
-        entropy_cost += nu::cf::cross_entropy(outputs, target);
+        entropy_cost += nu::cf::calcCrossEntropy(outputs, target);
 
         if ((*i)->get_label() != outputs.maxarg())
             ++err_cnt;
@@ -376,7 +376,7 @@ int main(int argc, char* argv[])
     std::string save_file_name;
     bool save_to_file = false;
     bool skip_training = false;
-    double learning_rate = NET_LEARNING_RATE;
+    double learningRate = NET_LEARNING_RATE;
     double momentum = NET_MOMENTUM;
     int epoch_cnt = TRAINING_EPOCH_NUMBER;
     bool use_ce = false;
@@ -388,7 +388,7 @@ int main(int argc, char* argv[])
 
     if (argc > 1) {
         if (!process_cl(argc, argv, files_path, load_file_name, save_file_name,
-                        skip_training, learning_rate, change_lr, momentum,
+                        skip_training, learningRate, change_lr, momentum,
                         change_m, epoch_cnt, hidden_layer, use_ce)) {
             usage(argv[0]);
             return 1;
@@ -414,7 +414,7 @@ int main(int argc, char* argv[])
         std::cout << "       : " << hidden_layer[hl_cnt++] << std::endl;
     }
 
-    std::cout << "Net Learning rate  ( LR )  : " << learning_rate << std::endl;
+    std::cout << "Net Learning rate  ( LR )  : " << learningRate << std::endl;
 
     std::cout << "Net Momentum       ( M )   : " << momentum << std::endl;
 
@@ -427,7 +427,7 @@ int main(int argc, char* argv[])
         std::cout << "Training images : " << training_images_fn << std::endl;
 
         std::unique_ptr<neural_net_t> net;
-        training_data_t training_set(training_labels_fn, training_images_fn);
+        training_data_t trainingSet(training_labels_fn, training_images_fn);
 
         const std::string testing_labels_fn = files_path + TEST_LABELS_FN;
         const std::string testing_images_fn = files_path + TEST_IMAGES_FN;
@@ -442,8 +442,8 @@ int main(int argc, char* argv[])
         if (!skip_training) {
             // Start Training ... //
 
-            auto n_of_items = training_set.load();
-            const auto& data = training_set.data();
+            auto n_of_items = trainingSet.load();
+            const auto& data = trainingSet.data();
 
             assert(!data.empty());
 
@@ -456,7 +456,7 @@ int main(int argc, char* argv[])
               (*data.cbegin())->get_dx() * (*data.cbegin())->get_dy();
 
             // Set up the topology
-            neural_net_t::topology_t topology;
+            neural_net_t::Topology topology;
 
             topology.push_back(input_size);
 
@@ -466,7 +466,7 @@ int main(int argc, char* argv[])
             topology.push_back(OUTPUT_LAYER_SIZE);
 
             net = std::unique_ptr<neural_net_t>(
-              new neural_net_t(topology, learning_rate, momentum));
+              new neural_net_t(topology, learningRate, momentum));
         }
 
         if (!load_file_name.empty()) {
@@ -494,10 +494,10 @@ int main(int argc, char* argv[])
         }
 
         if (change_lr)
-            net->set_learning_rate(learning_rate);
+            net->setLearningRate(learningRate);
 
         if (change_m)
-            net->set_momentum(momentum);
+            net->setMomentum(momentum);
 
 
         size_t cnt = 0;
@@ -512,34 +512,30 @@ int main(int argc, char* argv[])
             for (int epoch = 0; epoch < max_epoch_number; ++epoch) {
                 locate(1);
 
-                double mean_squared_error = 0.0;
-                double cross_entropy = 0.0;
+                double calcMSE = 0.0;
+                double calcCrossEntropy = 0.0;
 
                 std::cout << "Learning epoch " << epoch + 1 << " of "
                           << max_epoch_number
-                          << " ( LR = " << net->get_learning_rate()
-                          << ", M = " << net->get_momentum() << " )"
+                          << " ( LR = " << net->getLearningRate()
+                          << ", M = " << net->getMomentum() << " )"
                           << std::endl
                           << std::endl;
 
                 cnt = 0;
-                training_set.reshuffle();
-                const auto& data = training_set.data();
-
-                net->select_error_cost_function(
-                  use_ce ? neural_net_t::err_cost_t::CROSSENTROPY
-                         : neural_net_t::err_cost_t::MSE);
+                trainingSet.reshuffle();
+                const auto& data = trainingSet.data();
 
                 for (auto i = data.begin(); i != data.end(); ++i) {
-                    nu::vector_t<double> inputs;
+                    nu::Vector<double> inputs;
 
                     (*i)->to_vect(inputs);
 
-                    nu::vector_t<double> target;
+                    nu::Vector<double> target;
                     (*i)->label_to_target(target);
 
-                    net->set_inputs(inputs);
-                    net->back_propagate(target);
+                    net->setInputVector(inputs);
+                    net->runBackPropagationAlgo(target);
 
                     ++cnt;
 
@@ -558,15 +554,15 @@ int main(int argc, char* argv[])
                 }
 
                 auto err_rate =
-                  test_net(net, test_data, mean_squared_error, cross_entropy);
+                  test_net(net, test_data, calcMSE, calcCrossEntropy);
 
                 std::cout << "Error rate   : " << err_rate * 100.0 << "%     "
                           << std::endl;
 
-                std::cout << "MS Error rate: " << mean_squared_error * 100.0
+                std::cout << "MS Error rate: " << calcMSE * 100.0
                           << "%     " << std::endl;
 
-                std::cout << "Cross entropy: " << cross_entropy * 100.0
+                std::cout << "Cross entropy: " << calcCrossEntropy * 100.0
                           << "%     " << std::endl;
 
                 std::cout << "Success rate : " << (1.0 - err_rate) * 100.0
@@ -587,27 +583,27 @@ int main(int argc, char* argv[])
             }
         }
 
-    } catch (training_data_t::exception_t e) {
+    } catch (training_data_t::Exception e) {
         switch (e) {
-            case training_data_t::exception_t::imgs_file_not_found:
+            case training_data_t::Exception::imgs_file_not_found:
                 std::cerr << "Images file not found";
                 break;
-            case training_data_t::exception_t::imgs_file_read_error:
+            case training_data_t::Exception::imgs_file_read_error:
                 std::cerr << "Error reading images file";
                 break;
-            case training_data_t::exception_t::lbls_file_not_found:
+            case training_data_t::Exception::lbls_file_not_found:
                 std::cerr << "Labels file not found";
                 break;
-            case training_data_t::exception_t::lbls_file_read_error:
+            case training_data_t::Exception::lbls_file_read_error:
                 std::cerr << "Error reading labels file";
                 break;
-            case training_data_t::exception_t::imgs_file_wrong_magic:
+            case training_data_t::Exception::imgs_file_wrong_magic:
                 std::cerr << "Cannot recognize images file";
                 break;
-            case training_data_t::exception_t::lbls_file_wrong_magic:
+            case training_data_t::Exception::lbls_file_wrong_magic:
                 std::cerr << "Cannot recognize labels file";
                 break;
-            case training_data_t::exception_t::n_of_items_mismatch:
+            case training_data_t::Exception::n_of_items_mismatch:
                 std::cerr << "Images and labels count mismatch";
                 break;
         }

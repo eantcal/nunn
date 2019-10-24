@@ -23,6 +23,7 @@
 #include <list>
 #include <memory>
 #include <vector>
+#include <random>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -110,13 +111,13 @@ class digit_data_t
 
     //! Converts the image data into a vector normalizing each item
     //! within the range [0.0, 1.0]
-    void to_vect(nu::vector_t<double>& v) const noexcept;
+    void to_vect(nu::Vector<double>& v) const noexcept;
 
 
     //! Converts a label into a vector where the items are all zeros
     //! except for the item with index corrisponding to the label value
     //! its self (which is within range [0, 9]
-    void label_to_target(nu::vector_t<double>& v) const noexcept;
+    void label_to_target(nu::Vector<double>& v) const noexcept;
 
 
 #ifdef _WIN32
@@ -148,7 +149,12 @@ class training_data_t
         for (auto& e : _data)
             data.push_back(std::move(e));
 
-        std::random_shuffle(data.begin(), data.end());
+        std::random_device rng;
+        std::mt19937 urng(rng());
+        std::shuffle(data.begin(), data.end(), urng);
+
+        // std::random_shuffle(data.begin(), data.end()); // deprecated in C++14
+
         _data.clear();
 
         for (auto& e : data)
@@ -156,7 +162,7 @@ class training_data_t
     }
 
 
-    enum class exception_t {
+    enum class Exception {
         lbls_file_not_found,
         imgs_file_not_found,
         lbls_file_read_error,

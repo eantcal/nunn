@@ -27,50 +27,44 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-template<class A, class AG, class T = double, class RG = random_gen_t<T>>
-class softmax_policy_t {
+template<class Action, class Agent, class RndGen = RandomGenerator<>>
+class SoftmaxPolicy {
 public:
-    using real_t = T;
-    using action_t = A;
-    using agent_t = AG;
-    using rnd_gen_t = RG;
-
-    void set_temperature(const real_t & temperature) noexcept {
+    void setTemperature(const double & temperature) noexcept {
         _temperature = temperature;
     }
 
-    real_t get_temperature() const noexcept {
+    double getTemperature() const noexcept {
         return _temperature;
     }
 
-    template<class Q>
-    action_t select_action(const agent_t& agent, Q & q) const
-    {
+    template<class QMap>
+    Action selectAction(const Agent& agent, QMap & qMap) const {
         // Get agent to reward map
-        auto action_reward = q[agent.get_current_state()];
-        auto valid_actions = agent.valid_actions();
-        decltype(action_reward) quasi_probs;
+        auto actionReward = qMap[agent.getCurrentState()];
+        auto validActions = agent.getValidActions();
+        decltype(actionReward) quasiProbs;
         
-        real_t sum_reward = 0;
+        double sumReward = 0;
 
-        for (const auto & item : valid_actions) {
-            const auto reward = action_reward[item];
-            const auto numerator = std::exp(reward / get_temperature());
-            quasi_probs[item] = numerator;
-            sum_reward += numerator;
+        for (const auto & item : validActions) {
+            const auto reward = actionReward[item];
+            const auto numerator = std::exp(reward / getTemperature());
+            quasiProbs[item] = numerator;
+            sumReward += numerator;
         }
 
-        assert(sum_reward != 0);
+        assert(sumReward != 0);
 
         // Select an action
-        const auto cutoff = _rnd_gen();
+        const auto cutoff = _rndGen();
 
-        real_t sum = 0;
-        auto it = quasi_probs.begin();
+        double sum = 0;
+        auto it = quasiProbs.begin();
 
-        for (; it != quasi_probs.end(); ++it) {
+        for (; it != quasiProbs.end(); ++it) {
 
-            const auto prob = it->second / sum_reward;
+            const auto prob = it->second / sumReward;
             sum += prob;
 
             if (sum > cutoff) {
@@ -83,38 +77,38 @@ public:
         return it->first;
     }
 
-    template<class Q>
-    action_t get_learned_action(const agent_t& agent, Q & q) const {
-        auto valid_actions = agent.valid_actions();
+    template<class QMap>
+    Action getLearnedAction(const Agent& agent, QMap & qMap) const {
+        auto validActions = agent.getValidActions();
 
-        assert(!valid_actions.empty());
+        assert(!validActions.empty());
 
-        action_t action = valid_actions[0];
+        Action action = validActions[0];
 
-        real_t reward = 0;
+        double reward = 0;
 
-        const auto & agent_state = agent.get_current_state();
+        const auto & agentState = agent.getCurrentState();
 
-        reward = q[agent_state][action];
+        reward = qMap[agentState][action];
 
-        for (const auto & an_action : valid_actions) {
-            const auto & val = q[agent_state][an_action];
+        for (const auto & anAction : validActions) {
+            const auto & val = qMap[agentState][anAction];
             if (val > reward) {
                 reward = val;
-                action = an_action;
+                action = anAction;
             }
         }
 
         if (reward == .0) {
-            action = select_action(agent, q);
+            action = selectAction(agent, qMap);
         }
 
         return action;
     }
 
 private:
-    real_t _temperature = 1.0;
-    mutable random_gen_t<> _rnd_gen;
+    double _temperature = 1.0;
+    mutable RandomGenerator<> _rndGen;
 };
 
 

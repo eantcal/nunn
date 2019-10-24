@@ -41,187 +41,158 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! This class represents a Perceptron neural net
-class perceptron_t
-{
-  public:
-    using rvector_t = vector_t<double>;
+struct Perceptron {
+    using FpVector = Vector<double>;
 
-    enum class exception_t
-    {
+    enum class Exception {
         size_mismatch,
         invalid_sstream_format
     };
 
     //! default ctor
-    perceptron_t() = default;
+    Perceptron() = default;
 
     //! ctor
-    perceptron_t(const size_t& n_of_inputs, double learning_rate = 0.1,
-                 step_func_t step_f = step_func_t());
-
+    Perceptron(const size_t& inputSize, double learningRate = 0.1,
+                 StepFunction step_f = StepFunction());
 
     //! Create a perceptron using data serialized into the given stream
-    perceptron_t(std::stringstream& ss) { load(ss); }
+    Perceptron(std::stringstream& ss) { load(ss); }
 
     //! copy-ctor
-    perceptron_t(const perceptron_t& nn) = default;
-
+    Perceptron(const Perceptron& nn) = default;
 
     //! move-ctor
-    perceptron_t(perceptron_t&& nn)
-      : _inputs_count(std::move(nn._inputs_count))
-      , _learning_rate(std::move(nn._learning_rate))
-      , _inputs(std::move(nn._inputs))
+    Perceptron(Perceptron&& nn)
+      : _inputSize(std::move(nn._inputSize))
+      , _learningRate(std::move(nn._learningRate))
+      , _inputVector(std::move(nn._inputVector))
       , _neuron(std::move(nn._neuron))
     {
     }
 
-
     //! default assignment operator
-    perceptron_t& operator=(const perceptron_t& nn) = default;
-
+    Perceptron& operator=(const Perceptron& nn) = default;
 
     //! default assignment-move operator
-    perceptron_t& operator=(perceptron_t&& nn)
-    {
+    Perceptron& operator=(Perceptron&& nn) {
         if (this != &nn) {
-            _inputs_count = std::move(nn._inputs_count);
-            _learning_rate = std::move(nn._learning_rate);
-            _inputs = std::move(nn._inputs);
+            _inputSize = std::move(nn._inputSize);
+            _learningRate = std::move(nn._learningRate);
+            _inputVector = std::move(nn._inputVector);
             _neuron = std::move(nn._neuron);
         }
 
         return *this;
     }
 
-
     //! Return the number of inputs
-    size_t get_inputs_count() const noexcept { return _inputs.size(); }
-
+    size_t getInputSize() const noexcept { 
+        return _inputVector.size(); 
+    }
 
     //! Return current learning rate
-    double get_learning_rate() const noexcept { return _learning_rate; }
-
+    double getLearningRate() const noexcept { 
+        return _learningRate; 
+    }
 
     //! Change net learning rate
-    void set_learning_rate(double new_rate) { _learning_rate = new_rate; }
-
+    void setLearningRate(double new_rate) { 
+        _learningRate = new_rate; 
+    }
 
     //! Set net inputs
-    void set_inputs(const rvector_t& inputs)
-    {
-        if (inputs.size() != _inputs.size())
-            throw exception_t::size_mismatch;
+    void setInputVector(const FpVector& inputs) {
+        if (inputs.size() != _inputVector.size())
+            throw Exception::size_mismatch;
 
-        _inputs = inputs;
+        _inputVector = inputs;
     }
-
 
     //! Get net inputs
-    void get_inputs(rvector_t& inputs) const noexcept { inputs = _inputs; }
-
+    void getInputVector(FpVector& inputs) const noexcept { 
+        inputs = _inputVector; 
+    }
 
     //! Get net output
-    double get_output() const noexcept { return _neuron.output; }
-
-
-    //! Return f(get_output()), where f is the step function
-    double get_sharp_output() const noexcept
-    {
-        return _step_f(get_output());
+    double getOutput() const noexcept { 
+        return _neuron.output; 
     }
 
+    //! Return f(getOutput()), where f is the step function
+    double getSharpOutput() const noexcept {
+        return _step_f(getOutput());
+    }
 
     //! Fire all neurons of the net and calculate the outputs
-    void feed_forward() noexcept;
-
-
-    //! Fire the neuron, calculate the output
-    //! then apply the learning algorithm to the net
-    void back_propagate(const double& target, double& output) noexcept;
-
+    void feedForward() noexcept;
 
     //! Fire the neuron, calculate the output
     //! then apply the learning algorithm to the net
-    void back_propagate(const double& target) noexcept
-    {
+    void runBackPropagationAlgo(const double& target, double& output) noexcept;
+
+    //! Fire the neuron, calculate the output
+    //! then apply the learning algorithm to the net
+    void runBackPropagationAlgo(const double& target) noexcept {
         double output;
-        back_propagate(target, output);
+        runBackPropagationAlgo(target, output);
     }
-
 
     //! Compute global error
-    double error(const double& target) const noexcept
-    {
-        return std::abs(target - get_output());
+    double error(const double& target) const noexcept {
+        return std::abs(target - getOutput());
     }
-
 
     //! Build the net by using data of the given string stream
     std::stringstream& load(std::stringstream& ss);
 
-
     //! Save net status into the given string stream
     std::stringstream& save(std::stringstream& ss) noexcept;
-
 
     //! Print the net state out to the given ostream
     std::ostream& dump(std::ostream& os) noexcept;
 
-
     //! Build the net by using data of the given string stream
-    friend std::stringstream& operator>>(std::stringstream& ss,
-                                         perceptron_t& net)
-    {
+    friend 
+    std::stringstream& operator>>(std::stringstream& ss, Perceptron& net) {
         return net.load(ss);
     }
 
-
     //! Save net status into the given string stream
-    friend std::stringstream& operator<<(std::stringstream& ss,
-                                         perceptron_t& net) noexcept
-    {
+    friend 
+    std::stringstream& operator<<(std::stringstream& ss, Perceptron& net) noexcept {
         return net.save(ss);
     }
 
-
     //! Print the net state out to the given ostream
-    friend std::ostream& operator<<(std::ostream& os,
-                                    perceptron_t& net) noexcept
-    {
+    friend
+    std::ostream& operator<<(std::ostream& os, Perceptron& net) noexcept {
         return net.dump(os);
     }
 
-
     //! Reset all net weights using new random values
-    void reshuffle_weights() noexcept;
+    void reshuffleWeights() noexcept;
 
-  private:
-    void _back_propagate(const double_t& target,
-                         const double_t& output) noexcept;
+private:
+    constexpr static const char* Perceptron::ID_ANN = "perceptron";
+    constexpr static const char* Perceptron::ID_NEURON = "neuron";
+    constexpr static const char* Perceptron::ID_INPUTS = "inputs";
 
-    static const char* ID_ANN;
-    static const char* ID_NEURON;
-    static const char* ID_INPUTS;
-
-    step_func_t _step_f;
-    size_t _inputs_count;
-    double _learning_rate = 0.1;
-    rvector_t _inputs;
-    neuron_t<double> _neuron;
+    StepFunction _step_f;
+    size_t _inputSize;
+    double _learningRate = 0.1;
+    FpVector _inputVector;
+    Neuron _neuron;
 };
 
 
 /* -------------------------------------------------------------------------- */
 
 //! The perceptron trainer class is a helper class for training perceptrons
-class perceptron_trainer_t
-  : public nn_trainer_t<perceptron_t, nu::vector_t<double>, double>
+struct PerceptronTrainer : public NNTrainer<Perceptron, nu::Vector<double>, double>
 {
-  public:
-    perceptron_trainer_t(perceptron_t& nn, size_t epochs, double min_err)
-      : nn_trainer_t<perceptron_t, nu::vector_t<double>, double>(nn, epochs,
-                                                                 min_err)
+    PerceptronTrainer(Perceptron& nn, size_t epochs, double minErr)
+      : NNTrainer<Perceptron, nu::Vector<double>, double>(nn, epochs, minErr)
     {
     }
 };

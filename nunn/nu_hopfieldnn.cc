@@ -19,12 +19,12 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-void hopfieldnn_t::add_pattern(const rvector_t& input_pattern)
+void hopfieldnn_t::add_pattern(const FpVector& input_pattern)
 {
-    const auto size = get_inputs_count();
+    const auto size = getInputSize();
 
     if (size != input_pattern.size())
-        throw exception_t::size_mismatch;
+        throw Exception::size_mismatch;
 
     for (size_t i = 0; i < size; ++i)
         for (size_t j = 0; j < size; ++j) {
@@ -38,11 +38,11 @@ void hopfieldnn_t::add_pattern(const rvector_t& input_pattern)
 
 /* -------------------------------------------------------------------------- */
 
-void hopfieldnn_t::recall(const rvector_t& input_pattern,
-                          rvector_t& output_pattern)
+void hopfieldnn_t::recall(const FpVector& input_pattern,
+                          FpVector& output_pattern)
 {
-    if (get_inputs_count() != input_pattern.size())
-        throw exception_t::size_mismatch;
+    if (getInputSize() != input_pattern.size())
+        throw Exception::size_mismatch;
 
     _s = input_pattern;
     _propagate();
@@ -75,12 +75,12 @@ void hopfieldnn_t::_propagate() noexcept
 
     do {
         ++it;
-        size_t rnd_idx = rand() % get_inputs_count();
+        size_t rnd_idx = rand() % getInputSize();
 
         if (_propagate_neuron(rnd_idx))
             last_it = it;
 
-    } while (it - last_it < 10 * get_inputs_count());
+    } while (it - last_it < 10 * getInputSize());
 }
 
 
@@ -91,7 +91,7 @@ bool hopfieldnn_t::_propagate_neuron(size_t i) noexcept
     bool changed = false;
     double sum = 0;
 
-    const auto size = get_inputs_count();
+    const auto size = getInputSize();
 
     for (size_t j = 0; j < size; ++j)
         sum += _w[i * size + j] * _s[j];
@@ -122,20 +122,20 @@ std::stringstream& hopfieldnn_t::load(std::stringstream& ss)
     std::string s;
     ss >> s;
     if (s != hopfieldnn_t::ID_ANN)
-        throw exception_t::invalid_sstream_format;
+        throw Exception::invalid_sstream_format;
 
     ss >> _pattern_size;
 
 
     ss >> s;
     if (s != hopfieldnn_t::ID_NEURON_ST)
-        throw exception_t::invalid_sstream_format;
+        throw Exception::invalid_sstream_format;
 
     ss >> _s;
 
     ss >> s;
     if (s != hopfieldnn_t::ID_WEIGHTS)
-        throw exception_t::invalid_sstream_format;
+        throw Exception::invalid_sstream_format;
 
     ss >> _w;
 
