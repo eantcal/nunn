@@ -51,7 +51,7 @@ Pixel values are 0 to 255. 0 means background (white), 255 means foreground
 
 /* -------------------------------------------------------------------------- */
 
-void digit_data_t::to_vect(nu::Vector<double>& v) const noexcept
+void DigitData::toVect(nu::Vector<double>& v) const noexcept
 {
     size_t vsize = data().size();
     v.resize(vsize);
@@ -63,11 +63,11 @@ void digit_data_t::to_vect(nu::Vector<double>& v) const noexcept
 
 /* -------------------------------------------------------------------------- */
 
-void digit_data_t::label_to_target(nu::Vector<double>& v) const noexcept
+void DigitData::labelToTarget(nu::Vector<double>& v) const noexcept
 {
     v.resize(10);
     std::fill(v.begin(), v.end(), 0.0);
-    v[get_label() % 10] = 1.0;
+    v[getLabel() % 10] = 1.0;
 }
 
 
@@ -75,7 +75,7 @@ void digit_data_t::label_to_target(nu::Vector<double>& v) const noexcept
 
 
 #ifdef _WIN32
-void digit_data_t::paint(int xoff, int yoff, HWND hwnd) const noexcept
+void DigitData::paint(int xoff, int yoff, HWND hwnd) const noexcept
 {
     size_t dx = get_dx();
     size_t dy = get_dy();
@@ -85,13 +85,13 @@ void digit_data_t::paint(int xoff, int yoff, HWND hwnd) const noexcept
 
     HDC hdc = GetDC(hwnd);
 
-    const auto& data_bits = data();
+    const auto& dataBits = data();
 
     int idx = 0;
 
     for (size_t y = 0; y < dy; ++y) {
         for (size_t x = 0; x < dx; ++x) {
-            int c = data_bits[idx++];
+            int c = dataBits[idx++];
 
             SetPixel(hdc, int(x) + xoff, int(y) + yoff,
                      RGB(255 - c, 255 - c, 255 - c));
@@ -105,10 +105,10 @@ void digit_data_t::paint(int xoff, int yoff, HWND hwnd) const noexcept
 
 /* -------------------------------------------------------------------------- */
 
-int training_data_t::load()
+int TrainingData::load()
 {
-    const std::vector<char> magic_lbls = { 0, 0, 8, 1 };
-    const std::vector<char> magic_imgs = { 0, 0, 8, 3 };
+    const std::vector<char> magicLbls = { 0, 0, 8, 1 };
+    const std::vector<char> magicImgs = { 0, 0, 8, 3 };
 
     int ret = -1;
 
@@ -122,12 +122,12 @@ int training_data_t::load()
     };
 
     try {
-        flbls = fopen(_lbls_file.c_str(), "rb");
+        flbls = fopen(_lblsFile.c_str(), "rb");
 
         if (!flbls)
             throw Exception::lbls_file_not_found;
 
-        fimgs = fopen(_imgs_file.c_str(), "rb");
+        fimgs = fopen(_imgsFile.c_str(), "rb");
 
         if (!fimgs)
             throw Exception::imgs_file_not_found;
@@ -137,28 +137,28 @@ int training_data_t::load()
         if (fread(buf.data(), 1, 4, flbls) != 4)
             throw Exception::lbls_file_read_error;
 
-        if (buf[0] != magic_lbls[0] || buf[1] != magic_lbls[1] ||
-            buf[2] != magic_lbls[2] || buf[3] != magic_lbls[3])
+        if (buf[0] != magicLbls[0] || buf[1] != magicLbls[1] ||
+            buf[2] != magicLbls[2] || buf[3] != magicLbls[3])
             throw Exception::lbls_file_wrong_magic;
 
         if (fread(buf.data(), 1, 4, fimgs) != 4)
             throw Exception::imgs_file_read_error;
 
 
-        if (buf[0] != magic_imgs[0] || buf[1] != magic_imgs[1] ||
-            buf[2] != magic_imgs[2] || buf[3] != magic_imgs[3])
+        if (buf[0] != magicImgs[0] || buf[1] != magicImgs[1] ||
+            buf[2] != magicImgs[2] || buf[3] != magicImgs[3])
             throw Exception::imgs_file_wrong_magic;
 
 
         if (fread(buf.data(), 1, 4, flbls) != 4)
             throw Exception::lbls_file_read_error;
 
-        int32_t n_of_lbls = to_int32(buf);
+        const int32_t n_of_lbls = to_int32(buf);
 
         if (fread(buf.data(), 1, 4, fimgs) != 4)
             throw Exception::imgs_file_read_error;
 
-        int32_t n_of_imgs = to_int32(buf);
+        const int32_t n_of_imgs = to_int32(buf);
 
         if (n_of_lbls != n_of_imgs)
             throw Exception::n_of_items_mismatch;
@@ -168,28 +168,28 @@ int training_data_t::load()
         if (fread(buf.data(), 1, 4, fimgs) != 4)
             throw Exception::imgs_file_read_error;
 
-        int32_t n_rows = to_int32(buf);
+        const int32_t n_rows = to_int32(buf);
 
         if (fread(buf.data(), 1, 4, fimgs) != 4)
             throw Exception::imgs_file_read_error;
 
-        int32_t n_cols = to_int32(buf);
+        const int32_t n_cols = to_int32(buf);
 
-        size_t img_size = size_t(n_rows * n_cols);
+        const size_t imgSize = size_t(n_rows * n_cols);
 
         for (int32_t i = 0; i < n_of_lbls; ++i) {
             if (fread(buf.data(), 1, 1, flbls) != 1)
                 break;
 
-            digit_data_t::data_t data(img_size);
+            DigitData::data_t data(imgSize);
 
-            int label = int(buf[0]) & 0xff;
+            const int label = int(buf[0]) & 0xff;
 
             if (fread(data.data(), 1, data.size(), fimgs) != data.size())
                 break;
 
-            std::unique_ptr<digit_data_t> digit_info(
-              new digit_data_t(size_t(n_cols), size_t(n_rows), label, data));
+            std::unique_ptr<DigitData> digit_info(
+              new DigitData(size_t(n_cols), size_t(n_rows), label, data));
 
             _data.push_back(std::move(digit_info));
         }

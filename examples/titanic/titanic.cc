@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
     test(testSet, nn);
     printDivider();
 
-    trainer_t trainer(nn, 5000);
+    Trainer trainer(nn, 5000);
 
     std::clog 
         << "Training the NN ( Epochs =" << trainer.getEpochs() << " )";

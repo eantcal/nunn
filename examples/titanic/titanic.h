@@ -26,7 +26,7 @@ using DataSet = std::map<std::vector<double>, std::vector<double>>;
 using TrainingSet = DataSet;
 using TestSet = DataSet;
 using NN = nu::MlpNN;
-using trainer_t = nu::MlpNNTrainer;
+using Trainer = nu::MlpNNTrainer;
 
 
 

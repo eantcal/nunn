@@ -174,9 +174,9 @@ struct Perceptron {
     void reshuffleWeights() noexcept;
 
 private:
-    constexpr static const char* Perceptron::ID_ANN = "perceptron";
-    constexpr static const char* Perceptron::ID_NEURON = "neuron";
-    constexpr static const char* Perceptron::ID_INPUTS = "inputs";
+    constexpr static const char* ID_ANN = "perceptron";
+    constexpr static const char* ID_NEURON = "neuron";
+    constexpr static const char* ID_INPUTS = "inputs";
 
     StepFunction _step_f;
     size_t _inputSize;

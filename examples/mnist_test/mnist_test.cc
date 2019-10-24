@@ -295,7 +295,7 @@ static void usage(const char* appname)
 /* -------------------------------------------------------------------------- */
 
 static double test_net(std::unique_ptr<neural_net_t>& net,
-                       const training_data_t::data_t& test_data,
+                       const TrainingData::data_t& test_data,
                        double& mean_square_error, double& entropy_cost)
 {
     size_t cnt = 0;
@@ -306,10 +306,10 @@ static double test_net(std::unique_ptr<neural_net_t>& net,
 
     for (auto i = test_data.begin(); i != test_data.end(); ++i) {
         nu::Vector<double> inputs;
-        (*i)->to_vect(inputs);
+        (*i)->toVect(inputs);
 
         nu::Vector<double> target;
-        (*i)->label_to_target(target);
+        (*i)->labelToTarget(target);
 
         net->setInputVector(inputs);
         net->feedForward();
@@ -321,7 +321,7 @@ static double test_net(std::unique_ptr<neural_net_t>& net,
 
         entropy_cost += nu::cf::calcCrossEntropy(outputs, target);
 
-        if ((*i)->get_label() != outputs.maxarg())
+        if ((*i)->getLabel() != outputs.maxarg())
             ++err_cnt;
 
         ++cnt;
@@ -427,12 +427,12 @@ int main(int argc, char* argv[])
         std::cout << "Training images : " << training_images_fn << std::endl;
 
         std::unique_ptr<neural_net_t> net;
-        training_data_t trainingSet(training_labels_fn, training_images_fn);
+        TrainingData trainingSet(training_labels_fn, training_images_fn);
 
         const std::string testing_labels_fn = files_path + TEST_LABELS_FN;
         const std::string testing_images_fn = files_path + TEST_IMAGES_FN;
 
-        training_data_t test_set(testing_labels_fn, testing_images_fn);
+        TrainingData test_set(testing_labels_fn, testing_images_fn);
 
         auto n_of_test_items = test_set.load();
 
@@ -529,10 +529,10 @@ int main(int argc, char* argv[])
                 for (auto i = data.begin(); i != data.end(); ++i) {
                     nu::Vector<double> inputs;
 
-                    (*i)->to_vect(inputs);
+                    (*i)->toVect(inputs);
 
                     nu::Vector<double> target;
-                    (*i)->label_to_target(target);
+                    (*i)->labelToTarget(target);
 
                     net->setInputVector(inputs);
                     net->runBackPropagationAlgo(target);
@@ -583,27 +583,27 @@ int main(int argc, char* argv[])
             }
         }
 
-    } catch (training_data_t::Exception e) {
+    } catch (TrainingData::Exception e) {
         switch (e) {
-            case training_data_t::Exception::imgs_file_not_found:
+            case TrainingData::Exception::imgs_file_not_found:
                 std::cerr << "Images file not found";
                 break;
-            case training_data_t::Exception::imgs_file_read_error:
+            case TrainingData::Exception::imgs_file_read_error:
                 std::cerr << "Error reading images file";
                 break;
-            case training_data_t::Exception::lbls_file_not_found:
+            case TrainingData::Exception::lbls_file_not_found:
                 std::cerr << "Labels file not found";
                 break;
-            case training_data_t::Exception::lbls_file_read_error:
+            case TrainingData::Exception::lbls_file_read_error:
                 std::cerr << "Error reading labels file";
                 break;
-            case training_data_t::Exception::imgs_file_wrong_magic:
+            case TrainingData::Exception::imgs_file_wrong_magic:
                 std::cerr << "Cannot recognize images file";
                 break;
-            case training_data_t::Exception::lbls_file_wrong_magic:
+            case TrainingData::Exception::lbls_file_wrong_magic:
                 std::cerr << "Cannot recognize labels file";
                 break;
-            case training_data_t::Exception::n_of_items_mismatch:
+            case TrainingData::Exception::n_of_items_mismatch:
                 std::cerr << "Images and labels count mismatch";
                 break;
         }

@@ -34,7 +34,7 @@
 
 //! This class represents a single handwritten digit and its classification
 //! (label)
-class digit_data_t
+class DigitData
 {
   public:
     using data_t = std::vector<char>;
@@ -47,7 +47,7 @@ class digit_data_t
 
   public:
     //! ctor
-    digit_data_t(size_t dx, size_t dy, int label,
+    DigitData(size_t dx, size_t dy, int label,
                  const data_t& data) noexcept : _dx(dx),
                                                 _dy(dy),
                                                 _label(label),
@@ -57,14 +57,14 @@ class digit_data_t
 
 
     //! copy ctor
-    digit_data_t(const digit_data_t&) = default;
+    DigitData(const DigitData&) = default;
 
     //! copy assign operator
-    digit_data_t& operator=(const digit_data_t& other) = default;
+    DigitData& operator=(const DigitData& other) = default;
 
 
     //! move ctor
-    digit_data_t(digit_data_t&& other) noexcept : _dx(std::move(other._dx)),
+    DigitData(DigitData&& other) noexcept : _dx(std::move(other._dx)),
                                                   _dy(std::move(other._dy)),
                                                   _label(std::move(other._label)),
                                                   _data(std::move(other._data))
@@ -73,7 +73,7 @@ class digit_data_t
 
 
     //! move assign operator
-    digit_data_t& operator=(digit_data_t&& other) noexcept {
+    DigitData& operator=(DigitData&& other) noexcept {
         if (this != &other) {
             _dx = std::move(_dx);
             _dy = std::move(_dy);
@@ -98,7 +98,7 @@ class digit_data_t
 
 
     //! Returns the digit classification
-    int get_label() const noexcept { 
+    int getLabel() const noexcept { 
         return _label; 
     }
 
@@ -111,13 +111,13 @@ class digit_data_t
 
     //! Converts the image data into a vector normalizing each item
     //! within the range [0.0, 1.0]
-    void to_vect(nu::Vector<double>& v) const noexcept;
+    void toVect(nu::Vector<double>& v) const noexcept;
 
 
     //! Converts a label into a vector where the items are all zeros
     //! except for the item with index corrisponding to the label value
     //! its self (which is within range [0, 9]
-    void label_to_target(nu::Vector<double>& v) const noexcept;
+    void labelToTarget(nu::Vector<double>& v) const noexcept;
 
 
 #ifdef _WIN32
@@ -130,13 +130,13 @@ class digit_data_t
 /* -------------------------------------------------------------------------- */
 
 //! This class provides a method to load MNIST pair of images and labels files
-//! The data can be retrieved as a list of digit_data_t objects
-class training_data_t
+//! The data can be retrieved as a list of DigitData objects
+class TrainingData
 {
   public:
-    using data_t = std::list<std::unique_ptr<digit_data_t>>;
+    using data_t = std::list<std::unique_ptr<DigitData>>;
 
-    //! Return a reference to a list of digit_data_t objects
+    //! Return a reference to a list of DigitData objects
     const data_t& data() const noexcept { 
         return _data; 
     }
@@ -144,7 +144,7 @@ class training_data_t
 
     //! reshuffle objects
     void reshuffle() {
-        std::vector<std::unique_ptr<digit_data_t>> data;
+        std::vector<std::unique_ptr<DigitData>> data;
 
         for (auto& e : _data)
             data.push_back(std::move(e));
@@ -173,13 +173,13 @@ class training_data_t
     };
 
 
-    training_data_t() = delete;
+    TrainingData() = delete;
 
 
-    training_data_t(const std::string& lbls_file,
+    TrainingData(const std::string& lbls_file,
                     const std::string& imgs_file) throw()
-      : _lbls_file(lbls_file)
-      , _imgs_file(imgs_file)
+      : _lblsFile(lbls_file)
+      , _imgsFile(imgs_file)
     {
     }
 
@@ -190,8 +190,8 @@ class training_data_t
 
 
   private:
-    std::string _lbls_file;
-    std::string _imgs_file;
+    std::string _lblsFile;
+    std::string _imgsFile;
 
     data_t _data;
 };

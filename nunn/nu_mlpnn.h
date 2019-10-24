@@ -286,11 +286,11 @@ private:
     FpVector _inputVector;
     std::vector<NeuronLayer> _neuronLayers;
     
-    constexpr static const char* MlpNN::ID_ANN = "ann";
-    constexpr static const char* MlpNN::ID_NEURON = "neuron";
-    constexpr static const char* MlpNN::ID_NEURON_LAYER = "layer";
-    constexpr static const char* MlpNN::ID_TOPOLOGY = "topology";
-    constexpr static const char* MlpNN::ID_INPUTS = "inputs";
+    constexpr static const char* ID_ANN = "ann";
+    constexpr static const char* ID_NEURON = "neuron";
+    constexpr static const char* ID_NEURON_LAYER = "layer";
+    constexpr static const char* ID_TOPOLOGY = "topology";
+    constexpr static const char* ID_INPUTS = "inputs";
 };
 
 

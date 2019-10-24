@@ -45,7 +45,7 @@
 /* -------------------------------------------------------------------------- */
 
 using neural_net_t = nu::MlpNN;
-using trainer_t = nu::MlpNNTrainer;
+using Trainer = nu::MlpNNTrainer;
 
 /* -------------------------------------------------------------------------- */
 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
         const double MIN_ERR = 0.01;
 
         // Create a trainer object
-        trainer_t trainer(nn,
+        Trainer trainer(nn,
                           EPOCHS, // Max number of epochs
                           MIN_ERR // Min error
                           );
