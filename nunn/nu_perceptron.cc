@@ -11,6 +11,7 @@
 
 #include "nu_perceptron.h"
 #include "nu_sigmoid.h"
+#include "nu_random_gen.h"
 
 
 /* -------------------------------------------------------------------------- */
@@ -123,6 +124,7 @@ std::stringstream& Perceptron::save(std::stringstream& ss) noexcept
 
 void Perceptron::reshuffleWeights() noexcept
 {
+    RandomGenerator<> randgen;
     double weights_cnt = double(_neuron.weights.size());
 
     weights_cnt = std::sqrt(weights_cnt);
@@ -130,14 +132,14 @@ void Perceptron::reshuffleWeights() noexcept
     // Initialize all the network weights
     // using random numbers within the range [-1,1]
     for (auto& w : _neuron.weights) {
-        auto random_n = -1.0 + 2 * double(rand()) / double(RAND_MAX);
+        auto random_n = -1.0 + 2 * randgen();
         w = random_n / weights_cnt;
     }
 
     for (auto& dw : _neuron.deltaW)
         dw = 0;
 
-    _neuron.bias = double(rand()) / double(RAND_MAX);
+    _neuron.bias = randgen();
 }
 
 

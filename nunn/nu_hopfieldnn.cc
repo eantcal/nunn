@@ -19,7 +19,7 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-void hopfieldnn_t::add_pattern(const FpVector& input_pattern)
+void HopfiledNN::addPattern(const FpVector& input_pattern)
 {
     const auto size = getInputSize();
 
@@ -32,13 +32,13 @@ void hopfieldnn_t::add_pattern(const FpVector& input_pattern)
                 _w[i * size + j] += input_pattern[i] * input_pattern[j];
         }
 
-    ++_pattern_size;
+    ++_patternSize;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-void hopfieldnn_t::recall(const FpVector& input_pattern,
+void HopfiledNN::recall(const FpVector& input_pattern,
                           FpVector& output_pattern)
 {
     if (getInputSize() != input_pattern.size())
@@ -54,12 +54,12 @@ void hopfieldnn_t::recall(const FpVector& input_pattern,
 /* -------------------------------------------------------------------------- */
 
 //! default assignment-move operator
-hopfieldnn_t& hopfieldnn_t::operator=(hopfieldnn_t&& nn) noexcept
+HopfiledNN& HopfiledNN::operator=(HopfiledNN&& nn) noexcept
 {
     if (this != &nn) {
         _s = std::move(nn._s);
         _w = std::move(nn._w);
-        _pattern_size = std::move(_pattern_size);
+        _patternSize = std::move(_patternSize);
     }
 
     return *this;
@@ -68,16 +68,17 @@ hopfieldnn_t& hopfieldnn_t::operator=(hopfieldnn_t&& nn) noexcept
 
 /* -------------------------------------------------------------------------- */
 
-void hopfieldnn_t::_propagate() noexcept
+void HopfiledNN::_propagate() noexcept
 {
     size_t it = 0;
     size_t last_it = 0;
 
     do {
         ++it;
-        size_t rnd_idx = rand() % getInputSize();
+        size_t rnd_idx = 
+            size_t ( getInputSize() * _rndgen() ) % getInputSize();
 
-        if (_propagate_neuron(rnd_idx))
+        if (_propagateNeuron(rnd_idx))
             last_it = it;
 
     } while (it - last_it < 10 * getInputSize());
@@ -86,7 +87,7 @@ void hopfieldnn_t::_propagate() noexcept
 
 /* -------------------------------------------------------------------------- */
 
-bool hopfieldnn_t::_propagate_neuron(size_t i) noexcept
+bool HopfiledNN::_propagateNeuron(size_t i) noexcept
 {
     bool changed = false;
     double sum = 0;
@@ -117,24 +118,24 @@ bool hopfieldnn_t::_propagate_neuron(size_t i) noexcept
 
 /* -------------------------------------------------------------------------- */
 
-std::stringstream& hopfieldnn_t::load(std::stringstream& ss)
+std::stringstream& HopfiledNN::load(std::stringstream& ss)
 {
     std::string s;
     ss >> s;
-    if (s != hopfieldnn_t::ID_ANN)
+    if (s != HopfiledNN::ID_ANN)
         throw Exception::invalid_sstream_format;
 
-    ss >> _pattern_size;
+    ss >> _patternSize;
 
 
     ss >> s;
-    if (s != hopfieldnn_t::ID_NEURON_ST)
+    if (s != HopfiledNN::ID_NEURON_ST)
         throw Exception::invalid_sstream_format;
 
     ss >> _s;
 
     ss >> s;
-    if (s != hopfieldnn_t::ID_WEIGHTS)
+    if (s != HopfiledNN::ID_WEIGHTS)
         throw Exception::invalid_sstream_format;
 
     ss >> _w;
@@ -145,18 +146,18 @@ std::stringstream& hopfieldnn_t::load(std::stringstream& ss)
 
 /* -------------------------------------------------------------------------- */
 
-std::stringstream& hopfieldnn_t::save(std::stringstream& ss) noexcept
+std::stringstream& HopfiledNN::save(std::stringstream& ss) noexcept
 {
     ss.clear();
 
-    ss << hopfieldnn_t::ID_ANN << std::endl;
+    ss << HopfiledNN::ID_ANN << std::endl;
 
-    ss << _pattern_size << std::endl;
+    ss << _patternSize << std::endl;
 
-    ss << hopfieldnn_t::ID_NEURON_ST << std::endl;
+    ss << HopfiledNN::ID_NEURON_ST << std::endl;
     ss << _s << std::endl;
 
-    ss << hopfieldnn_t::ID_WEIGHTS << std::endl;
+    ss << HopfiledNN::ID_WEIGHTS << std::endl;
     ss << _w << std::endl;
 
     return ss;
@@ -165,11 +166,11 @@ std::stringstream& hopfieldnn_t::save(std::stringstream& ss) noexcept
 
 /* -------------------------------------------------------------------------- */
 
-std::ostream& hopfieldnn_t::dump(std::ostream& os) noexcept
+std::ostream& HopfiledNN::dump(std::ostream& os) noexcept
 {
     os << "Hopfield " << std::endl;
 
-    os << "\t# of patterns  " << _pattern_size << std::endl;
+    os << "\t# of patterns  " << _patternSize << std::endl;
     os << "\tNeurons Status " << _s << std::endl;
     os << "\tNet Weights    " << _w << std::endl;
 
@@ -181,9 +182,9 @@ std::ostream& hopfieldnn_t::dump(std::ostream& os) noexcept
 
 /* -------------------------------------------------------------------------- */
 
-const char* hopfieldnn_t::ID_ANN = "hopfield";
-const char* hopfieldnn_t::ID_NEURON_ST = "neuron_st";
-const char* hopfieldnn_t::ID_WEIGHTS = "net_weights";
+const char* HopfiledNN::ID_ANN = "hopfield";
+const char* HopfiledNN::ID_NEURON_ST = "neuron_st";
+const char* HopfiledNN::ID_WEIGHTS = "net_weights";
 
 
 /* -------------------------------------------------------------------------- */

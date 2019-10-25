@@ -10,6 +10,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_mlpnn.h"
+#include "nu_random_gen.h"
 
 
 /* -------------------------------------------------------------------------- */
@@ -61,19 +62,21 @@ void MlpNN::reshuffleWeights() noexcept
 
     weights_cnt = std::sqrt(weights_cnt);
 
+    RandomGenerator<> rndgen;
+
     // Initialize all the network weights
     // using random numbers within the range [-1,1]
     for (auto& nl : _neuronLayers) {
         for (auto& neuron : nl) {
             for (auto& w : neuron.weights) {
-                auto random_n = -1.0 + 2 * double(rand()) / double(RAND_MAX);
+                auto random_n = -1.0 + 2 * rndgen();
                 w = random_n / weights_cnt;
             }
 
             for (auto& dw : neuron.deltaW)
                 dw = 0;
 
-            neuron.bias = double(rand()) / double(RAND_MAX);
+            neuron.bias = rndgen();
         }
     }
 }

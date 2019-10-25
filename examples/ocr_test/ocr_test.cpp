@@ -100,7 +100,7 @@ public:
 /* -------------------------------------------------------------------------- */
 
 // Global Variables
-HINSTANCE hInst;								// current instance
+HINSTANCE hInst;                        // current instance
 TCHAR szTitle[MAX_LOADSTRING];			// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];	// the main window class name
 
@@ -254,13 +254,11 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
     ofn.lpstrTitle = "Open File";
     ofn.Flags = OFN_HIDEREADONLY;
 
-    if (::GetOpenFileName(&ofn))
-    {
+    if (::GetOpenFileName(&ofn)) {
         std::ifstream nf(open_file_name.data());
         std::stringstream ss;
 
-        if (!nf.is_open())
-        {
+        if (!nf.is_open()) {
             MessageBox(
                 hWnd,
                 "Cannot open the file",
@@ -297,8 +295,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
 
         }
-        catch (...)
-        {
+        catch (...) {
             MessageBox(
                 hWnd,
                 "Error loading data from file",
@@ -321,8 +318,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
     std::string outputs;
     std::string hl;
 
-    for (size_t i = 0; i < topology.size(); ++i)
-    {
+    for (size_t i = 0; i < topology.size(); ++i) {
         if (i == 0)
             inputs = std::to_string(topology[i]);
         else if (i == (topology.size() - 1))
@@ -366,13 +362,12 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
 
     //std::cout << ss.str() << std::endl;
     std::ofstream nf(filename);
-    if (nf.is_open())
-    {
+    
+    if (nf.is_open()) {
         nf << ss.str() << std::endl;
         nf.close();
     }
-    else
-    {
+    else {
         MessageBox(
             hWnd,
             "Cannot save current network status",
@@ -437,8 +432,7 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
     SendMessage(hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, cb));
     SendMessage(hwndPB, PBM_SETSTEP, (WPARAM)1, 0);
 
-    for (int i = 0; i < TRAINING_NET_EPOCHS; ++i)
-    {
+    for (int i = 0; i < TRAINING_NET_EPOCHS; ++i) {
         nu::Vector<double> target(10, 0.0);
         nu::Vector<double> output(10, 0.0);
         target[digit] = 1.0;
@@ -585,10 +579,8 @@ void GetDigitBox(int xo, int yo, HDC hdc, RECT& r, HWND hwnd, const bmpImage & i
     const int dx = (GRIDSIZE - FRAME_SIZE / 2);
     const int dy = (GRIDSIZE - FRAME_SIZE / 2);
 
-    for (int x = FRAME_SIZE; x < dx; ++x)
-    {
-        for (int y = FRAME_SIZE; y < dy; ++y)
-        {
+    for (int x = FRAME_SIZE; x < dx; ++x) {
+        for (int y = FRAME_SIZE; y < dy; ++y) {
             int xcell = x + xo;
             int ycell = y + yo;
 
@@ -653,14 +645,12 @@ int ReadCellValue(
         yoff < FRAME_SIZE || yoff >(GRIDSIZE - FRAME_SIZE))
         return 0;
 
-    for (int x = 0; x < CELLSIZE; ++x)
-    {
-        for (int y = 0; y < CELLSIZE; ++y)
-        {
+    for (int x = 0; x < CELLSIZE; ++x) {
+        for (int y = 0; y < CELLSIZE; ++y) {
             int xcell = x + xo + xoff;
             int ycell = y + yo + yoff;
 
-            COLORREF c = image.get_pixel(xcell, ycell);//  GetPixel(hdc, xcell, ycell);
+            COLORREF c = image.get_pixel(xcell, ycell);
 
             switch (c)
             {
@@ -746,8 +736,7 @@ void WriteBars(int xo, int yo, HDC hdc, nu::Vector<double>& results)
 {
     int digit = 0;
 
-    for (auto i = results.begin(); i != results.end(); ++i)
-    {
+    for (auto i = results.begin(); i != results.end(); ++i) {
         std::string digit_s = std::to_string(digit++);
 
         auto percent = int(*i * 100);
@@ -771,11 +760,10 @@ void WriteBars(int xo, int yo, HDC hdc, nu::Vector<double>& results)
 
 void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
 {
-    if (!neural_net)
-    {
+    if (!neural_net) {
         MessageBox(
             hWnd,
-            "You have to configure the neural net to complete this job",
+            "You need to configure the neural net to complete this job",
             "Error",
             MB_ICONERROR);
 
@@ -816,8 +804,7 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
         if (percent < 1)
             net_answer = "?";
 
-        if (!net_answer.empty())
-        {
+        if (!net_answer.empty()) {
             HFONT hfont_old = (HFONT)SelectObject(hdc, g_hfFont);
 
             net_answer += " ";
@@ -859,8 +846,7 @@ void DoSelectFont(HWND hwnd)
     HFONT hf = CreateFont(
         lfHeight, 0, 0, 0, 0, TRUE, 0, 0, 0, 0, 0, 0, 0, "Verdana");
 
-    if (hf)
-    {
+    if (hf) {
         if (g_hfFont)
             DeleteObject(g_hfFont);
 
@@ -891,8 +877,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static POINT old_pt = { 0 };
 
 
-    auto frame_check = [](HWND hWnd, POINT & pt)
-    {
+    auto checkFrame = [](HWND hWnd, POINT & pt) {
         GetCursorPos(&pt);
         ScreenToClient(hWnd, &pt);
 
@@ -903,8 +888,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     pt.y <= WHITEBOARD_Y + GRIDSIZE - FRAME_SIZE));
     };
 
-    switch (message)
-    {
+    switch (message) {
 
     case WM_CREATE:
         InitCommonControls();
@@ -944,6 +928,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND:
         wmId = LOWORD(wParam);
         wmEvent = HIWORD(wParam);
+
         // Parse the menu selections:
         switch (wmId)
         {
@@ -1024,7 +1009,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             POINT pt = { 0 };
 
-            if (frame_check(hWnd, pt))
+            if (checkFrame(hWnd, pt))
             {
                 MoveToEx(hdc, old_pt.x, old_pt.y, NULL);
                 LineTo(hdc, pt.x, pt.y);
@@ -1043,7 +1028,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             POINT pt = { 0 };
 
-            if (frame_check(hWnd, pt))
+            if (checkFrame(hWnd, pt))
                 Rectangle(hdc, pt.x, pt.y, pt.x + PENSIZE, pt.y + PENSIZE);
 
             ReleaseDC(hWnd, hdc);
@@ -1059,8 +1044,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         POINT pt = { 0 };
 
-        if (frame_check(hWnd, pt))
-        {
+        if (checkFrame(hWnd, pt)) {
             MoveToEx(hdc, pt.x, pt.y, NULL);
             old_pt = pt;
         }
@@ -1078,7 +1062,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         POINT pt = { 0 };
 
-        if (frame_check(hWnd, pt))
+        if (checkFrame(hWnd, pt))
             Rectangle(hdc, pt.x, pt.y, pt.x + PENSIZE, pt.y + PENSIZE);
 
         ReleaseDC(hWnd, hdc);
@@ -1142,16 +1126,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
 
     case WM_NOTIFY:
-        if (wParam == IDI_TOOLBAR && gtb)
-        {
-            BOOL ret_val = gtb->on_notify(hWnd, lParam);
+        if (wParam == IDI_TOOLBAR && gtb) {
+            const auto retVal = gtb->on_notify(hWnd, lParam);
 
-            switch (((LPNMHDR)lParam)->code)
-            {
-            case TBN_QUERYDELETE:
-            case TBN_GETBUTTONINFO:
-            case TBN_QUERYINSERT:
-                return ret_val;
+            switch (((LPNMHDR)lParam)->code) {
+                case TBN_QUERYDELETE:
+                case TBN_GETBUTTONINFO:
+                case TBN_QUERYINSERT:
+                    return retVal;
             }
         }
         return 0;

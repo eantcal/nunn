@@ -1629,13 +1629,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case WM_NOTIFY:
             if (wParam == IDI_TOOLBAR && g_toolbar) {
-                BOOL ret_val = g_toolbar->on_notify(hWnd, lParam);
+                BOOL retVal = g_toolbar->on_notify(hWnd, lParam);
 
                 switch (((LPNMHDR)lParam)->code) {
                     case TBN_QUERYDELETE:
                     case TBN_GETBUTTONINFO:
                     case TBN_QUERYINSERT:
-                        return ret_val;
+                        return retVal;
                 }
             }
             return 0;

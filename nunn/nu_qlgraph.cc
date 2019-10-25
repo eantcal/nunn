@@ -22,22 +22,23 @@ namespace nu {
 QLGraph::QLGraph(
         const size_t& n_of_states,
         const size_t& goal_state,
-        const Topology& topology) :
-    _n_of_states(n_of_states),
+        const Topology& topology) 
+    :
+    _nOfStates(n_of_states),
     _goalState(goal_state),
-    _reward_mtx(n_of_states),
+    _rewardMtx(n_of_states),
     _q_mtx(n_of_states)
 {
     assert(goal_state < n_of_states);
 
-    _reward_mtx.fill(FORBIDDEN);
+    _rewardMtx.fill(FORBIDDEN);
 
     for (const auto & state : topology) {
 
         const auto & sl = state.first;
 
         for (auto & destination : state.second) {
-            _reward_mtx[state.first][destination] =
+            _rewardMtx[state.first][destination] =
                 destination == _goalState ? REWARD : NO_REWARD;
         }
     }
@@ -56,7 +57,8 @@ bool QLGraph::learn(const size_t& nOfEpisodes, const Helper & helper)
             return false;
         }
 
-        auto current_state = helper.rnd() % _n_of_states;
+        auto _curState = 
+            size_t(helper.rnd() * double(_nOfStates)) % _nOfStates;
 
         bool goal = false;
 
@@ -66,19 +68,22 @@ bool QLGraph::learn(const size_t& nOfEpisodes, const Helper & helper)
                 return false;
             }
 
-            auto validActions = retrieveValidActions(_reward_mtx, current_state);
-            auto next_state = validActions[helper.rnd() % validActions.size()];
+            auto validActions = retrieveValidActions(_rewardMtx, _curState);
+            const auto nOfActions = validActions.size();
 
-            goal = _goalState == current_state;
+            auto nextState = 
+                validActions[size_t(helper.rnd()*double(nOfActions)) % nOfActions];
 
-            auto & qsa = _q_mtx[current_state][next_state];
-            auto & rsa = _reward_mtx[current_state][next_state];
+            goal = _goalState == _curState;
+
+            auto & qsa = _q_mtx[_curState][nextState];
+            auto & rsa = _rewardMtx[_curState][nextState];
 
             qsa +=
                 _learningRate *
-                (rsa + _discountRate * _q_mtx.max(next_state) - qsa);
+                (rsa + _discountRate * _q_mtx.max(nextState) - qsa);
 
-            current_state = next_state;
+            _curState = nextState;
         }
 
         helper.endEpisode(episode, *this);

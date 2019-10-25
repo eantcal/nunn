@@ -18,6 +18,7 @@
 
 #include "nu_stepf.h"
 #include "nu_vector.h"
+#include "nu_random_gen.h"
 
 #include <list>
 
@@ -30,24 +31,23 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! This is an implementation of a Hopfield Neural Network
-class hopfieldnn_t
-{
-  public:
+class HopfiledNN {
+
+public:
     using FpVector = Vector<double>;
 
-    enum class Exception
-    {
+    enum class Exception {
         size_mismatch,
         invalid_sstream_format
     };
 
 
     //! default ctor
-    hopfieldnn_t() = default;
+    HopfiledNN() = default;
 
 
     //! Create a net with pattern size equal to inputSize
-    hopfieldnn_t(const size_t& inputSize) noexcept
+    HopfiledNN(const size_t& inputSize) noexcept
       : _s(inputSize),
         _w(inputSize* inputSize)
     {
@@ -55,18 +55,19 @@ class hopfieldnn_t
 
 
     //! Returns the capacity of the net
-    size_t get_capacity() const noexcept
-    {
+    size_t getCapacity() const noexcept {
         return size_t(0.138 * double(_s.size()));
     }
 
 
     //! Returns the number of patterns added to the net
-    size_t get_n_of_patterns() const noexcept { return _pattern_size; }
+    size_t getPatternsCount() const noexcept { 
+        return _patternSize; 
+    }
 
 
     //! Adds specified pattern
-    void add_pattern(const FpVector& input_pattern);
+    void addPattern(const FpVector& input_pattern);
 
 
     //! Recall a pattern using as key the input one (it must be a vector
@@ -76,31 +77,33 @@ class hopfieldnn_t
 
     //! Create a perceptron using data serialized into
     //! the given stream
-    hopfieldnn_t(std::stringstream& ss) { load(ss); }
+    HopfiledNN(std::stringstream& ss) { load(ss); }
 
     //! copy-ctor
-    hopfieldnn_t(const hopfieldnn_t& nn) = default;
+    HopfiledNN(const HopfiledNN& nn) = default;
 
 
     //! move-ctor
-    hopfieldnn_t(hopfieldnn_t&& nn) noexcept
+    HopfiledNN(HopfiledNN&& nn) noexcept
       : _s(std::move(nn._s)),
         _w(std::move(nn._w)),
-        _pattern_size(std::move(nn._pattern_size))
+        _patternSize(std::move(nn._patternSize))
     {
     }
 
 
     //! default assignment operator
-    hopfieldnn_t& operator=(const hopfieldnn_t& nn) = default;
+    HopfiledNN& operator=(const HopfiledNN& nn) = default;
 
 
     //! default assignment-move operator
-    hopfieldnn_t& operator=(hopfieldnn_t&& nn) noexcept;
+    HopfiledNN& operator=(HopfiledNN&& nn) noexcept;
 
 
     //! Returns the number of inputs
-    size_t getInputSize() const noexcept { return _s.size(); }
+    size_t getInputSize() const noexcept { 
+        return _s.size(); 
+    }
 
     //! Build the net by using data of the given string stream
     std::stringstream& load(std::stringstream& ss);
@@ -115,37 +118,31 @@ class hopfieldnn_t
 
 
     //! Build the net by using data of the given string stream
-    friend std::stringstream& operator>>(std::stringstream& ss,
-                                         hopfieldnn_t& net)
-    {
+    friend 
+    std::stringstream& operator>>(std::stringstream& ss, HopfiledNN& net) {
         return net.load(ss);
     }
 
 
     //! Save net status into the given string stream
-    friend std::stringstream& operator<<(std::stringstream& ss,
-                                         hopfieldnn_t& net) noexcept
-    {
+    friend 
+    std::stringstream& operator<<(std::stringstream& ss, HopfiledNN& net) noexcept {
         return net.save(ss);
     }
 
 
     //! Print the net state out to the given ostream
-    friend std::ostream& operator<<(std::ostream& os,
-                                    hopfieldnn_t& net) noexcept
-    {
+    friend 
+    std::ostream& operator<<(std::ostream& os, HopfiledNN& net) noexcept {
         return net.dump(os);
     }
 
 
     //! Reset the net status
-    void clear() noexcept
-    {
-        for (auto& item : _s)
-            item = 0;
-        for (auto& item : _w)
-            item = 0;
-        _pattern_size = 0;
+    void clear() noexcept {
+        _s = .0; // all zeros
+        _w = .0; // all zeros
+        _patternSize = 0;
     }
 
   private:
@@ -156,11 +153,13 @@ class hopfieldnn_t
     StepFunction step_f = StepFunction(0, -1, 1);
 
     void _propagate() noexcept;
-    bool _propagate_neuron(size_t i) noexcept;
+    bool _propagateNeuron(size_t i) noexcept;
 
     FpVector _s; // neuron states
     FpVector _w; // weights matrix
-    size_t _pattern_size = 0;
+    size_t _patternSize = 0;
+
+    RandomGenerator<> _rndgen;
 };
 
 

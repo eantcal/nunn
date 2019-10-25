@@ -16,6 +16,7 @@
 /* -------------------------------------------------------------------------- */ 
 
 #include "nu_qmtx.h"
+#include "nu_random_gen.h"
 
 #include <vector>
 #include <list>
@@ -45,11 +46,11 @@ public:
         const Topology& topology);
 
     QLGraph(const QMatrix& reward_mtx) :
-      _n_of_states(reward_mtx.size()),
-      _reward_mtx(reward_mtx),
+      _nOfStates(reward_mtx.size()),
+      _rewardMtx(reward_mtx),
       _q_mtx(reward_mtx.size())
     {
-        assert(_n_of_states>0);
+        assert(_nOfStates>0);
     }
 
     void setLearningRate(const double& lr) noexcept {
@@ -69,11 +70,15 @@ public:
     }
 
     struct Helper {
+        Helper() noexcept : _rndGen(new RandomGenerator<>) {}
         virtual ~Helper() {};
         virtual void beginEpisode(const size_t& /*episode*/, QLGraph & /*qlobj*/) const {};
         virtual void endEpisode(const size_t& /*episode*/, QLGraph & /*qlobj*/) const {};
         virtual bool quitRequestPending() const { return false; }
-        virtual size_t rnd() const noexcept { return size_t(rand()); }
+        virtual double rnd() const noexcept { return (*_rndGen)(); }
+
+    private:
+        std::unique_ptr< RandomGenerator<> >_rndGen;
     };
 
     bool learn(
@@ -98,10 +103,10 @@ private:
         return va[rand() % va.size()];
     }
 
-    size_t _n_of_states;
+    size_t _nOfStates;
     size_t _goalState;
 
-    QMatrix _reward_mtx;
+    QMatrix _rewardMtx;
     QMatrix _q_mtx;
 
     double _learningRate = 0.8;

@@ -92,20 +92,20 @@ int main()
 
     for (size_t init_state = 0; init_state < NumberOfStates; ++init_state) {
 
-        size_t current_state = init_state;
+        size_t _curState = init_state;
 
         bool goal = false;
 
-        std::cout << "  " << current_state << "  |  ";
+        std::cout << "  " << _curState << "  |  ";
 
         while (!goal) {
 
-            auto next_state = ql.getNextStateFor(current_state);
+            auto nextState = ql.getNextStateFor(_curState);
 
-            current_state = next_state;
-            goal = current_state == GoalState;
+            _curState = nextState;
+            goal = _curState == GoalState;
 
-            std::cout << current_state << "  ";
+            std::cout << _curState << "  ";
         }
 
         std::cout << std::endl;
