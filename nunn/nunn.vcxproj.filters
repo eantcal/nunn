@@ -15,72 +15,72 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="nu_sigmoid.h">
+    <ClInclude Include="common/inc/nu_costfuncs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_vector.h">
+    <ClInclude Include="common/inc/nu_neuron.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_mlpnn.h">
+    <ClInclude Include="common/inc/nu_stepf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_perceptron.h">
+    <ClInclude Include="common/inc/nu_trainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_neuron.h">
+    <ClInclude Include="common/inc/nu_vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_trainer.h">
+    <ClInclude Include="common/inc/nu_random_gen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_stepf.h">
+    <ClInclude Include="common/inc/nu_sigmoid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_costfuncs.h">
+    <ClInclude Include="neural_networks/inc/nu_hopfieldnn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_hopfieldnn.h">
+    <ClInclude Include="neural_networks/inc/nu_mlpnn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_qlgraph.h">
+    <ClInclude Include="neural_networks/inc/nu_perceptron.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_qmtx.h">
+    <ClInclude Include="reinforcement/inc/nu_qlgraph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_qlearn.h">
+    <ClInclude Include="reinforcement/inc/nu_qmtx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_random_gen.h">
+    <ClInclude Include="reinforcement/inc/nu_sarsa.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_e_greedy_policy.h">
+    <ClInclude Include="reinforcement/inc/nu_softmax_policy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_softmax_policy.h">
+    <ClInclude Include="reinforcement/inc/nu_qlearn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nu_sarsa.h">
+    <ClInclude Include="reinforcement/inc/nu_e_greedy_policy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="nu_mlpnn.cc">
+    <ClCompile Include="common/src/nu_costfuncs.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="nu_perceptron.cc">
+    <ClCompile Include="neural_networks/src/nu_hopfieldnn.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="nu_costfuncs.cc">
+    <ClCompile Include="neural_networks/src/nu_mlpnn.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="nu_hopfieldnn.cc">
+    <ClCompile Include="neural_networks/src/nu_perceptron.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="nu_qlgraph.cc">
+    <ClCompile Include="reinforcement/src/nu_qlgraph.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="nu_qmtx.cc">
+    <ClCompile Include="reinforcement/src/nu_qmtx.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

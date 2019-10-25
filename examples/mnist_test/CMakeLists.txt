@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-include_directories(${nunn_SOURCE_DIR})
+include_directories(${nunn_SOURCE_DIR}/neural_networks/inc)
+include_directories(${nunn_SOURCE_DIR}/common/inc)
+
 include_directories(${mnist_SOURCE_DIR})
 
 link_directories(${nunn_BINARY_DIR})

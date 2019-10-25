@@ -4,8 +4,8 @@ set(VERSION_MAJOR 1)
 set(VERSION_MINOR 0)
 set(VERSION_PATCH 0)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.)
-include_directories(${nunn_SOURCE_DIR})
+include_directories(${nunn_SOURCE_DIR}/common/inc)
+include_directories(${nunn_SOURCE_DIR}/neural_networks/inc)
 
 link_directories(${nunn_BINARY_DIR})
 

@@ -11,9 +11,7 @@
 * Tic-Tac-Toe Demo for Windows (winttt)
 * This is an interactive demo which uses a trained MLP neural network
 * created by using tictactoe demo program.
-* See
-* https://sites.google.com/site/eantcal/home/c/artificial-neural-network-library
-* for more information about this demo
+* See www.enatcal.eu for more information about this demo
 */
 
 

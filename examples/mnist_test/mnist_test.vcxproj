@@ -126,7 +126,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../nunn; ../../mnist</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../nunn/neural_networks/inc; ../../nunn/common/inc; ../../mnist</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -139,7 +139,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../nunn; ../../mnist</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../nunn/neural_networks/inc; ../../nunn/common/inc; ../../mnist</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -151,7 +151,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../nunn; ../../mnist</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../nunn/neural_networks/inc; ../../nunn/common/inc; ../../mnist</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -163,7 +163,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../nunn; ../../mnist</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../nunn/neural_networks/inc; ../../nunn/common/inc; ../../mnist</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -178,7 +178,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../nunn; ../../mnist</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../nunn/neural_networks/inc; ../../nunn/common/inc;  ../../mnist</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -211,7 +211,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../nunn; ../../mnist</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../nunn/neural_networks/inc; ../../nunn/common/inc; ../../mnist</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -227,7 +227,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../nunn; ../../mnist</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../nunn/common/inc; ../../nunn/neural_networks/inc; ../../mnist</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -241,9 +241,9 @@
     <ClCompile Include="mnist_test.cc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\nunn\nu_mlpnn.h" />
-    <ClInclude Include="..\..\nunn\nu_sigmoid.h" />
-    <ClInclude Include="..\..\nunn\nu_vector.h" />
+    <ClInclude Include="..\..\nunn\neural_networks\inc\nu_mlpnn.h" />
+    <ClInclude Include="..\..\nunn\common\inc\nu_sigmoid.h" />
+    <ClInclude Include="..\..\nunn\common\inc\nu_vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

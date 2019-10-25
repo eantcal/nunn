@@ -30,7 +30,7 @@
     <ClInclude Include="winttt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\nunn\nu_mlpnn.h">
+    <ClInclude Include="..\..\nunn\neural_networks\inc\nu_mlpnn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
