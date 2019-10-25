@@ -80,8 +80,6 @@ When training is finished, it will give you the required output for a particular
 ```
 - Step 2: Define net topology
 
-![topology](http://www.nunnlib.eu/_/rsrc/1468877158765/samples/xor-sample/xortopo.jpg?height=122&width=200)
-
 ```
 int main(int argc, char* argv[])
 {
