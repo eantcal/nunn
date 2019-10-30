@@ -177,11 +177,14 @@ public:
 
     //! Fire all neurons of the net and calculate the outputs
     //! and then apply the Back Propagation Algorithm to the net
-    void runBackPropagationAlgo(const FpVector& target_v, FpVector& output_v);
+    void runBackPropagationAlgo(const FpVector& targetVector, FpVector& outputVector);
 
     //! Fire all neurons of the net and calculate the outputs
     //! and then apply the Back Propagation Algorithm to the net
-    void runBackPropagationAlgo(const FpVector& target_v);
+    void runBackPropagationAlgo(const FpVector& targetVector) {
+        FpVector outputVector; // dummy
+        runBackPropagationAlgo(targetVector, outputVector);
+    }
 
     //! Build the net by using data of the given string stream
     std::stringstream& load(std::stringstream& ss);
@@ -247,7 +250,7 @@ public:
 
 private:
     // Update network weights according to BP learning algorithm
-    void _updateNeuronWeights(Neuron& neuron, size_t layer_idx);
+    void _updateNeuronWeights(Neuron& neuron, size_t layerIdx);
 
     // Get input value for a neuron belonging to a given layer
     // If layer is 0, it is related to input of the net
@@ -261,20 +264,21 @@ private:
     }
 
     // Fire all neurons of a given layer
-    void _fireNeuron(NeuronLayer& nlayer, size_t layer_idx, size_t out_idx) noexcept;
+    void _fireNeuron(NeuronLayer& nlayer, size_t layerIdx, size_t outIdx) noexcept;
 
     // Do back propagation
-    void _backPropagate(const FpVector& target_v, const FpVector& output_v);
+    void _backPropagate(const FpVector& targetVector, const FpVector& outputVector);
 
     // Initialize inputs and neuron layers of a net using a given topology
-    static void _build(const Topology& topology,
+    static void _build(
+        const Topology& topology,
         std::vector<NeuronLayer>& neuronLayers,
         FpVector& inputs);
 
     // Calculate error vector in using MSE function
     static void _calcMSE(
-        const FpVector& target_v,
-        const FpVector& outputs_v,
+        const FpVector& targetVector,
+        const FpVector& outputVector,
         FpVector& res_v) noexcept;
     
 

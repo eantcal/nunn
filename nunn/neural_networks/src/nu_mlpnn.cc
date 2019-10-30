@@ -20,8 +20,9 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-MlpNN::MlpNN(const Topology& topology,
-                                   double learningRate, double momentum) :
+MlpNN::MlpNN(
+    const Topology& topology,
+    double learningRate, double momentum) :
      _topology(topology),
     _learningRate(learningRate),
     _momentum(momentum)
@@ -33,18 +34,18 @@ MlpNN::MlpNN(const Topology& topology,
 
 /* -------------------------------------------------------------------------- */
 
-void MlpNN::_updateNeuronWeights(Neuron& neuron, size_t layer_idx)
+void MlpNN::_updateNeuronWeights(Neuron& neuron, size_t layerIdx)
 {
     const auto lr_err = neuron.error * _learningRate;
     const auto m_err = neuron.error * _momentum;
 
-    for (size_t in_idx = 0; in_idx < neuron.weights.size(); ++in_idx) {
-        const auto dw_prev_step = neuron.deltaW[in_idx];
+    for (size_t inIdx = 0; inIdx < neuron.weights.size(); ++inIdx) {
+        const auto dw_prev_step = neuron.deltaW[inIdx];
 
-        neuron.deltaW[in_idx] =
-          _getInput(layer_idx - 1, in_idx) * lr_err + m_err * dw_prev_step;
+        neuron.deltaW[inIdx] =
+          _getInput(layerIdx - 1, inIdx) * lr_err + m_err * dw_prev_step;
 
-        neuron.weights[in_idx] += neuron.deltaW[in_idx];
+        neuron.weights[inIdx] += neuron.deltaW[inIdx];
     }
 
     neuron.bias = lr_err + m_err * neuron.bias;
@@ -100,44 +101,29 @@ void MlpNN::copyOutputVector(FpVector& outputs) noexcept {
 void MlpNN::feedForward() noexcept 
 {
     // For each layer (excluding input one) of neurons do...
-    for (size_t layer_idx = 0; layer_idx < _neuronLayers.size();
-        ++layer_idx) {
-        auto& neuronLayer = _neuronLayers[layer_idx];
+    for (size_t layerIdx = 0; layerIdx < _neuronLayers.size();
+        ++layerIdx) {
+        auto& neuronLayer = _neuronLayers[layerIdx];
 
         const auto& size = neuronLayer.size();
 
         // Fire all neurons of this hidden / output layer
-        for (size_t out_idx = 0; out_idx < size; ++out_idx)
-            _fireNeuron(neuronLayer, layer_idx, out_idx);
+        for (size_t outIdx = 0; outIdx < size; ++outIdx)
+            _fireNeuron(neuronLayer, layerIdx, outIdx);
     }
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-void MlpNN::runBackPropagationAlgo(const FpVector& target_v, FpVector& output_v) 
+void MlpNN::runBackPropagationAlgo(const FpVector& targetVector, FpVector& outputVector) 
 {
     // Calculate and get the outputs
     feedForward();
-    copyOutputVector(output_v);
+    copyOutputVector(outputVector);
 
     // Apply runBackPropagationAlgo algo
-    _backPropagate(target_v, output_v);
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-void MlpNN::runBackPropagationAlgo(const FpVector& target_v)
-{
-    FpVector output_v;
-
-    // Calculate and get the outputs
-    feedForward();
-    copyOutputVector(output_v);
-
-    // Apply runBackPropagationAlgo algo
-    _backPropagate(target_v, output_v);
+    _backPropagate(targetVector, outputVector);
 }
 
 
@@ -224,11 +210,11 @@ std::ostream& MlpNN::dump(std::ostream& os) noexcept
     for (const auto& val : _inputVector)
         os << "\t[" << idx++ << "] = " << val << std::endl;
 
-    size_t layer_idx = 0;
+    size_t layerIdx = 0;
 
     for (const auto& layer : _neuronLayers) {
-        os << "\nNeuron layer " << layer_idx << " "
-            << (layer_idx >= (_topology.size() - 2) ? "Output" : "Hidden")
+        os << "\nNeuron layer " << layerIdx << " "
+            << (layerIdx >= (_topology.size() - 2) ? "Output" : "Hidden")
             << std::endl;
 
         size_t neuron_idx = 0;
@@ -236,13 +222,13 @@ std::ostream& MlpNN::dump(std::ostream& os) noexcept
         for (const auto& neuron : layer) {
             os << "\tNeuron " << neuron_idx++ << std::endl;
 
-            for (size_t in_idx = 0; in_idx < neuron.weights.size();
-                ++in_idx) {
-                os << "\t\tInput  [" << in_idx
-                    << "] = " << _getInput(layer_idx, in_idx) << std::endl;
+            for (size_t inIdx = 0; inIdx < neuron.weights.size();
+                ++inIdx) {
+                os << "\t\tInput  [" << inIdx
+                    << "] = " << _getInput(layerIdx, inIdx) << std::endl;
 
-                os << "\t\tWeight [" << in_idx
-                    << "] = " << neuron.weights[in_idx] << std::endl;
+                os << "\t\tWeight [" << inIdx
+                    << "] = " << neuron.weights[inIdx] << std::endl;
             }
 
             os << "\t\tBias =       " << neuron.bias << std::endl;
@@ -254,7 +240,7 @@ std::ostream& MlpNN::dump(std::ostream& os) noexcept
             os << std::endl;
         }
 
-        ++layer_idx;
+        ++layerIdx;
     }
 
     return os;
@@ -291,17 +277,19 @@ double MlpNN::calcCrossEntropy(const FpVector& target)
 
 /* -------------------------------------------------------------------------- */
 
-void MlpNN::_fireNeuron(NeuronLayer& nlayer, size_t layer_idx,
-    size_t out_idx) noexcept
+void MlpNN::_fireNeuron(
+    NeuronLayer& nlayer, 
+    size_t layerIdx,
+    size_t outIdx) noexcept
 {
-    auto& neuron = nlayer[out_idx];
+    auto& neuron = nlayer[outIdx];
 
     double sum = 0.0;
 
     // Sum of all the weights * input value
     size_t idx = 0;
     for (const auto& wi : neuron.weights)
-        sum += _getInput(layer_idx, idx++) * wi;
+        sum += _getInput(layerIdx, idx++) * wi;
 
     sum += neuron.bias;
 
@@ -311,10 +299,10 @@ void MlpNN::_fireNeuron(NeuronLayer& nlayer, size_t layer_idx,
 
 /* -------------------------------------------------------------------------- */
 
-void MlpNN::_backPropagate(const FpVector& target_v,
-    const FpVector& output_v)
+void MlpNN::_backPropagate(const FpVector& targetVector,
+    const FpVector& outputVector)
 {
-    if (target_v.size() != output_v.size())
+    if (targetVector.size() != outputVector.size())
         throw Exception::size_mismatch;
 
     // -------- Calculate error for output neurons
@@ -322,7 +310,7 @@ void MlpNN::_backPropagate(const FpVector& target_v,
 
     // res_v = target - output
     FpVector error_v;
-    _calcMSE(target_v, output_v, error_v);
+    _calcMSE(targetVector, outputVector, error_v);
 
     // Copy error values into the output neurons
     size_t i = 0;
@@ -333,12 +321,12 @@ void MlpNN::_backPropagate(const FpVector& target_v,
     // -------- Change output layer weights
     // ---------------------------------
 
-    auto layer_idx = _topology.size() - 1;
-    auto& layer = _neuronLayers[layer_idx - 1];
+    auto layerIdx = _topology.size() - 1;
+    auto& layer = _neuronLayers[layerIdx - 1];
 
     for (size_t nidx = 0; nidx < layer.size(); ++nidx) {
         auto& neuron = layer[nidx];
-        _updateNeuronWeights(neuron, layer_idx);
+        _updateNeuronWeights(neuron, layerIdx);
     }
 
 
@@ -369,14 +357,14 @@ void MlpNN::_backPropagate(const FpVector& target_v,
     // (Nn)
     // - errors are related to the next layer neurons output (Ex)
 
-    while (layer_idx > 1) {
-        --layer_idx;
+    while (layerIdx > 1) {
+        --layerIdx;
 
-        auto& h_layer = _neuronLayers[layer_idx - 1];
+        auto& hiddenLayer = _neuronLayers[layerIdx - 1];
 
         // For each neuron of hidden layer
-        for (size_t nidx = 0; nidx < h_layer.size(); ++nidx) {
-            auto& neuron = h_layer[nidx];
+        for (size_t nidx = 0; nidx < hiddenLayer.size(); ++nidx) {
+            auto& neuron = hiddenLayer[nidx];
 
             // Calculate error as output*(1-output)*s
             neuron.error = neuron.output * (1 - neuron.output);
@@ -384,12 +372,12 @@ void MlpNN::_backPropagate(const FpVector& target_v,
             // where s = sum of w[nidx]*error of next layer neurons
             double sum = 0.0;
 
-            const auto& nlsize = _neuronLayers[layer_idx].size();
+            const auto& nlsize = _neuronLayers[layerIdx].size();
 
             // For each neuron of next layer...
             for (size_t nnidx = 0; nnidx < nlsize; ++nnidx) {
-                auto& next_layer_neuron =
-                    (_neuronLayers[layer_idx])[nnidx];
+                auto& nextLayerNeuron =
+                    (_neuronLayers[layerIdx])[nnidx];
 
                 // ... add to the sum the product of its output error
                 //     (as previusly computed)
@@ -397,16 +385,16 @@ void MlpNN::_backPropagate(const FpVector& target_v,
                 //     hidden layer
                 //     (they are related to hl-neuron index: nidx)
                 sum +=
-                    next_layer_neuron.error * next_layer_neuron.weights[nidx];
+                    nextLayerNeuron.error * nextLayerNeuron.weights[nidx];
 
                 // Add also bias-error rate
                 if (nnidx == (nlsize - 1))
-                    sum += next_layer_neuron.error * next_layer_neuron.bias;
+                    sum += nextLayerNeuron.error * nextLayerNeuron.bias;
             }
 
             neuron.error *= sum;
 
-            _updateNeuronWeights(neuron, layer_idx);
+            _updateNeuronWeights(neuron, layerIdx);
         }
     }
 }
@@ -452,18 +440,18 @@ void MlpNN::_build(
 /* -------------------------------------------------------------------------- */
 
 void MlpNN::_calcMSE(
-    const FpVector& target_v,
-    const FpVector& outputs_v,
+    const FpVector& targetVector,
+    const FpVector& outputVector,
     FpVector& res_v) noexcept
 {
     // res = (1 - out) * out
-    res_v.resize(outputs_v.size(), 1.0);
-    res_v -= outputs_v;
-    res_v *= outputs_v;
+    res_v.resize(outputVector.size(), 1.0);
+    res_v -= outputVector;
+    res_v *= outputVector;
 
     // diff = target - out
-    FpVector diff_v(target_v);
-    diff_v -= outputs_v;
+    FpVector diff_v(targetVector);
+    diff_v -= outputVector;
 
     // Error vector = (1 - out) * out * (target - out)
     res_v *= diff_v;

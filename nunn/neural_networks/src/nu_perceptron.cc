@@ -150,11 +150,11 @@ std::ostream& Perceptron::dump(std::ostream& os) noexcept
 {
     os << "Perceptron " << std::endl;
 
-    for (size_t in_idx = 0; in_idx < _neuron.weights.size(); ++in_idx) {
-        os << "\t\tInput  [" << in_idx << "] = " << _inputVector[in_idx]
+    for (size_t inIdx = 0; inIdx < _neuron.weights.size(); ++inIdx) {
+        os << "\t\tInput  [" << inIdx << "] = " << _inputVector[inIdx]
            << std::endl;
 
-        os << "\t\tWeight [" << in_idx << "] = " << _neuron.weights[in_idx]
+        os << "\t\tWeight [" << inIdx << "] = " << _neuron.weights[inIdx]
            << std::endl;
     }
 
