@@ -1,3 +1,5 @@
+| Linux  | [![Linux Build](https://travis-ci.org/eantcal/miptknzr.svg?branch=master)](https://travis-ci.org/eantcal/miptknzr)  |
+
 # nunn 2.0
 Nunn Library is a Free Open Source Machine Learning Library distributed under MIT License and written in C++17
 
