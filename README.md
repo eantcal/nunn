@@ -1,5 +1,7 @@
-# nunn
-Nunn Library is a Free Open Source Machine Learning Library distributed under MIT License and written in C++11/C++14
+# nunn 2.0
+| Linux  | [![Linux Build](https://travis-ci.org/eantcal/nunn.svg?branch=master)](https://travis-ci.org/eantcal/nunn)  |
+
+Nunn Library is a Free Open Source Machine Learning Library distributed under MIT License and written in C++17
 
 ## Features
 - Supports fully connected multi-layers neural networks and other ML algorithms
@@ -80,13 +82,12 @@ When training is finished, it will give you the required output for a particular
 ```
 - Step 2: Define net topology
 
-![topology](http://www.nunnlib.eu/_/rsrc/1468877158765/samples/xor-sample/xortopo.jpg?height=122&width=200)
-
 ```
 int main(int argc, char* argv[])
 {
-  using vect_t = nu::mlp_neural_net_t::rvector_t;
-  nu::mlp_neural_net_t::topology_t topology = {
+  using vect_t = nu::MlpNN::FpVector;
+
+  nu::MlpNN::Topology topology = {
       2, // input layer takes a two dimensional vector
       2, // hidden layer size
       1  // output
@@ -97,8 +98,7 @@ int main(int argc, char* argv[])
 ```
   try 
   {
-      nu::mlp_neural_net_t nn
-      {
+      nu::MlpNN nn {
          topology,
          0.4, // learning rate
          0.9, // momentum
@@ -122,7 +122,7 @@ Training set must be a collection of <input-vector, output-vector> pairs.
 Trainer object iterates for each element of training set until the max number of epochs (20000) is reached or error computed by function passed as second parameter to train() method is less than min error (0.01).
 
 ```
-        nu::mlp_nn_trainer_t trainer(
+        nu::MlpNNTrainer trainer(
          nn,
          20000, // Max number of epochs
          0.01   // Min error
@@ -134,13 +134,13 @@ Trainer object iterates for each element of training set until the max number of
       trainer.train<training_set_t>(
          traing_set,
          [](
-            nu::mlp_neural_net_t& net,
-            const nu::mlp_neural_net_t::rvector_t & target) -> double
+            nu::MlpNN& net,
+            const nu::MlpNN::FpVector_t & target) -> double
          {
             static size_t i = 0;
             if (i++ % 200 == 0)
                std::cout << ">";
-             return net.mean_squared_error(target);
+             return net.calcMSE(target);
          }
       );
 ```
@@ -156,17 +156,19 @@ auto step_f = [](double x) { return x < 0.5 ? 0 : 1; };
         {  
             vect_t output_vec{ 0.0 };
             vect_t input_vec{ double(a), double(b) }; 
-            nn.set_inputs(input_vec);
-            nn.feed_forward();
-            nn.get_outputs(output_vec);
+
+            nn.setInputVector(input_vec);
+            nn.feedForward();
+            nn.getOutputVector(output_vec);
+
             // Dump the network status
             std::cout << nn;
             std::cout << "-------------------------------" << std::endl;
             auto net_res = step_f(output_vec[0]);
             std::cout << a << " xor " << b << " = " << net_res << std::endl;
             auto xor_res = a ^ b;
-            if (xor_res != net_res)
-            {
+            
+            if (xor_res != net_res) {
                std::cerr
                   << "ERROR!: xor(" << a << "," << b << ") !="
                   << xor_res
@@ -178,7 +180,7 @@ auto step_f = [](double x) { return x < 0.5 ? 0 : 1; };
      } 
       std::cout << "Test completed successfully" << std::endl;
    }
-   catch (nu::mlp_neural_net_t::exception_t & e)
+   catch (nu::MlpNN::Exception & e)
    {
       std::cerr << "nu::mlp_neural_net_t::exception_t n# " << int(e) << std::endl;
       std::cerr << "Check for configuration parameters and retry" << std::endl; 
