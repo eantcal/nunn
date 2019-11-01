@@ -32,4 +32,8 @@ script:
     - make
     
 after_success:
-    # todo
+    - cd examples
+    - xor_test/xor_test
+    - and_test/and_test
+    - path_finder/path_finder
+    - hopfield_test/hopfield_test
