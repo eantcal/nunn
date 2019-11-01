@@ -107,9 +107,9 @@ TCHAR szWindowClass[MAX_LOADSTRING];	// the main window class name
 
 static HFONT g_hfFont = nullptr;
 
-std::unique_ptr<nu::MlpNN> neural_net;
-std::string current_file_name;
-std::string net_description = "Load a net description file (File->Load)";
+std::unique_ptr<nu::MlpNN> neuralNet;
+std::string currentFileName;
+std::string netDescription = "Load a net description file (File->Load)";
 nu::Vector<double> g_hwdigit;
 
 
@@ -271,7 +271,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
         ss << nf.rdbuf();
         nf.close();
 
-        current_file_name = open_file_name.data();
+        currentFileName = open_file_name.data();
 
         auto nn = std::make_unique< nu::MlpNN >();
 
@@ -305,14 +305,14 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
             return false;
         }
 
-        neural_net = std::move(nn);
+        neuralNet = std::move(nn);
     }
 
-    if (!neural_net)
+    if (!neuralNet)
         return false;
 
-    const double learningRate = neural_net->getLearningRate();
-    const auto & topology = neural_net->getTopology();
+    const double learningRate = neuralNet->getLearningRate();
+    const auto & topology = neuralNet->getTopology();
 
     std::string inputs;
     std::string outputs;
@@ -327,12 +327,12 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
             hl += std::to_string(topology[i]) + " ";
     }
 
-    net_description =
+    netDescription =
         "   Inputs: " + inputs +
         "   Outputs: " + outputs +
         "   HL Neurons: " + hl;
 
-    SetWindowText(hWnd, current_file_name.c_str());
+    SetWindowText(hWnd, currentFileName.c_str());
 
     RECT r = { 0, PROG_WINYRES - 100, PROG_WINXRES, PROG_WINYRES };
     InvalidateRect(hWnd, &r, TRUE);
@@ -346,7 +346,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
 void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
 {
-    if (!neural_net)
+    if (!neuralNet)
     {
         MessageBox(
             hWnd,
@@ -358,7 +358,7 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
     }
 
     std::stringstream ss;
-    ss << *neural_net;
+    ss << *neuralNet;
 
     //std::cout << ss.str() << std::endl;
     std::ofstream nf(filename);
@@ -377,7 +377,7 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
         return;
     }
 
-    current_file_name = filename;
+    currentFileName = filename;
     SetWindowText(hWnd, filename.c_str());
 }
 
@@ -387,7 +387,7 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
 void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 {
     char openName[MAX_PATH] = "\0";
-    strncpy(openName, current_file_name.c_str(), MAX_PATH - 1);
+    strncpy(openName, currentFileName.c_str(), MAX_PATH - 1);
 
     OPENFILENAME ofn = { sizeof(ofn) };
     ofn.hwndOwner = hWnd;
@@ -409,7 +409,7 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 {
     assert(digit >= 0 && digit <= 9);
 
-    if (!neural_net || g_hwdigit.empty())
+    if (!neuralNet || g_hwdigit.empty())
         return false;
 
     double err = 0.0;
@@ -437,10 +437,10 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
         nu::Vector<double> output(10, 0.0);
         target[digit] = 1.0;
 
-        neural_net->setInputVector(g_hwdigit);
-        neural_net->runBackPropagationAlgo(target, output);
+        neuralNet->setInputVector(g_hwdigit);
+        neuralNet->backPropagate(target, output);
 
-        err = neural_net->calcMSE(target);
+        err = neuralNet->calcMSE(target);
 
         SendMessage(hwndPB, PBM_STEPIT, 0, 0);
 
@@ -549,7 +549,7 @@ public:
     }
 
 
-    COLORREF get_pixel(int x_, int y_) const noexcept {
+    COLORREF getPixel(int x_, int y_) const noexcept {
 
         const int x = x_; // _dx - x_ - 1;
         const int y = _dy - y_ - 1;
@@ -584,7 +584,7 @@ void GetDigitBox(int xo, int yo, HDC hdc, RECT& r, HWND hwnd, const bmpImage & i
             int xcell = x + xo;
             int ycell = y + yo;
 
-            COLORREF c = image.get_pixel(xcell, ycell);
+            COLORREF c = image.getPixel(xcell, ycell);
 
             switch (c)
             {
@@ -650,7 +650,7 @@ int ReadCellValue(
             int xcell = x + xo + xoff;
             int ycell = y + yo + yoff;
 
-            COLORREF c = image.get_pixel(xcell, ycell);
+            COLORREF c = image.getPixel(xcell, ycell);
 
             switch (c)
             {
@@ -760,7 +760,7 @@ void WriteBars(int xo, int yo, HDC hdc, nu::Vector<double>& results)
 
 void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
 {
-    if (!neural_net) {
+    if (!neuralNet) {
         MessageBox(
             hWnd,
             "You need to configure the neural net to complete this job",
@@ -774,7 +774,7 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
     InvalidateRect(hWnd, &ri, TRUE);
     UpdateWindow(hWnd);
 
-    nu::Vector<double> hwdigit(neural_net->getInputSize());
+    nu::Vector<double> hwdigit(neuralNet->getInputSize());
 
     HDC hdc = GetDC(hWnd);
 
@@ -790,11 +790,11 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
 
         PrintGrayscaleDigit(xo1, yo1, hdc, hwdigit);
 
-        neural_net->setInputVector(hwdigit);
-        neural_net->feedForward();
+        neuralNet->setInputVector(hwdigit);
+        neuralNet->feedForward();
 
         nu::Vector<double> outputs;
-        neural_net->copyOutputVector(outputs);
+        neuralNet->copyOutputVector(outputs);
 
         WriteBars(530, 90, hdc, outputs);
 
@@ -868,7 +868,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static int xm = 0;
     static int ym = 0;
     static bool ftime = true;
-    static HCURSOR cross_hcur = LoadCursor(NULL, IDC_CROSS);
+    static HCURSOR hcurCross = LoadCursor(NULL, IDC_CROSS);
     static HCURSOR hcur = 0;
 
     static HBRUSH hbr = (HBRUSH)GetStockObject(BLACK_BRUSH);
@@ -1001,7 +1001,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // the left mouse button to draw lines. 
         if (wParam & MK_LBUTTON)
         {
-            SetCursor(cross_hcur);
+            SetCursor(hcurCross);
             HDC hdc = GetDC(hWnd);
 
             SelectObject(hdc, hbr);
@@ -1020,7 +1020,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         else if (wParam & MK_RBUTTON)
         {
-            SetCursor(cross_hcur);
+            SetCursor(hcurCross);
             HDC hdc = GetDC(hWnd);
 
             SelectObject(hdc, hbr);
@@ -1037,7 +1037,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     {
-        hcur = SetCursor(cross_hcur);
+        hcur = SetCursor(hcurCross);
         HDC hdc = GetDC(hWnd);
         SelectObject(hdc, hbr);
         SelectPen(hdc, hpen);
@@ -1055,7 +1055,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_RBUTTONDOWN:
     {
-        hcur = SetCursor(cross_hcur);
+        hcur = SetCursor(hcurCross);
         HDC hdc = GetDC(hWnd);
         SelectObject(hdc, hbr);
         SelectPen(hdc, hpen_white);
@@ -1112,8 +1112,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             hdc,
             220,
             500,
-            net_description.c_str(),
-            int(net_description.size()));
+            netDescription.c_str(),
+            int(netDescription.size()));
 
         Rectangle(hdc,
             WHITEBOARD_X + FRAME_SIZE,

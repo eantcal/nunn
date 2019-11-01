@@ -129,13 +129,13 @@ struct Perceptron {
 
     //! Fire the neuron, calculate the output
     //! then apply the learning algorithm to the net
-    void runBackPropagationAlgo(const double& target, double& output) noexcept;
+    void backPropagate(const double& target, double& output) noexcept;
 
     //! Fire the neuron, calculate the output
     //! then apply the learning algorithm to the net
-    void runBackPropagationAlgo(const double& target) noexcept {
+    void backPropagate(const double& target) noexcept {
         double output;
-        runBackPropagationAlgo(target, output);
+        backPropagate(target, output);
     }
 
     //! Compute global error

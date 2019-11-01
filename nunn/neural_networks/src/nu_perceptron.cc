@@ -56,13 +56,13 @@ void Perceptron::feedForward() noexcept
 
 /* -------------------------------------------------------------------------- */
 
-void Perceptron::runBackPropagationAlgo(const double& target, double& output) noexcept
+void Perceptron::backPropagate(const double& target, double& output) noexcept
 {
     // Calculate and get the outputs
     feedForward();
     output = getOutput();
 
-    // Apply runBackPropagationAlgo algo
+    // Apply backPropagate algo
     _neuron.error = (target - output);
     const double e = _learningRate * _neuron.error;
 

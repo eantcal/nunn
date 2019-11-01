@@ -453,7 +453,7 @@ void TrainingThread()
             for (const auto& sample : samples) {
                 if (g_neural_net_copy) {
                     g_neural_net_copy->setInputVector(sample.inputs);
-                    g_neural_net_copy->runBackPropagationAlgo(sample.outputs, outputs);
+                    g_neural_net_copy->backPropagate(sample.outputs, outputs);
                 }
 
                 err += nu::cf::calcCrossEntropy(outputs, sample.outputs);

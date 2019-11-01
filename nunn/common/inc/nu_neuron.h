@@ -64,6 +64,17 @@ struct Neuron {
         return ss;
     }
 
+    //! Save JSON formatted neuron status into a given string stream
+    std::ostream& formatJson(std::ostream& ss) noexcept {
+        ss << "{\"bias\":"<< bias << ",";
+        ss << "\"weights\":";
+        weights.formatJson(ss) << ",";
+        ss << "\"deltaW\":";
+        deltaW.formatJson(ss) << "}";
+
+        return ss;
+    }
+
     //! Resize both the weights and deltaW vectors
     void resize(size_t size) noexcept {
         weights.resize(size);

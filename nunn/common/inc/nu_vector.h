@@ -61,11 +61,15 @@ public:
 
 
     //! Initializer list constructor
-    Vector(const std::initializer_list<T> l) noexcept : _v(l) {}
+    Vector(const std::initializer_list<T> l) noexcept : 
+        _v(l) 
+    {}
 
 
     //! Move constructor
-    Vector(Vector&& other) noexcept : _v(std::move(other._v)) {}
+    Vector(Vector&& other) noexcept : 
+        _v(std::move(other._v)) 
+    {}
 
 
     //! Fill constructor
@@ -209,18 +213,24 @@ public:
 
 
     //! Apply the function abs to each vector item
-    const Vector& abs() noexcept { return apply(::abs); }
+    const Vector& abs() noexcept { 
+        return apply(::abs); 
+    }
 
 
     //! Apply the function std::log to each vector item
     const Vector& log() noexcept {
-        return apply([](double x) { return std::log(x); });
+        return apply(
+            [](double x) { return std::log(x); }
+        );
     }
 
 
     //! Negates each vector item
     const Vector& negate() noexcept {
-        return apply([](double x) { return -x; });
+        return apply(
+            [](double x) { return -x; }
+        );
     }
 
 
@@ -361,6 +371,21 @@ public:
 
         os << " ]";
 
+        return os;
+    }
+
+    //! Writes the JSON formatted content into os stream
+    std::ostream& formatJson (std::ostream& os) noexcept {
+        os << "[";
+
+        for (auto i = cbegin(); i != cend(); ++i) {
+            os << *i;
+            if ((i + 1) != cend()) {
+                os << ",";
+            }
+        }
+
+        os << "]";
         return os;
     }
 

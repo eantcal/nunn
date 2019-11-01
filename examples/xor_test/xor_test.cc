@@ -44,14 +44,14 @@
 
 /* -------------------------------------------------------------------------- */
 
-using neural_net_t = nu::MlpNN;
+using NeuralNet = nu::MlpNN;
 using Trainer = nu::MlpNNTrainer;
 
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char* argv[])
 {
-    using vect_t = neural_net_t::FpVector;
+    using vect_t = NeuralNet::FpVector;
 
     // Topology is a vector of positive integers
     // First one represents the input layer size
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
     // All other values represent the hidden layers from input to output
     // The topology vector must be at least of 3 items and all of them must be
     // non-zero positive integer values
-    neural_net_t::Topology topology = {
+    NeuralNet::Topology topology = {
         2, // input layer takes a two dimensional vector as input
         2, // hidden layer size
         1  // output
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
     try {
 
         // Construct the network using topology, learning rate and momentum
-        neural_net_t nn{
+        NeuralNet nn{
             topology,
             0.4, // learning rate
             0.9, // momentum
@@ -78,14 +78,16 @@ int main(int argc, char* argv[])
         /*------------- Create a training set ---------------------------------
          */
 
-        using training_set_t =
+        using TrainingSet =
           std::map<std::vector<double>, std::vector<double>>;
 
-        training_set_t traing_set = { { { 0, 0 }, { 0 } },
-                                      { { 0, 1 }, { 1 } },
-                                      { { 1, 0 }, { 1 } },
-                                      { { 1, 1 }, { 0 } } };
+        TrainingSet traing_set = { { { 0, 0 }, { 0 } },
+                                   { { 0, 1 }, { 1 } },
+                                   { { 1, 0 }, { 1 } },
+                                   { { 1, 1 }, { 0 } } };
 
+
+        nn.formatJson(std::cout) << std::endl;
 
         /*------------- Perform net training  ---------------------------------
          */
@@ -105,10 +107,13 @@ int main(int argc, char* argv[])
                   << std::endl;
 
         // Called to print out training progress
-        auto progressCbk = [EPOCHS](neural_net_t& n,
-                                     const nu::Vector<double>& i,
-                                     const nu::Vector<double>& t,
-                                     size_t epoch, size_t sample, double err) {
+        auto progressCbk = [EPOCHS](NeuralNet& n,
+                                    const nu::Vector<double>& i,
+                                    const nu::Vector<double>& t,
+                                    size_t epoch, 
+                                    size_t sample, 
+                                    double err) 
+        {
             if (epoch % 400 == 0 && sample == 0)
                 std::cout << "Epoch completed "
                           << (double(epoch) / double(EPOCHS)) * 100.0
@@ -120,14 +125,14 @@ int main(int argc, char* argv[])
 
         // Used by trainer to calculate the net error to
         // be compared with min error (MIN_ERR)
-        auto errCost = [](neural_net_t& net,
-                             const neural_net_t::FpVector& target) {
+        auto errCost = [](NeuralNet& net,
+                             const NeuralNet::FpVector& target) {
             return net.calcMSE(target);
         };
 
 
         // Train the net
-        trainer.runTraining<training_set_t>(traing_set, errCost,
+        trainer.runTraining<TrainingSet>(traing_set, errCost,
                                              progressCbk);
 
 
@@ -174,7 +179,7 @@ int main(int argc, char* argv[])
         }
 
         std::cout << "Test completed successfully" << std::endl;
-    } catch (neural_net_t::Exception& e) {
+    } catch (NeuralNet::Exception& e) {
         std::cerr << "nu::MlpNN::Exception n# " << int(e)
                   << std::endl;
 

@@ -116,13 +116,13 @@ void MlpNN::feedForward() noexcept
 
 /* -------------------------------------------------------------------------- */
 
-void MlpNN::runBackPropagationAlgo(const FpVector& targetVector, FpVector& outputVector) 
+void MlpNN::backPropagate(const FpVector& targetVector, FpVector& outputVector) 
 {
     // Calculate and get the outputs
     feedForward();
     copyOutputVector(outputVector);
 
-    // Apply runBackPropagationAlgo algo
+    // Apply backPropagate algo
     _backPropagate(targetVector, outputVector);
 }
 
@@ -203,6 +203,53 @@ std::stringstream& MlpNN::save(std::stringstream& ss) noexcept
 
 /* -------------------------------------------------------------------------- */
 
+std::ostream& MlpNN::formatJson(std::ostream& ss) noexcept
+{
+    ss.clear();
+
+    ss << "{\"" << getNetId() << "\":{"<< std::endl;
+
+    ss << "\"learningRate\":" << _learningRate << ",";
+    ss << "\"momentum\":" << _momentum << ",";
+
+    ss << "\"" << getInputVectorId() << "\":";
+    _inputVector.formatJson(ss) << ",";
+
+    ss << "\"" << getTopologyId() << "\":";
+    _topology.formatJson(ss) << ",";
+    ss << "\"layers\":{" << std::endl;
+
+    size_t nlIdx = 0;
+    for (auto& nl : _neuronLayers) {
+        ss << "\"" << getNeuronLayerId() << nlIdx << "\":{" << std::endl;
+
+        size_t neuronIdx = 0;
+        for (auto& neuron : nl) {
+            ss << "\"" << getNeuronId() << neuronIdx << "\":";
+            
+            neuron.formatJson(ss);
+
+            if (++neuronIdx < nl.size()) {
+                ss << ",";
+            }
+        }
+
+        ss << "}";
+        if (++nlIdx < _neuronLayers.size()) {
+            ss << ",";
+        }
+        ss << std::endl;
+
+    }
+
+    ss << "}}}";
+
+    return ss;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 std::ostream& MlpNN::dump(std::ostream& os) noexcept
 {
     os << "Net Inputs" << std::endl;
@@ -249,29 +296,29 @@ std::ostream& MlpNN::dump(std::ostream& os) noexcept
 
 /* -------------------------------------------------------------------------- */
 
-double MlpNN::calcMSE(const FpVector& target)
+double MlpNN::calcMSE(const FpVector& targetVector)
 {
-    FpVector output;
-    copyOutputVector(output);
+    FpVector outputVector;
+    copyOutputVector(outputVector);
 
-    if (target.size() != output.size())
+    if (targetVector.size() != outputVector.size())
         throw Exception::size_mismatch;
 
-    return cf::calcMSE(output, target);
+    return cf::calcMSE(outputVector, targetVector);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-double MlpNN::calcCrossEntropy(const FpVector& target)
+double MlpNN::calcCrossEntropy(const FpVector& targetVector)
 {
-    FpVector output;
-    copyOutputVector(output);
+    FpVector outputVector;
+    copyOutputVector(outputVector);
 
-    if (target.size() != output.size())
+    if (targetVector.size() != outputVector.size())
         throw Exception::size_mismatch;
 
-    return cf::calcCrossEntropy(output, target);
+    return cf::calcCrossEntropy(outputVector, targetVector);
 }
 
 

@@ -1230,7 +1230,7 @@ int main(int argc, char* argv[])
 
                 net->setInputVector(sample.inputs);
 
-                net->runBackPropagationAlgo(target, outputs);
+                net->backPropagate(target, outputs);
 
                 err += nu::cf::calcMSE(outputs, target);
                 cross_err += nu::cf::calcCrossEntropy(outputs, target);

@@ -55,7 +55,7 @@ See also http://yann.lecun.com/exdb/mnist/
 
 /* -------------------------------------------------------------------------- */
 
-using neural_net_t = nu::MlpNN;
+using NeuralNet = nu::MlpNN;
 
 
 /* -------------------------------------------------------------------------- */
@@ -294,7 +294,7 @@ static void usage(const char* appname)
 
 /* -------------------------------------------------------------------------- */
 
-static double test_net(std::unique_ptr<neural_net_t>& net,
+static double test_net(std::unique_ptr<NeuralNet>& net,
                        const TrainingData::data_t& test_data,
                        double& mean_square_error, double& entropy_cost)
 {
@@ -343,7 +343,7 @@ static double test_net(std::unique_ptr<neural_net_t>& net,
 
 /* -------------------------------------------------------------------------- */
 
-bool save_the_net(const std::string& filename, neural_net_t& net)
+bool save_the_net(const std::string& filename, NeuralNet& net)
 {
     // Save the net status if needed //
 
@@ -426,7 +426,7 @@ int main(int argc, char* argv[])
         std::cout << "Training labels : " << training_labels_fn << std::endl;
         std::cout << "Training images : " << training_images_fn << std::endl;
 
-        std::unique_ptr<neural_net_t> net;
+        std::unique_ptr<NeuralNet> net;
         TrainingData trainingSet(training_labels_fn, training_images_fn);
 
         const std::string testing_labels_fn = files_path + TEST_LABELS_FN;
@@ -456,7 +456,7 @@ int main(int argc, char* argv[])
               (*data.cbegin())->get_dx() * (*data.cbegin())->get_dy();
 
             // Set up the topology
-            neural_net_t::Topology topology;
+            NeuralNet::Topology topology;
 
             topology.push_back(input_size);
 
@@ -465,8 +465,8 @@ int main(int argc, char* argv[])
 
             topology.push_back(OUTPUT_LAYER_SIZE);
 
-            net = std::unique_ptr<neural_net_t>(
-              new neural_net_t(topology, learningRate, momentum));
+            net = std::unique_ptr<NeuralNet>(
+              new NeuralNet(topology, learningRate, momentum));
         }
 
         if (!load_file_name.empty()) {
@@ -481,7 +481,7 @@ int main(int argc, char* argv[])
             ss << nf.rdbuf();
             nf.close();
 
-            net = std::unique_ptr<neural_net_t>(new neural_net_t);
+            net = std::unique_ptr<NeuralNet>(new NeuralNet);
             if (net)
                 net->load(ss);
         }
@@ -535,7 +535,7 @@ int main(int argc, char* argv[])
                     (*i)->labelToTarget(target);
 
                     net->setInputVector(inputs);
-                    net->runBackPropagationAlgo(target);
+                    net->backPropagate(target);
 
                     ++cnt;
 

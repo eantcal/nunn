@@ -177,13 +177,13 @@ public:
 
     //! Fire all neurons of the net and calculate the outputs
     //! and then apply the Back Propagation Algorithm to the net
-    void runBackPropagationAlgo(const FpVector& targetVector, FpVector& outputVector);
+    void backPropagate(const FpVector& targetVector, FpVector& outputVector);
 
     //! Fire all neurons of the net and calculate the outputs
     //! and then apply the Back Propagation Algorithm to the net
-    void runBackPropagationAlgo(const FpVector& targetVector) {
+    void backPropagate(const FpVector& targetVector) {
         FpVector outputVector; // dummy
-        runBackPropagationAlgo(targetVector, outputVector);
+        backPropagate(targetVector, outputVector);
     }
 
     //! Build the net by using data of the given string stream
@@ -192,15 +192,21 @@ public:
     //! Save net status into the given string stream
     std::stringstream& save(std::stringstream& ss) noexcept;
 
+    //! Build the net by using data of the given JSON formatted string stream
+    // void loadJSON(std::stringstream& ss);
+
+    //! Save JSON formatted net status into the given string stream
+    std::ostream& formatJson(std::ostream& ss) noexcept;
+
     //! Print the net state out to the given ostream
     std::ostream& dump(std::ostream& os) noexcept;
         
     //! Calculate mean squared error
-    double calcMSE(const FpVector& target);
+    double calcMSE(const FpVector& targetVector);
 
     //! Calculate cross-entropy cost defined as
     //! C=(target*Log(output)+(1-target)*Log(1-output))/output.size()
-    double calcCrossEntropy(const FpVector& target);
+    double calcCrossEntropy(const FpVector& targetVector);
 
     //! Build the net by using data of given string stream
     friend 

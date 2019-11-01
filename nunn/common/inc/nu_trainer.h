@@ -167,7 +167,7 @@ public:
     //! Trains the net using a single sample
     bool train(const Input& input, const Target& target, costFunction_t errCost) {
         _nn.setInputVector(input);
-        _nn.runBackPropagationAlgo(target);
+        _nn.backPropagate(target);
 
         // Compute error for this sample
         _err = errCost(_nn, target);
