@@ -49,7 +49,7 @@ using Trainer = nu::MlpNNTrainer;
 
 /* -------------------------------------------------------------------------- */
 
-int main(int argc, char* argv[])
+int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
     using vect_t = NeuralNet::FpVector;
 
@@ -92,8 +92,8 @@ int main(int argc, char* argv[])
         /*------------- Perform net training  ---------------------------------
          */
 
-        const size_t EPOCHS = 40000;
-        const double MIN_ERR = 0.01;
+        constexpr size_t EPOCHS = 40000;
+        constexpr double MIN_ERR = 0.01;
 
         // Create a trainer object
         Trainer trainer(nn,
@@ -107,9 +107,9 @@ int main(int argc, char* argv[])
                   << std::endl;
 
         // Called to print out training progress
-        auto progressCbk = [EPOCHS](NeuralNet& n,
-                                    const nu::Vector<double>& i,
-                                    const nu::Vector<double>& t,
+        auto progressCbk = [=]([[maybe_unused]] NeuralNet& n,
+                                [[maybe_unused]] const nu::Vector<double>& i,
+                                [[maybe_unused]] const nu::Vector<double>& t,
                                     size_t epoch, 
                                     size_t sample, 
                                     double err) 

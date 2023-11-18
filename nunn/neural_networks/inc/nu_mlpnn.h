@@ -24,14 +24,7 @@
     Steps from 2 to 4 are repeated again and again until the Error is minimal
 */
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_MLPNN_H__
-#define __NU_MLPNN_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include "nu_neuron.h"
 #include "nu_costfuncs.h"
@@ -51,13 +44,7 @@
 
 #include <utility>
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
-
-
-/* -------------------------------------------------------------------------- */
 
 //! This class represents a MLP neural net
 class MlpNN {
@@ -303,9 +290,6 @@ private:
     constexpr static const char* ID_INPUTS = "inputs";
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 //! The trainer class is a helper class for MLP network training
 struct MlpNNTrainer : public NNTrainer<MlpNN, MlpNN::FpVector, MlpNN::FpVector> {
     
@@ -315,11 +299,5 @@ struct MlpNNTrainer : public NNTrainer<MlpNN, MlpNN::FpVector, MlpNN::FpVector> 
 };
 
 
-/* -------------------------------------------------------------------------- */
-
 } // namespace nu
 
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_MLPNN_H__

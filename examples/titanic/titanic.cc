@@ -186,7 +186,7 @@ static void printDivider() {
 /* -------------------------------------------------------------------------- */
 
 // Working in progress...
-int main(int argc, char* argv[])
+int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
     printDivider();
 
@@ -240,10 +240,11 @@ int main(int argc, char* argv[])
         },
 
         // Progress callback
-        [&trainingSet](NN& nn,
-            const nu::Vector<double>& i,
-            const nu::Vector<double>& t,
-            size_t epoch, size_t sample, double err) 
+        [&trainingSet]([[maybe_unused]] NN& nn,
+            [[maybe_unused]] const nu::Vector<double>& i,
+            [[maybe_unused]] const nu::Vector<double>& t,
+            size_t epoch, size_t sample, 
+            [[maybe_unused]] double err) 
         {
             if (sample == trainingSet.size() - 1 && epoch % 1000 == 0)
             std::clog << ".";

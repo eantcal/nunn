@@ -75,10 +75,10 @@ class DigitData
     //! move assign operator
     DigitData& operator=(DigitData&& other) noexcept {
         if (this != &other) {
-            _dx = std::move(_dx);
-            _dy = std::move(_dy);
-            _label = std::move(_label);
-            _data = std::move(_data);
+            _dx = std::move(other._dx);
+            _dy = std::move(other._dy);
+            _label = std::move(other._label);
+            _data = std::move(other._data);
         }
 
         return *this;

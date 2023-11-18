@@ -6,9 +6,6 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
 #include "nu_mlpnn.h"
 
 #include <cstdlib>
@@ -18,9 +15,6 @@
 #include <memory>
 #include <set>
 #include <string>
-
-
-/* -------------------------------------------------------------------------- */
 
 static bool process_cl(int argc, char* argv[], std::string& load_file_name,
                        std::string& save_file_name)
@@ -56,9 +50,6 @@ static bool process_cl(int argc, char* argv[], std::string& load_file_name,
     return true;
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 static void usage(const char* appname)
 {
     std::cerr << "Usage:" << std::endl
@@ -79,9 +70,6 @@ static void usage(const char* appname)
               << "\tload net data from file" << std::endl
               << std::endl;
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 bool save_topo(const std::string& filename,
                nu::MlpNN::Topology& topology)
@@ -209,9 +197,6 @@ bool save_topo(const std::string& filename,
 
     return true;
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 int main(int argc, char* argv[])
 {

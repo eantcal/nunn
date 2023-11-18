@@ -39,7 +39,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-int main(int argc, char* argv[])
+int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
     try {
         nu::StepFunction step_f(0.5 /* Lo/Hi-threshold */, 0 /* Lo - Output */,
@@ -67,8 +67,6 @@ int main(int argc, char* argv[])
         size_t epoch_n = 0;
 
         for (auto& training_epoch : trainer) {
-            bool training_completed = false;
-
             double err = 0.0;
 
             for (int a = 0; a < 2; ++a) {

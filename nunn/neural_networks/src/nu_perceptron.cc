@@ -6,25 +6,15 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
 #include "nu_perceptron.h"
 #include "nu_sigmoid.h"
 #include "nu_random_gen.h"
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
 
-
-/* -------------------------------------------------------------------------- */
-
 Perceptron::Perceptron(const size_t& inputSize, double learningRate, StepFunction step_f)
-  : _inputSize(inputSize)
+  : _step_f(step_f)
   , _learningRate(learningRate)
-  , _step_f(step_f)
 {
     if (inputSize < 1)
         throw Exception::size_mismatch;
@@ -35,9 +25,6 @@ Perceptron::Perceptron(const size_t& inputSize, double learningRate, StepFunctio
 
     reshuffleWeights();
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 void Perceptron::feedForward() noexcept
 {
@@ -52,9 +39,6 @@ void Perceptron::feedForward() noexcept
 
     _neuron.output = Sigmoid()(sum);
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 void Perceptron::backPropagate(const double& target, double& output) noexcept
 {
@@ -71,9 +55,6 @@ void Perceptron::backPropagate(const double& target, double& output) noexcept
 
     _neuron.bias += e;
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 std::stringstream& Perceptron::load(std::stringstream& ss)
 {
@@ -99,9 +80,6 @@ std::stringstream& Perceptron::load(std::stringstream& ss)
     return ss;
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 std::stringstream& Perceptron::save(std::stringstream& ss) noexcept
 {
     ss.clear();
@@ -118,9 +96,6 @@ std::stringstream& Perceptron::save(std::stringstream& ss) noexcept
 
     return ss;
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 void Perceptron::reshuffleWeights() noexcept
 {
@@ -141,9 +116,6 @@ void Perceptron::reshuffleWeights() noexcept
 
     _neuron.bias = randgen();
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 //! Print the net state out to the given ostream
 std::ostream& Perceptron::dump(std::ostream& os) noexcept
@@ -168,8 +140,5 @@ std::ostream& Perceptron::dump(std::ostream& os) noexcept
 
     return os;
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 } // namespace nu

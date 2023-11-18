@@ -90,7 +90,7 @@ public:
         return _q_mtx;
     }
 
-    const size_t getNextStateFor(const size_t& state) const {
+    size_t getNextStateFor(const size_t& state) const {
         return _q_mtx.maxarg(state);
     }
 
