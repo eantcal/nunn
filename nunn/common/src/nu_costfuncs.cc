@@ -22,8 +22,7 @@ namespace nu {
 
 namespace cf {
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 
 double calcCrossEntropy(Vector<double> output, const Vector<double>& target)
 {

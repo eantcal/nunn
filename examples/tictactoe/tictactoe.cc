@@ -53,7 +53,6 @@ class grid_t
 {
   private:
     int _grid[TICTACTOE_SIDE][TICTACTOE_SIDE];
-    int _tmp_grid[TICTACTOE_SIDE][TICTACTOE_SIDE];
 
   public:
     enum symbol_t
@@ -63,12 +62,9 @@ class grid_t
         O
     };
 
-
     grid_t() { clear(); }
 
-
     size_t size() const noexcept { return TICTACTOE_SIDE * TICTACTOE_SIDE; }
-
 
     int get_unique_id() const
     {
@@ -80,7 +76,6 @@ class grid_t
         return sum;
     }
 
-
     void get_xo_cnt(int& x_cnt, int& o_cnt) const
     {
         for (size_t i = 0; i < size(); ++i) {
@@ -91,7 +86,6 @@ class grid_t
         }
     }
 
-
     bool is_equal_nofsymb() const
     {
         int x_cnt = 0;
@@ -101,7 +95,6 @@ class grid_t
         return x_cnt == o_cnt;
     }
 
-
     int len() const
     {
         int x_cnt = 0;
@@ -110,7 +103,6 @@ class grid_t
 
         return x_cnt + o_cnt;
     }
-
 
     void invert()
     {
@@ -374,14 +366,9 @@ class NNTrainer
     // Create a move using this "expert" algorithm
     static void _play(grid_t& new_grid, grid_t::symbol_t default_symb)
     {
-        int x = 0;
-        int y = 0;
-
         grid_t::symbol_t symbol = _get_turn_symb(new_grid, default_symb);
         grid_t::symbol_t other_symbol =
           symbol == grid_t::O ? grid_t::X : grid_t::O;
-
-        bool done = false;
 
         {
             int symcnt = 0;
@@ -714,7 +701,6 @@ class NNTrainer
 
         renderer_t rend;
 
-        size_t n = 0;
         for (auto& item : _pos_coll) {
 
             int o_cnt = 0;
@@ -724,20 +710,16 @@ class NNTrainer
             nu::Vector<double> inputs, outputs;
 
             if (o_cnt >= x_cnt) {
-                grid_t grid = item;
                 _create_sample(item, grid_t::X, inputs, outputs);
 
                 samples.insert({ inputs, outputs });
             }
 
             if (x_cnt >= o_cnt) {
-                grid_t grid = item;
                 _create_sample(item, grid_t::O, inputs, outputs);
 
                 samples.insert({ inputs, outputs });
             }
-
-            ++n;
         }
     }
 };
@@ -1086,7 +1068,6 @@ int main(int argc, char* argv[])
     std::string files_path;
     std::string load_file_name;
     std::string save_file_name;
-    bool save_to_file = false;
     bool skip_training = false;
     double learningRate = LEARNING_RATE;
     double momentum = MOMENTUM;
@@ -1195,10 +1176,7 @@ int main(int argc, char* argv[])
 
     std::cout << "MSE Threshold      ( T )   : " << threshold << std::endl;
 
-    size_t cnt = 0;
-
     const int max_epoch_number = epoch_cnt;
-    int best_epoch = 0;
 
     if (!skip_training) {
         std::cout << "Creating training set... ";
@@ -1219,7 +1197,6 @@ int main(int argc, char* argv[])
                       << std::endl
                       << std::endl;
 
-            cnt = 0;
             double err = 0.0;
             double cross_err = 0.0;
 

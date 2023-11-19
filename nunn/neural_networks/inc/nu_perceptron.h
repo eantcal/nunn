@@ -6,7 +6,6 @@
 // See COPYING file in the project root for full license information.
 //
 
-
 /*
   This is an implementation of a Perceptron Neural Network which learns by
   example.
@@ -17,14 +16,7 @@
   the required output for a particular input.
 */
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_PERCEPTRON_H__
-#define __NU_PERCEPTRON_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include "nu_neuron.h"
 
@@ -33,12 +25,7 @@
 #include "nu_vector.h"
 
 
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
-
-
-/* -------------------------------------------------------------------------- */
 
 //! This class represents a Perceptron neural net
 struct Perceptron {
@@ -63,28 +50,13 @@ struct Perceptron {
     Perceptron(const Perceptron& nn) = default;
 
     //! move-ctor
-    Perceptron(Perceptron&& nn)
-      : _inputSize(std::move(nn._inputSize))
-      , _learningRate(std::move(nn._learningRate))
-      , _inputVector(std::move(nn._inputVector))
-      , _neuron(std::move(nn._neuron))
-    {
-    }
+    Perceptron(Perceptron&& nn) = default;
 
     //! default assignment operator
     Perceptron& operator=(const Perceptron& nn) = default;
 
     //! default assignment-move operator
-    Perceptron& operator=(Perceptron&& nn) {
-        if (this != &nn) {
-            _inputSize = std::move(nn._inputSize);
-            _learningRate = std::move(nn._learningRate);
-            _inputVector = std::move(nn._inputVector);
-            _neuron = std::move(nn._neuron);
-        }
-
-        return *this;
-    }
+    Perceptron& operator=(Perceptron&& nn) = default;
 
     //! Return the number of inputs
     size_t getInputSize() const noexcept { 
@@ -179,14 +151,10 @@ private:
     constexpr static const char* ID_INPUTS = "inputs";
 
     StepFunction _step_f;
-    size_t _inputSize;
     double _learningRate = 0.1;
     FpVector _inputVector;
     Neuron _neuron;
 };
-
-
-/* -------------------------------------------------------------------------- */
 
 //! The perceptron trainer class is a helper class for training perceptrons
 struct PerceptronTrainer : public NNTrainer<Perceptron, nu::Vector<double>, double>
@@ -197,12 +165,4 @@ struct PerceptronTrainer : public NNTrainer<Perceptron, nu::Vector<double>, doub
     }
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 } // namespace nu
-
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_PERCEPTRON_H__

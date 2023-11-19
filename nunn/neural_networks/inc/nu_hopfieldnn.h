@@ -97,7 +97,7 @@ public:
 
 
     //! default assignment-move operator
-    HopfiledNN& operator=(HopfiledNN&& nn) noexcept;
+    HopfiledNN& operator=(HopfiledNN&& nn) noexcept = default;
 
 
     //! Returns the number of inputs

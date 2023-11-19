@@ -1,5 +1,3 @@
-#ifndef __TITANIC_H__
-#define __TITANIC_H__
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
@@ -8,8 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include "nu_mlpnn.h"
 #include "nu_stepf.h"
@@ -19,18 +16,11 @@
 #include <set>
 #include <vector>
 
-
-/* -------------------------------------------------------------------------- */
-
 using DataSet = std::map<std::vector<double>, std::vector<double>>;
 using TrainingSet = DataSet;
 using TestSet = DataSet;
 using NN = nu::MlpNN;
 using Trainer = nu::MlpNNTrainer;
-
-
-
-/* -------------------------------------------------------------------------- */
 
 struct Passenger {
     // pclass: Ticket class
@@ -107,21 +97,5 @@ struct Passenger {
         double trainingSetRate);
 };
 
-
-
-/* -------------------------------------------------------------------------- */
-
 // Reference to the prepopulated Titanic Database
 extern const Passenger titanicDB[];
-
-
-/* -------------------------------------------------------------------------- */
-
-// Test a NN against a given test set
-static void test(const TestSet& testSet, NN& nn);
-
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __TITANIC_H__
-

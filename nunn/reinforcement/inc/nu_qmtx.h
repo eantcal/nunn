@@ -49,7 +49,7 @@ public:
 
     void fill(const double& value) noexcept;
 
-    const size_t size() const noexcept {
+    size_t size() const noexcept {
         return data().size();
     }
 

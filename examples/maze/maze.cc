@@ -405,7 +405,6 @@ struct simulator_t {
             auto vlist = agent.getValidActions();
 
             if (!vlist.empty()) {
-                double reward = 0;
                 auto action = ql.selectAction(agent);
 
                 if (!agent.doAction(action)) {
