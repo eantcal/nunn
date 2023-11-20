@@ -7,12 +7,12 @@
 //
 
 
-/* -------------------------------------------------------------------------- */
+
 
 #include "titanic.h"
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void Passenger :: processNew(NN& nn) {
     std::cout << "Your age        : "; 
@@ -64,7 +64,7 @@ void Passenger :: processNew(NN& nn) {
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void Passenger :: find(const Passenger* db, const std::string& searchFor, NN & nn) {
     size_t i = 0;
@@ -98,7 +98,7 @@ void Passenger :: find(const Passenger* db, const std::string& searchFor, NN & n
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 // Function which can be used to genrate training and test sets
 // from Passenger database
@@ -145,7 +145,7 @@ void Passenger :: populateDataSet(
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 // Test a NN against a given test set
 
 void test(const TestSet& testSet, NN& nn) {
@@ -174,7 +174,7 @@ void test(const TestSet& testSet, NN& nn) {
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static void printDivider() {
     for (size_t i=0; i<80; ++i)
@@ -183,7 +183,7 @@ static void printDivider() {
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 // Working in progress...
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])

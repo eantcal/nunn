@@ -6,26 +6,13 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_SOFTMAX_POLICY_H__
-#define __NU_SOFTMAX_POLICY_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include "nu_random_gen.h"
 #include <cmath>
 #include <cassert>
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
-
-
-/* -------------------------------------------------------------------------- */
 
 template<class Action, class Agent, class RndGen = RandomGenerator<>>
 class SoftmaxPolicy {
@@ -111,13 +98,4 @@ private:
     mutable RandomGenerator<> _rndGen;
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 }
-
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_SOFTMAX_POLICY_H__
-

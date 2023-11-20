@@ -6,16 +6,10 @@
 // See COPYING file in the project root for full license information.
 //
 
-/* -------------------------------------------------------------------------- */
-
 #include "nu_qlgraph.h"
-
-/* -------------------------------------------------------------------------- */
 
 namespace nu
 {
-
-    /* -------------------------------------------------------------------------- */
 
     QLGraph::QLGraph(
         const size_t &n_of_states,
@@ -40,8 +34,6 @@ namespace nu
             }
         }
     }
-
-    /* -------------------------------------------------------------------------- */
 
     bool QLGraph::learn(const size_t &nOfEpisodes, const Helper &helper)
     {
@@ -99,8 +91,6 @@ namespace nu
         return true;
     }
 
-    /* -------------------------------------------------------------------------- */
-
     QLGraph::valid_actions_t
     QLGraph::retrieveValidActions(const QMatrix &r, size_t state)
     {
@@ -122,7 +112,5 @@ namespace nu
 
         return va;
     }
-
-    /* -------------------------------------------------------------------------- */
 
 }

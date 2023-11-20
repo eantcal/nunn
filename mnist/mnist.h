@@ -6,14 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __MNIST_H__
-#define __MNIST_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include "nu_vector.h"
 
@@ -29,8 +22,6 @@
 #include <Windows.h>
 #endif
 
-
-/* -------------------------------------------------------------------------- */
 
 //! This class represents a single handwritten digit and its classification
 //! (label)
@@ -126,9 +117,6 @@ class DigitData
 #endif
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 //! This class provides a method to load MNIST pair of images and labels files
 //! The data can be retrieved as a list of DigitData objects
 class TrainingData
@@ -161,7 +149,6 @@ class TrainingData
             _data.push_back(std::move(e));
     }
 
-
     enum class Exception {
         lbls_file_not_found,
         imgs_file_not_found,
@@ -172,9 +159,7 @@ class TrainingData
         n_of_items_mismatch,
     };
 
-
     TrainingData() = delete;
-
 
     TrainingData(const std::string& lbls_file,
                     const std::string& imgs_file) throw()
@@ -196,7 +181,3 @@ class TrainingData
     data_t _data;
 };
 
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __MNIST_DB_UTILS_H__

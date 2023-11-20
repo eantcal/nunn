@@ -20,7 +20,7 @@
 */
 
 
-/* -------------------------------------------------------------------------- */
+
 
 #include "stdafx.h"
 #include "ocr_test.h"
@@ -35,7 +35,7 @@
 #include <string>
 
 
-/* -------------------------------------------------------------------------- */
+
 
 #define PROG_VERSION "1.56"
 #define ABOUT_TEXT "OCR Test by A. Calderone (c) - 2015"
@@ -65,7 +65,7 @@
 #define NN_OUTPUTS 10
 
 
-/* -------------------------------------------------------------------------- */
+
 
 class toolbar_t
 {
@@ -97,7 +97,7 @@ public:
 };
 
 
-/* -------------------------------------------------------------------------- */
+
 
 // Global Variables
 HINSTANCE hInst;                        // current instance
@@ -113,7 +113,7 @@ std::string netDescription = "Load a net description file (File->Load)";
 nu::Vector<double> g_hwdigit;
 
 
-/* -------------------------------------------------------------------------- */
+
 
 // Toolbar
 static toolbar_t * gtb = nullptr;
@@ -140,7 +140,7 @@ TBBUTTON gtb_buttons[] =
 const int gtb_n_of_buttons = sizeof(gtb_buttons) / sizeof(TBBUTTON);
 
 
-/* -------------------------------------------------------------------------- */
+
 
 // Forward declarations of functions included in this code module:
 ATOM	MyRegisterClass(HINSTANCE hInstance);
@@ -149,7 +149,7 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 
-/* -------------------------------------------------------------------------- */
+
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
@@ -187,7 +187,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
@@ -212,7 +212,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
@@ -233,7 +233,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 {
@@ -342,7 +342,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
 {
@@ -382,7 +382,7 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 {
@@ -403,7 +403,7 @@ void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 {
@@ -454,7 +454,7 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 class bmpImage
 {
@@ -565,7 +565,7 @@ public:
 
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void GetDigitBox(int xo, int yo, HDC hdc, RECT& r, HWND hwnd, const bmpImage & image)
 {
@@ -618,7 +618,7 @@ void GetDigitBox(int xo, int yo, HDC hdc, RECT& r, HWND hwnd, const bmpImage & i
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 int ReadCellValue(
     HDC hdc,
@@ -670,7 +670,7 @@ int ReadCellValue(
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void PrintGrayscaleDigit(
     int xo,
@@ -705,7 +705,7 @@ void PrintGrayscaleDigit(
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 bool GetDigitInfo(HDC hdc, nu::Vector<double>& hwdigit, const RECT & r, bmpImage& image)
 {
@@ -730,7 +730,7 @@ bool GetDigitInfo(HDC hdc, nu::Vector<double>& hwdigit, const RECT & r, bmpImage
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void WriteBars(int xo, int yo, HDC hdc, nu::Vector<double>& results)
 {
@@ -756,7 +756,7 @@ void WriteBars(int xo, int yo, HDC hdc, nu::Vector<double>& results)
 
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
 {
@@ -835,7 +835,7 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void DoSelectFont(HWND hwnd)
 {
@@ -857,7 +857,7 @@ void DoSelectFont(HWND hwnd)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1153,7 +1153,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -1177,7 +1177,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 toolbar_t::toolbar_t(
     HWND hWnd,
@@ -1218,7 +1218,7 @@ toolbar_t::toolbar_t(
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void toolbar_t::on_resize()
 {
@@ -1226,7 +1226,7 @@ void toolbar_t::on_resize()
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void toolbar_t::on_customize()
 {
@@ -1235,7 +1235,7 @@ void toolbar_t::on_customize()
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
 {
@@ -1283,7 +1283,7 @@ BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void toolbar_t::enable(DWORD id)
 {
@@ -1292,7 +1292,7 @@ void toolbar_t::enable(DWORD id)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void toolbar_t::disable(DWORD id)
 {
@@ -1301,7 +1301,7 @@ void toolbar_t::disable(DWORD id)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 bool toolbar_t::get_rect(RECT& rect)
 {

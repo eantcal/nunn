@@ -6,9 +6,6 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
 #include "nu_qmtx.h"
 
 #include <vector>
@@ -16,9 +13,6 @@
 #include <exception>
 
 namespace nu {
-
-
-/* -------------------------------------------------------------------------- */
 
 QMatrix::QMatrix(size_t n_of_states) 
 {
@@ -28,9 +22,6 @@ QMatrix::QMatrix(size_t n_of_states)
     }
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 void QMatrix::fill(const double& value) noexcept {
     for (auto & row : data()) {
         for (auto & v : row) {
@@ -39,9 +30,6 @@ void QMatrix::fill(const double& value) noexcept {
     }
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 double QMatrix::max(size_t rowidx) const {
     size_t maxidx = 0;
     double maxvalue = 0;
@@ -49,18 +37,12 @@ double QMatrix::max(size_t rowidx) const {
     return maxvalue;
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 size_t QMatrix::maxarg(size_t rowidx) const {
     size_t maxidx = 0;
     double maxvalue = 0;
     _max(rowidx, maxidx, maxvalue);
     return maxidx;
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 void QMatrix::normalize() {
     bool ft = true;
@@ -85,9 +67,6 @@ void QMatrix::normalize() {
     }
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 QMatrix::vect_t & QMatrix::operator[](const size_t& rowidx) {
     if (rowidx >= size()) {
         assert(0);
@@ -97,9 +76,6 @@ QMatrix::vect_t & QMatrix::operator[](const size_t& rowidx) {
     return data()[rowidx];
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 const QMatrix::vect_t & QMatrix::operator[](const size_t& rowidx) const {
     if (rowidx >= size()) {
         assert(0);
@@ -108,9 +84,6 @@ const QMatrix::vect_t & QMatrix::operator[](const size_t& rowidx) const {
 
     return data()[rowidx];
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 void QMatrix::show(std::ostream & os, size_t width) const {
     if (data().empty())
@@ -124,9 +97,6 @@ void QMatrix::show(std::ostream & os, size_t width) const {
         os << std::endl;
     }
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 void QMatrix::_max(size_t rowidx, size_t & idx, double & max) const {
     if (rowidx >= size()) {
@@ -151,11 +121,5 @@ void QMatrix::_max(size_t rowidx, size_t & idx, double & max) const {
     idx = max_idx;
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 }
-
-
-/* -------------------------------------------------------------------------- */
 

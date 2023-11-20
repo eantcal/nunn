@@ -6,14 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_VECTOR_H__
-#define __NU_VECTOR_H__
-
-
-/* -------------------------------------------------------------------------- */ 
+#pragma once
 
 #include <cmath>
 #include <functional>
@@ -21,13 +14,8 @@
 #include <sstream>
 #include <vector>
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
 
-
-/* -------------------------------------------------------------------------- */
 //! This class wraps a std::vector to basically make it capable to perform
 //! math operations used by learning algorithms
 
@@ -447,12 +435,4 @@ private:
     }
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 } // namespace nu
-
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_VECTOR_H__
