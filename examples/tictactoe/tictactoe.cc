@@ -17,8 +17,6 @@
  */
 
 
-
-
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -34,8 +32,6 @@
 #include "nu_mlpnn.h"
 
 
-
-
 #define PROG_VERSION "1.55"
 #define TICTACTOE_SIDE 3
 #define TICTACTOE_CELLS (TICTACTOE_SIDE * TICTACTOE_SIDE)
@@ -45,8 +41,6 @@
 #define MOMENTUM 0.50
 #define TRAINING_EPOCH_NUMBER 100000
 #define TRAINING_ERR_THRESHOLD 0.01
-
-
 
 
 class grid_t
@@ -224,8 +218,6 @@ class grid_t
 };
 
 
-
-
 class renderer_t
 {
   private:
@@ -286,8 +278,6 @@ class renderer_t
 };
 
 
-
-
 class nn_io_converter_t
 {
   public:
@@ -322,8 +312,6 @@ class nn_io_converter_t
         }
     }
 };
-
-
 
 
 class NNTrainer
@@ -728,8 +716,6 @@ class NNTrainer
 };
 
 
-
-
 class game_t
 {
   private:
@@ -881,8 +867,6 @@ class game_t
 };
 
 
-
-
 static void usage(const char* appname)
 {
     std::cerr
@@ -927,8 +911,6 @@ static void usage(const char* appname)
       << "--hidden_layer or -hl" << std::endl
       << "\tset hidden layer size (n. of neurons)" << std::endl;
 }
-
-
 
 
 static bool process_cl(int argc,
@@ -1050,8 +1032,6 @@ static bool process_cl(int argc,
 }
 
 
-
-
 bool save_the_net(const std::string& filename, std::stringstream& ss)
 {
     // Save the net status if needed //
@@ -1067,8 +1047,6 @@ bool save_the_net(const std::string& filename, std::stringstream& ss)
 
     return true;
 }
-
-
 
 
 int main(int argc, char* argv[])

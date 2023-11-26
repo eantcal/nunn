@@ -14,15 +14,15 @@
 
 namespace nu {
 
-template<
-    class Action,
-    class State,
-    class Agent,
-    class Policy,
-    class ActionRewardMap = std::unordered_map<Action, double>,
-    class QMap = std::unordered_map<State, ActionRewardMap>>
-class Sarsa {
-public:
+template<class Action,
+         class State,
+         class Agent,
+         class Policy,
+         class ActionRewardMap = std::unordered_map<Action, double>,
+         class QMap = std::unordered_map<State, ActionRewardMap>>
+class Sarsa
+{
+  public:
     using reward_t = double;
     using Listener = LearnerListener;
 

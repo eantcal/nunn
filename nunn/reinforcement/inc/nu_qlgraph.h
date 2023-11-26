@@ -19,8 +19,9 @@
 
 namespace nu {
 
-class QLGraph {
-public:
+class QLGraph
+{
+  public:
     using valid_actions_t = std::vector<size_t>;
 
     enum

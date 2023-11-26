@@ -8,20 +8,21 @@
 
 #include "nu_qlgraph.h"
 
-namespace nu
+namespace nu {
+
+QLGraph::QLGraph(const size_t& n_of_states,
+                 const size_t& goal_state,
+                 const Topology& topology)
+  : _nOfStates(n_of_states)
+  , _goalState(goal_state)
+  , _rewardMtx(n_of_states)
+  , _q_mtx(n_of_states)
 {
     assert(goal_state < n_of_states);
 
-    QLGraph::QLGraph(
-        const size_t &n_of_states,
-        const size_t &goal_state,
-        const Topology &topology)
-        : _nOfStates(n_of_states),
-          _goalState(goal_state),
-          _rewardMtx(n_of_states),
-          _q_mtx(n_of_states)
-    {
-        assert(goal_state < n_of_states);
+    _rewardMtx.fill(FORBIDDEN);
+
+    for (const auto& state : topology) {
 
         for (auto& destination : state.second) {
             _rewardMtx[state.first][destination] =
@@ -30,10 +31,9 @@ namespace nu
     }
 }
 
-    bool QLGraph::learn(const size_t &nOfEpisodes, const Helper &helper)
-    {
-        for (size_t episode = 0; episode < nOfEpisodes; ++episode)
-        {
+bool QLGraph::learn(const size_t& nOfEpisodes, const Helper& helper)
+{
+    for (size_t episode = 0; episode < nOfEpisodes; ++episode) {
 
         helper.beginEpisode(episode, *this);
 
@@ -71,27 +71,34 @@ namespace nu
 
         helper.endEpisode(episode, *this);
 
-        return true;
-    }
-
-    QLGraph::valid_actions_t
-    QLGraph::retrieveValidActions(const QMatrix &r, size_t state)
-    {
-        assert(state < r.size());
-
-        valid_actions_t va;
-        const auto &actions = r[state].to_stdvec();
-
-        size_t idx = 0;
-
-        for (const auto &action : actions)
-        {
-            if (action >= 0)
-            {
-                va.push_back(idx);
-            }
-            ++idx;
+        if (helper.quitRequestPending()) {
+            return false;
         }
     }
+
+    _q_mtx.normalize();
+
+    return true;
+}
+
+QLGraph::valid_actions_t QLGraph::retrieveValidActions(const QMatrix& r,
+                                                       size_t state)
+{
+    assert(state < r.size());
+
+    valid_actions_t va;
+    const auto& actions = r[state].to_stdvec();
+
+    size_t idx = 0;
+
+    for (const auto& action : actions) {
+        if (action >= 0) {
+            va.push_back(idx);
+        }
+        ++idx;
+    }
+
+    return va;
+}
 
 }

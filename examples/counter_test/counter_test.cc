@@ -7,14 +7,10 @@
 //
 
 
-
-
 /*
  * Implementing a 3-bit counter using a neural network
  *
  */
-
-
 
 
 #include "nu_mlpnn.h"
@@ -26,11 +22,8 @@
 #include <thread>
 
 
-
-
 using NeuralNet = nu::MlpNN;
 using Trainer = nu::MlpNNTrainer;
-
 
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
@@ -167,5 +160,3 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     return 0;
 }
-
-

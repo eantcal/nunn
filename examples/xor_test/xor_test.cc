@@ -7,8 +7,6 @@
 //
 
 
-
-
 /*
  * Solving the XOR Problem with nunn Lib
  *
@@ -33,8 +31,6 @@
  */
 
 
-
-
 #include "nu_mlpnn.h"
 #include "nu_stepf.h"
 
@@ -42,11 +38,8 @@
 #include <map>
 
 
-
-
 using NeuralNet = nu::MlpNN;
 using Trainer = nu::MlpNNTrainer;
-
 
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
@@ -191,5 +184,3 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     return 0;
 }
-
-

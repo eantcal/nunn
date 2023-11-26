@@ -7,7 +7,6 @@
 //
 
 
-
 /*
  * Hopfield neural network test
  * The Hopfield network is used to solve the recall problem of matching
@@ -15,10 +14,8 @@
  */
 
 
-
 #include "nu_hopfieldnn.h"
 #include <iostream>
-
 
 
 const size_t pattern_size = 100;
@@ -139,7 +136,6 @@ std::string g_test_patterns[] = { // 0123456789
 };
 
 
-
 static void print_pattern(const std::string& pattern)
 {
     std::cout << "+----------+" << std::endl;
@@ -155,7 +151,6 @@ static void print_pattern(const std::string& pattern)
 }
 
 
-
 static void print_pattern(const nu::HopfiledNN::FpVector& pattern)
 {
     std::string s_pattern;
@@ -167,7 +162,6 @@ static void print_pattern(const nu::HopfiledNN::FpVector& pattern)
 }
 
 
-
 static void convert_pattern_into_input_v(const std::string& pattern,
                                          nu::HopfiledNN::FpVector& input_vector)
 {
@@ -176,7 +170,6 @@ static void convert_pattern_into_input_v(const std::string& pattern,
         input_vector[i++] = c == '*' ? 1 : -1;
     }
 }
-
 
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
@@ -214,5 +207,3 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     return 0;
 }
-
-

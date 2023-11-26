@@ -12,13 +12,10 @@
 */
 
 
-
 #include "nu_e_greedy_policy.h"
 #include "nu_qlearn.h"
 #include "nu_sarsa.h"
 #include "nu_softmax_policy.h"
-
-
 
 
 #ifdef _WIN32
@@ -27,15 +24,11 @@
 #endif
 
 
-
-
 #include <iomanip>
 #include <iostream>
 #include <list>
 #include <thread>
 #include <vector>
-
-
 
 
 struct Envirnoment
@@ -118,8 +111,6 @@ struct Envirnoment
 };
 
 
-
-
 struct Action
 {
     enum class move_t : int
@@ -158,8 +149,6 @@ struct Action
   private:
     move_t _move;
 };
-
-
 
 
 struct State
@@ -201,8 +190,6 @@ struct State
     int _x = 0;
     int _y = 0;
 };
-
-
 
 
 class Agent
@@ -280,8 +267,6 @@ class Agent
 };
 
 
-
-
 struct Render
 {
     void show(const Agent& a, std::ostream& os) const
@@ -317,8 +302,6 @@ struct Render
 };
 
 
-
-
 namespace std {
 
 template<>
@@ -329,8 +312,6 @@ struct hash<State>
         return std::hash<int>{}(k.get_x()) ^ std::hash<int>{}(k.get_y() << 1);
     }
 };
-
-
 
 
 template<>
@@ -345,8 +326,6 @@ struct hash<Action>
 } // std
 
 
-
-
 void locate(int y, int x)
 {
 #ifdef _WIN32
@@ -358,8 +337,6 @@ void locate(int y, int x)
 }
 
 
-
-
 static void cls()
 {
 #ifdef _WIN32
@@ -369,7 +346,6 @@ static void cls()
     (void)res;
 #endif
 }
-
 
 
 #define E_GREEDY_POLICY
@@ -387,8 +363,6 @@ using Learner = nu::Sarsa<Action, State, Agent, Policy>;
 #else // USE_QLEARN
 using Learner = nu::QLearn<Action, State, Agent, Policy>;
 #endif
-
-
 
 
 struct simulator_t
@@ -448,8 +422,6 @@ struct simulator_t
         return moveCnt;
     }
 };
-
-
 
 
 int main()

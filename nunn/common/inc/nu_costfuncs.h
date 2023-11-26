@@ -32,4 +32,3 @@ using costfunc_t = double(Vector<double>, const Vector<double>&);
 } // namespace cf
 
 } // namespace nu
-

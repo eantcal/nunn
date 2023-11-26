@@ -174,4 +174,3 @@ class TrainingData
 
     data_t _data;
 };
-

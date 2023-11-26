@@ -13,10 +13,11 @@
 
 namespace nu {
 
-struct QMatrix {
-public:
-    using vect_t = Vector< double >;
-    using data_t = std::vector< vect_t >;
+struct QMatrix
+{
+  public:
+    using vect_t = Vector<double>;
+    using data_t = std::vector<vect_t>;
 
     enum class Exception
     {

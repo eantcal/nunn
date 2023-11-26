@@ -7,11 +7,7 @@
 //
 
 
-
-
 #include "titanic.h"
-
-
 
 
 // pclass,name,gender,age,sibsp,parch,fare,survived

@@ -334,7 +334,7 @@ void MlpNN::_fireNeuron(NeuronLayer& nlayer,
 {
     auto& neuron = nlayer[outIdx];
 
-    double sum { .0 };
+    double sum{ .0 };
 
     // Sum of all the weights * input value
     for (size_t idx = 0; const auto& wi : neuron.weights) {

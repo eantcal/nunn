@@ -14,7 +14,7 @@
 
 namespace nu {
 
-QMatrix::QMatrix(size_t n_of_states) 
+QMatrix::QMatrix(size_t n_of_states)
 {
     _data.resize(n_of_states);
     for (auto& row : _data) {
@@ -22,29 +22,33 @@ QMatrix::QMatrix(size_t n_of_states)
     }
 }
 
-void QMatrix::fill(const double& value) noexcept {
-    for (auto & row : data()) {
-        for (auto & v : row) {
+void QMatrix::fill(const double& value) noexcept
+{
+    for (auto& row : data()) {
+        for (auto& v : row) {
             v = value;
         }
     }
 }
 
-double QMatrix::max(size_t rowidx) const {
+double QMatrix::max(size_t rowidx) const
+{
     size_t maxidx = 0;
     double maxvalue = 0;
     _max(rowidx, maxidx, maxvalue);
     return maxvalue;
 }
 
-size_t QMatrix::maxarg(size_t rowidx) const {
+size_t QMatrix::maxarg(size_t rowidx) const
+{
     size_t maxidx = 0;
     double maxvalue = 0;
     _max(rowidx, maxidx, maxvalue);
     return maxidx;
 }
 
-void QMatrix::normalize() {
+void QMatrix::normalize()
+{
     bool ft = true;
     double max = 0;
 
@@ -67,7 +71,8 @@ void QMatrix::normalize() {
         }
 }
 
-QMatrix::vect_t & QMatrix::operator[](const size_t& rowidx) {
+QMatrix::vect_t& QMatrix::operator[](const size_t& rowidx)
+{
     if (rowidx >= size()) {
         assert(0);
         throw Exception::invalid_index;
@@ -76,7 +81,8 @@ QMatrix::vect_t & QMatrix::operator[](const size_t& rowidx) {
     return data()[rowidx];
 }
 
-const QMatrix::vect_t & QMatrix::operator[](const size_t& rowidx) const {
+const QMatrix::vect_t& QMatrix::operator[](const size_t& rowidx) const
+{
     if (rowidx >= size()) {
         assert(0);
         throw Exception::invalid_index;
@@ -85,7 +91,8 @@ const QMatrix::vect_t & QMatrix::operator[](const size_t& rowidx) const {
     return data()[rowidx];
 }
 
-void QMatrix::show(std::ostream & os, size_t width) const {
+void QMatrix::show(std::ostream& os, size_t width) const
+{
     if (data().empty())
         return;
 
@@ -98,7 +105,8 @@ void QMatrix::show(std::ostream & os, size_t width) const {
     }
 }
 
-void QMatrix::_max(size_t rowidx, size_t & idx, double & max) const {
+void QMatrix::_max(size_t rowidx, size_t& idx, double& max) const
+{
     if (rowidx >= size()) {
         assert(0);
         throw Exception::invalid_index;
@@ -122,4 +130,3 @@ void QMatrix::_max(size_t rowidx, size_t & idx, double & max) const {
 }
 
 }
-

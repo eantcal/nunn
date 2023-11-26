@@ -7,7 +7,6 @@
 //
 
 
-
 /*
 
 This test is performed by using the MNIST data set, which contains 60K+10K
@@ -30,7 +29,6 @@ See also http://yann.lecun.com/exdb/mnist/
 */
 
 
-
 #include "mnist.h"
 #include "nu_mlpnn.h"
 
@@ -50,9 +48,7 @@ See also http://yann.lecun.com/exdb/mnist/
 #endif
 
 
-
 using NeuralNet = nu::MlpNN;
-
 
 
 const size_t HIDDEN_LAYER_SIZE = 300; // neurons
@@ -66,7 +62,6 @@ std::string TEST_LABELS_FN = "t10k-labels.idx1-ubyte";
 std::string TEST_IMAGES_FN = "t10k-images.idx3-ubyte";
 
 const int TRAINING_EPOCH_NUMBER = 100;
-
 
 
 static bool process_cl(int argc,
@@ -198,7 +193,6 @@ static bool process_cl(int argc,
 }
 
 
-
 static int get_y_pos()
 {
 #ifdef _WIN32
@@ -210,7 +204,6 @@ static int get_y_pos()
     return 0;
 #endif
 }
-
 
 
 static void locate(int x, int y = 0)
@@ -225,7 +218,6 @@ static void locate(int x, int y = 0)
     printf("%c[%d;%df", 0x1B, y, x);
 #endif
 }
-
 
 
 static void usage(const char* appname)
@@ -291,7 +283,6 @@ static void usage(const char* appname)
 }
 
 
-
 static double test_net(std::unique_ptr<NeuralNet>& net,
                        const TrainingData::data_t& test_data,
                        double& mean_square_error,
@@ -340,7 +331,6 @@ static double test_net(std::unique_ptr<NeuralNet>& net,
 }
 
 
-
 bool save_the_net(const std::string& filename, NeuralNet& net)
 {
     // Save the net status if needed //
@@ -361,7 +351,6 @@ bool save_the_net(const std::string& filename, NeuralNet& net)
 
     return true;
 }
-
 
 
 int main(int argc, char* argv[])

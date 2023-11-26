@@ -7,11 +7,7 @@
 //
 
 
-
-
 #include "titanic.h"
-
-
 
 
 void Passenger ::processNew(NN& nn)
@@ -70,8 +66,6 @@ void Passenger ::processNew(NN& nn)
 }
 
 
-
-
 void Passenger ::find(const Passenger* db, const std::string& searchFor, NN& nn)
 {
     size_t i = 0;
@@ -109,8 +103,6 @@ void Passenger ::find(const Passenger* db, const std::string& searchFor, NN& nn)
         ++i;
     }
 }
-
-
 
 
 // Function which can be used to genrate training and test sets
@@ -164,7 +156,6 @@ void Passenger ::populateDataSet(const Passenger* db,
 }
 
 
-
 // Test a NN against a given test set
 
 void test(const TestSet& testSet, NN& nn)
@@ -194,16 +185,12 @@ void test(const TestSet& testSet, NN& nn)
 }
 
 
-
-
 static void printDivider()
 {
     for (size_t i = 0; i < 80; ++i)
         std::cout << "-";
     std::cout << std::endl;
 }
-
-
 
 
 // Working in progress...

@@ -15,8 +15,6 @@
  */
 
 
-
-
 #include "winttt.h"
 #include "stdafx.h"
 
@@ -32,8 +30,6 @@
 #include <string>
 #include <thread>
 #include <vector>
-
-
 
 
 #define PROG_VERSION "1.55"
@@ -61,8 +57,6 @@
 
 #define TICTACTOE_SIDE 3
 #define TICTACTOE_CELLS (TICTACTOE_SIDE * TICTACTOE_SIDE)
-
-
 
 
 class toolbar_t
@@ -96,8 +90,6 @@ class toolbar_t
 };
 
 
-
-
 struct sample_t
 {
     nu::Vector<double> inputs;
@@ -111,8 +103,6 @@ struct sample_t
 };
 
 using samples_t = std::set<sample_t>;
-
-
 
 
 // Global Variables
@@ -134,8 +124,6 @@ static double g_momentum = 0.50;
 static std::mutex g_tsync_mtx;
 static std::unique_ptr<nu::MlpNN> g_neural_net_copy;
 static samples_t g_training_samples_copy;
-
-
 
 
 // Toolbar
@@ -190,8 +178,6 @@ TBBUTTON g_toolbar_buttons[] = {
 const int g_toolbar_n_of_buttons = sizeof(g_toolbar_buttons) / sizeof(TBBUTTON);
 
 
-
-
 // Forward declarations of functions included in this code module:
 ATOM MyRegisterClass(HINSTANCE hInstance);
 BOOL InitInstance(HINSTANCE, int);
@@ -199,8 +185,6 @@ BOOL InitInstance(HINSTANCE, int);
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
-
-
 
 
 static void realignNNCopy()
@@ -213,8 +197,6 @@ static void realignNNCopy()
 
     g_tsync_mtx.unlock();
 }
-
-
 
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
@@ -251,8 +233,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 }
 
 
-
-
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
     WNDCLASSEX wcex;
@@ -274,8 +254,6 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     return RegisterClassEx(&wcex);
 }
-
-
 
 
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
@@ -304,8 +282,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
     return TRUE;
 }
-
-
 
 
 void UpdateStatusBar(HWND hWnd)
@@ -342,8 +318,6 @@ void UpdateStatusBar(HWND hWnd)
     InvalidateRect(hWnd, &r, TRUE);
     UpdateWindow(hWnd);
 }
-
-
 
 
 bool LoadNetData(HWND hWnd, HINSTANCE hInst)
@@ -411,8 +385,6 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 }
 
 
-
-
 void Training(HWND hWnd, HWND hwndPB)
 {
     if (!g_neural_net || g_training_samples.empty())
@@ -449,8 +421,6 @@ void Training(HWND hWnd, HWND hwndPB)
 
     SetTimer(hWnd, 0, TRAINING_TICK, 0);
 }
-
-
 
 
 void TrainingThread()
@@ -491,8 +461,6 @@ void TrainingThread()
 }
 
 
-
-
 void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string& filename)
 {
     if (!g_neural_net) {
@@ -519,8 +487,6 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string& filename)
 }
 
 
-
-
 void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 {
     char openName[MAX_PATH] = "\0";
@@ -538,8 +504,6 @@ void SaveFileAs(HWND hWnd, HINSTANCE hInst)
     if (::GetSaveFileName(&ofn))
         SaveNetData(hWnd, hInst, openName);
 }
-
-
 
 
 void DoSelectFont(HWND hwnd)
@@ -560,8 +524,6 @@ void DoSelectFont(HWND hwnd)
 }
 
 
-
-
 static void DrawBm(HDC hdc, HANDLE image, int x, int y)
 {
     HDC hdcMem = ::CreateCompatibleDC(hdc);
@@ -576,8 +538,6 @@ static void DrawBm(HDC hdc, HANDLE image, int x, int y)
     ::SelectObject(hdcMem, hbmOld);
     ::DeleteDC(hdcMem);
 }
-
-
 
 
 class grid_t
@@ -848,8 +808,6 @@ class grid_t
 };
 
 
-
-
 class renderer_t
 {
   private:
@@ -895,8 +853,6 @@ class renderer_t
 };
 
 
-
-
 class nn_io_converter_t
 {
   public:
@@ -931,8 +887,6 @@ class nn_io_converter_t
         }
     }
 };
-
-
 
 
 static void ExpertAlgo(grid_t& new_grid, grid_t::symbol_t symbol)
@@ -1212,8 +1166,6 @@ static void ExpertAlgo(grid_t& new_grid, grid_t::symbol_t symbol)
 }
 
 
-
-
 static void NetAnswer(nu::MlpNN& nn, grid_t& grid, grid_t::symbol_t symbol)
 {
     try {
@@ -1247,8 +1199,6 @@ static void NetAnswer(nu::MlpNN& nn, grid_t& grid, grid_t::symbol_t symbol)
           0, "Are you loaded an incompatibile net?", "Error", MB_ICONERROR);
     }
 }
-
-
 
 
 static void ComputerPlay(HWND hWnd,
@@ -1292,8 +1242,6 @@ static void ComputerPlay(HWND hWnd,
 }
 
 
-
-
 static bool GetGridPos(HWND hWnd, std::pair<int, int>& gpt)
 {
     POINT pt = { 0 };
@@ -1317,8 +1265,6 @@ static bool GetGridPos(HWND hWnd, std::pair<int, int>& gpt)
 };
 
 
-
-
 static void NewNN(HWND hWnd)
 {
     g_neural_net = std::unique_ptr<nu::MlpNN>(
@@ -1329,8 +1275,6 @@ static void NewNN(HWND hWnd)
 }
 
 
-
-
 static void RotateCW(HWND hWnd, bool acw, grid_t& grid)
 {
     grid.rotate_cw(acw);
@@ -1339,15 +1283,11 @@ static void RotateCW(HWND hWnd, bool acw, grid_t& grid)
 }
 
 
-
-
 static void SetNewTopology(HWND hWnd, const nu::MlpNN::Topology& t)
 {
     g_topology = t;
     NewNN(hWnd);
 }
-
-
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -1698,8 +1638,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-
-
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1718,8 +1656,6 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
     return (INT_PTR)FALSE;
 }
-
-
 
 
 toolbar_t::toolbar_t(HWND hWnd,
@@ -1762,14 +1698,10 @@ toolbar_t::toolbar_t(HWND hWnd,
 }
 
 
-
-
 void toolbar_t::on_resize()
 {
     SendMessage(_toolbar, TB_AUTOSIZE, 0L, 0L);
 }
-
-
 
 
 void toolbar_t::on_customize()
@@ -1777,8 +1709,6 @@ void toolbar_t::on_customize()
     // Double-click on the toolbar -- display the customization dialog.
     SendMessage(_toolbar, TB_CUSTOMIZE, 0L, 0L);
 }
-
-
 
 
 BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
@@ -1826,22 +1756,16 @@ BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
 }
 
 
-
-
 void toolbar_t::enable(DWORD id)
 {
     SendMessage(_toolbar, TB_ENABLEBUTTON, id, (LPARAM)MAKELONG(TRUE, 0));
 }
 
 
-
-
 void toolbar_t::disable(DWORD id)
 {
     SendMessage(_toolbar, TB_ENABLEBUTTON, id, (LPARAM)MAKELONG(FALSE, 0));
 }
-
-
 
 
 bool toolbar_t::get_rect(RECT& rect)
