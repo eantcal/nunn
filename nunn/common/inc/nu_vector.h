@@ -13,21 +13,26 @@
 #include <ostream>
 #include <sstream>
 #include <vector>
+#include <ranges>
+#include <span>
 
 namespace nu {
 
 //! This class wraps a std::vector to basically make it capable to perform
 //! math operations used by learning algorithms
 
-template <class T = double>
-class Vector
-{
-public:
-    using item_t = T;
-    using vr_t = std::vector<item_t>;
+// Define a concept for number-like data types
+template<typename T>
+concept Number = std::is_arithmetic_v<T>;
 
-    using iterator = typename vr_t::iterator;
-    using const_iterator = typename vr_t::const_iterator;
+template <Number T = double>
+class Vector {
+public:
+    using DataType = T;
+    using VectorData = std::vector<DataType>;
+
+    using iterator = typename VectorData::iterator;
+    using const_iterator = typename VectorData::const_iterator;
 
     enum class Exception {
         size_mismatch
@@ -41,6 +46,9 @@ public:
     //! Copy constructor
     Vector(const Vector&) = default;
 
+
+    //! Constructor to use std::span for safer array handling
+    Vector(const std::span<T> v) noexcept : _v(v.begin(), v.end()) {}
 
     //! Construct a vector coping elements of a given c-style vector
     Vector(const double* v, size_t v_len) noexcept : _v(v_len) {
@@ -61,11 +69,11 @@ public:
 
 
     //! Fill constructor
-    Vector(const size_t& size, item_t v = 0.0) noexcept : _v(size, v) {}
+    Vector(const size_t& size, DataType v = 0.0) noexcept : _v(size, v) {}
 
 
     //! std::vector constructor
-    Vector(const vr_t& v) noexcept : _v(v) {}
+    Vector(const VectorData& v) noexcept : _v(v) {}
 
 
     //! Copy assignment operator
@@ -102,7 +110,7 @@ public:
 
 
     //! Change size
-    void resize(const size_t& size, item_t v = 0.0) noexcept {
+    void resize(const size_t& size, DataType v = 0.0) noexcept {
         _v.resize(size, v);
     }
 
@@ -132,55 +140,41 @@ public:
 
 
     //! Access element
-    item_t operator[](size_t idx) const noexcept { 
+    DataType operator[](size_t idx) const noexcept { 
         return _v[idx]; 
     }
 
 
     //! Access element
-    item_t& operator[](size_t idx) noexcept { 
+    DataType& operator[](size_t idx) noexcept { 
         return _v[idx]; 
     }
 
 
     //! Add element at the end
-    void push_back(const item_t& item) { 
+    void push_back(const DataType& item) { 
         _v.push_back(item); 
     }
 
-
-    //! Return index of highest vector element
+    // Using ranges for operations like maxarg
     size_t maxarg() noexcept {
         if (empty())
             return size_t(-1);
 
-        item_t max = _v[0];
-
-        size_t idx = 1;
-        size_t max_idx = 0;
-
-        for (; idx < size(); ++idx)
-            if (max < _v[idx]) {
-                max_idx = idx;
-                max = _v[idx];
-            }
-
-        return max_idx;
+        return std::distance(_v.begin(), std::ranges::max_element(_v));
     }
-
 
     //! deprecated - see maxarg
     size_t max_item_index() noexcept {
         return maxarg();
     }
 
-
     //! Return dot product
-    item_t dot(const Vector& other) {
+    DataType dot(const Vector& other) {
         if (other.size() != size())
             throw Exception::size_mismatch;
 
-        item_t sum = 0;
+        DataType sum = 0;
         size_t idx = 0;
 
         for (auto& i : _v)
@@ -188,7 +182,6 @@ public:
 
         return sum;
     }
-
 
     //! Apply the function f to each vector element
     //! For each element x in vector, x=f(x)
@@ -199,12 +192,10 @@ public:
         return *this;
     }
 
-
     //! Apply the function abs to each vector item
     const Vector& abs() noexcept { 
         return apply(::abs); 
     }
-
 
     //! Apply the function std::log to each vector item
     const Vector& log() noexcept {
@@ -213,14 +204,12 @@ public:
         );
     }
 
-
     //! Negates each vector item
     const Vector& negate() noexcept {
         return apply(
             [](double x) { return -x; }
         );
     }
-
 
     //! Returns the sum of all vector items
     T sum() const noexcept {
@@ -254,70 +243,59 @@ public:
         return _v <= other._v;
     }
 
-
     //! Relational operator >=
     bool operator>=(const Vector& other) const noexcept {
         return _v >= other._v;
     }
-
 
     //! Relational operator >
     bool operator>(const Vector& other) const noexcept {
         return _v > other._v;
     }
 
-
     //! Operator +=
     Vector& operator+=(const Vector& other) {
-        return _op(other, [](item_t& d, const item_t& s) { d += s; });
+        return _op(other, [](DataType& d, const DataType& s) { d += s; });
     }
-
 
     //! Operator (hadamard product) *=
     Vector& operator*=(const Vector& other) {
-        return _op(other, [](item_t& d, const item_t& s) { d *= s; });
+        return _op(other, [](DataType& d, const DataType& s) { d *= s; });
     }
-
 
     //! Operator -=
     Vector& operator-=(const Vector& other) {
-        return _op(other, [](item_t& d, const item_t& s) { d -= s; });
+        return _op(other, [](DataType& d, const DataType& s) { d -= s; });
     }
-
 
     //! Operator /= (entrywise division)
     Vector& operator/=(const Vector& other) {
-        return _op(other, [](item_t& d, const item_t& s) { d /= s; });
+        return _op(other, [](DataType& d, const DataType& s) { d /= s; });
     }
 
-
     //! Multiply a scalar s to the vector
-    Vector& operator*=(const item_t& s) {
+    Vector& operator*=(const DataType& s) {
         Vector other(size(), s);
         return this->operator*=(other);
     }
 
-
     //! Sum scalar s to each vector element
-    Vector& operator+=(const item_t& s) {
+    Vector& operator+=(const DataType& s) {
         Vector other(size(), s);
         return this->operator+=(other);
     }
 
-
     //! Subtract scalar s to each vector element
-    Vector& operator-=(const item_t& s) {
+    Vector& operator-=(const DataType& s) {
         Vector other(size(), s);
         return this->operator-=(other);
     }
 
-
     //! Divide each vector element by s
-    Vector& operator/=(const item_t& s) {
+    Vector& operator/=(const DataType& s) {
         Vector other(size(), s);
         return this->operator/=(other);
     }
-
 
     //! Writes the vector v status into the give string stream ss
     friend std::stringstream& operator<<(std::stringstream& ss,
@@ -330,7 +308,6 @@ public:
 
         return ss;
     }
-
 
     //! Copies the vector status from the stream ss into vector v
     friend std::stringstream& operator>>(std::stringstream& ss,
@@ -346,7 +323,6 @@ public:
 
         return ss;
     }
-
 
     //! Prints out to the os stream vector v
     friend std::ostream& operator<<(std::ostream& os,
@@ -377,14 +353,12 @@ public:
         return os;
     }
 
-
     //! Binary sum vector operator
     friend Vector operator+(const Vector& v1, const Vector& v2) {
         auto vr = v1;
         vr += v2;
         return vr;
     }
-
 
     //! Binary sub vector operator
     friend Vector operator-(const Vector& v1, const Vector& v2) {
@@ -393,10 +367,9 @@ public:
         return vr;
     }
 
-
     //! Return the square euclidean norm of vector
-    item_t euclideanNorm2() const noexcept {
-        item_t res = 0.0;
+    DataType euclideanNorm2() const noexcept {
+        DataType res = 0.0;
 
         for (size_t i = 0; i < _v.size(); ++i)
             res += _v[i] * _v[i];
@@ -404,12 +377,10 @@ public:
         return res;
     }
 
-
     //! Return the euclidean norm of vector
-    item_t euclidean_norm() const noexcept {
+    DataType euclidean_norm() const noexcept {
         return std::sqrt(euclideanNorm2());
     }
-
 
     //! Return a const reference to standard vector
     const std::vector<T>& to_stdvec() const noexcept { return _v; }
@@ -419,10 +390,10 @@ public:
     std::vector<T>& to_stdvec() noexcept { return _v; }
 
 private:
-    vr_t _v;
+    VectorData _v;
 
     Vector& _op(const Vector& other,
-                  std::function<void(item_t&, const item_t&)> f)
+                  std::function<void(DataType&, const DataType&)> f)
     {
         if (other.size() != size())
             throw Exception::size_mismatch;
