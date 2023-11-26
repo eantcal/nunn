@@ -1,8 +1,8 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -42,8 +42,8 @@
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
     try {
-        nu::StepFunction step_f(0.5 /* Lo/Hi-threshold */, 0 /* Lo - Output */,
-                               1 /* Hi - Output */);
+        nu::StepFunction step_f(
+          0.5 /* Lo/Hi-threshold */, 0 /* Lo - Output */, 1 /* Hi - Output */);
 
         nu::Perceptron nn(2 /* inputs */, 0.2 /* learning rate */, step_f);
 
@@ -55,9 +55,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // ---------------------------------------------------------
 
         nu::PerceptronTrainer trainer(nn,
-                                         2000, // Max number of epochs
-                                         0.01  // Min error
-                                         );
+                                      2000, // Max number of epochs
+                                      0.01  // Min error
+        );
 
         std::cout << "AND training start ( Max epochs count="
                   << trainer.getEpochs()

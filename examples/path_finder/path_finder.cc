@@ -1,8 +1,8 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -45,49 +45,49 @@ int main()
 
     */
 
-   std::cout 
-       << "Path finder example (using Q-Larning)" << std::endl << std::endl 
-       << "                ____________________  " << std::endl
-       << "                |                   \\  " << std::endl
-       << "                v                   |  " << std::endl
-       << "               [1]----------\\       |  " << std::endl
-       << "                ^           |       |  " << std::endl
-       << "                |           |       |  " << std::endl
-       << "                v           v       |  " << std::endl
-       << "   [2]<------->[3]    /--->[5] ---->/  " << std::endl
-       << "                ^     \\___/ ^ \\" << std::endl  
-       << "                |           |  \\" << std::endl
-       << "                v           |  |" << std::endl
-       << "   [0]<------->[4]__________/  |" << std::endl
-       << "                ^              |" << std::endl
-       << "                |              |" << std::endl
-       << "                \\______________/" << std::endl << std::endl
-       << std::endl << "Goal is state [" << GoalState << "]" << std::endl;
+    std::cout << "Path finder example (using Q-Larning)" << std::endl
+              << std::endl
+              << "                ____________________  " << std::endl
+              << "                |                   \\  " << std::endl
+              << "                v                   |  " << std::endl
+              << "               [1]----------\\       |  " << std::endl
+              << "                ^           |       |  " << std::endl
+              << "                |           |       |  " << std::endl
+              << "                v           v       |  " << std::endl
+              << "   [2]<------->[3]    /--->[5] ---->/  " << std::endl
+              << "                ^     \\___/ ^ \\" << std::endl
+              << "                |           |  \\" << std::endl
+              << "                v           |  |" << std::endl
+              << "   [0]<------->[4]__________/  |" << std::endl
+              << "                ^              |" << std::endl
+              << "                |              |" << std::endl
+              << "                \\______________/" << std::endl
+              << std::endl
+              << std::endl
+              << "Goal is state [" << GoalState << "]" << std::endl;
 
 
-    nu::QLGraph ql(
-        NumberOfStates, 
-        GoalState,
+    nu::QLGraph ql(NumberOfStates,
+                   GoalState,
 
-        // graph topology
-        {
-            //from  you can go to ...
-            { 0,   {4} },
-            { 1,   {3, 5} },
-            { 2,   {3} },
-            { 3,   {1, 2, 4} },
-            { 4,   {0, 3, 5} },
-            { 5,   {1, 4, 5 } } }
-        );
+                   // graph topology
+                   { // from  you can go to ...
+                     { 0, { 4 } },
+                     { 1, { 3, 5 } },
+                     { 2, { 3 } },
+                     { 3, { 1, 2, 4 } },
+                     { 4, { 0, 3, 5 } },
+                     { 5, { 1, 4, 5 } } });
 
     ql.learn(NumberOfEpisodies);
 
 #ifdef _DEBUG
-    auto & q = ql.get_q_mtx();
+    auto& q = ql.get_q_mtx();
     std::cout << "Q=" << std::endl << q << std::endl;
 #endif
 
-    std::cout << std::endl << "From | Shortest path to " << GoalState << std::endl;
+    std::cout << std::endl
+              << "From | Shortest path to " << GoalState << std::endl;
     std::cout << "---- | ------------------- " << std::endl;
 
     for (size_t init_state = 0; init_state < NumberOfStates; ++init_state) {
@@ -114,4 +114,3 @@ int main()
 
     return 0;
 }
-

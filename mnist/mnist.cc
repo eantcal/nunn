@@ -1,8 +1,8 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -93,7 +93,9 @@ void DigitData::paint(int xoff, int yoff, HWND hwnd) const noexcept
         for (size_t x = 0; x < dx; ++x) {
             int c = dataBits[idx++];
 
-            SetPixel(hdc, int(x) + xoff, int(y) + yoff,
+            SetPixel(hdc,
+                     int(x) + xoff,
+                     int(y) + yoff,
                      RGB(255 - c, 255 - c, 255 - c));
         }
     }

@@ -1,8 +1,8 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -40,4 +40,3 @@ struct LearnerListener
 /* -------------------------------------------------------------------------- */
 
 #endif // __NU_LEARNER_LISTENER_H__
-

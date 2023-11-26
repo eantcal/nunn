@@ -1,8 +1,8 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -16,9 +16,9 @@
 /* -------------------------------------------------------------------------- */
 
 
+#include "nu_random_gen.h"
 #include "nu_stepf.h"
 #include "nu_vector.h"
-#include "nu_random_gen.h"
 
 #include <list>
 
@@ -31,12 +31,14 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 //! This is an implementation of a Hopfield Neural Network
-class HopfiledNN {
+class HopfiledNN
+{
 
-public:
+  public:
     using FpVector = Vector<double>;
 
-    enum class Exception {
+    enum class Exception
+    {
         size_mismatch,
         invalid_sstream_format
     };
@@ -48,22 +50,21 @@ public:
 
     //! Create a net with pattern size equal to inputSize
     HopfiledNN(const size_t& inputSize) noexcept
-      : _s(inputSize),
-        _w(inputSize* inputSize)
+      : _s(inputSize)
+      , _w(inputSize * inputSize)
     {
     }
 
 
     //! Returns the capacity of the net
-    size_t getCapacity() const noexcept {
+    size_t getCapacity() const noexcept
+    {
         return size_t(0.138 * double(_s.size()));
     }
 
 
     //! Returns the number of patterns added to the net
-    size_t getPatternsCount() const noexcept { 
-        return _patternSize; 
-    }
+    size_t getPatternsCount() const noexcept { return _patternSize; }
 
 
     //! Adds specified pattern
@@ -85,9 +86,9 @@ public:
 
     //! move-ctor
     HopfiledNN(HopfiledNN&& nn) noexcept
-      : _s(std::move(nn._s)),
-        _w(std::move(nn._w)),
-        _patternSize(std::move(nn._patternSize))
+      : _s(std::move(nn._s))
+      , _w(std::move(nn._w))
+      , _patternSize(std::move(nn._patternSize))
     {
     }
 
@@ -101,9 +102,7 @@ public:
 
 
     //! Returns the number of inputs
-    size_t getInputSize() const noexcept { 
-        return _s.size(); 
-    }
+    size_t getInputSize() const noexcept { return _s.size(); }
 
     //! Build the net by using data of the given string stream
     std::stringstream& load(std::stringstream& ss);
@@ -118,28 +117,30 @@ public:
 
 
     //! Build the net by using data of the given string stream
-    friend 
-    std::stringstream& operator>>(std::stringstream& ss, HopfiledNN& net) {
+    friend std::stringstream& operator>>(std::stringstream& ss, HopfiledNN& net)
+    {
         return net.load(ss);
     }
 
 
     //! Save net status into the given string stream
-    friend 
-    std::stringstream& operator<<(std::stringstream& ss, HopfiledNN& net) noexcept {
+    friend std::stringstream& operator<<(std::stringstream& ss,
+                                         HopfiledNN& net) noexcept
+    {
         return net.save(ss);
     }
 
 
     //! Print the net state out to the given ostream
-    friend 
-    std::ostream& operator<<(std::ostream& os, HopfiledNN& net) noexcept {
+    friend std::ostream& operator<<(std::ostream& os, HopfiledNN& net) noexcept
+    {
         return net.dump(os);
     }
 
 
     //! Reset the net status
-    void clear() noexcept {
+    void clear() noexcept
+    {
         _s = .0; // all zeros
         _w = .0; // all zeros
         _patternSize = 0;

@@ -1,18 +1,20 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 #include "nu_perceptron.h"
-#include "nu_sigmoid.h"
 #include "nu_random_gen.h"
+#include "nu_sigmoid.h"
 
 namespace nu {
 
-Perceptron::Perceptron(const size_t& inputSize, double learningRate, StepFunction step_f)
+Perceptron::Perceptron(const size_t& inputSize,
+                       double learningRate,
+                       StepFunction step_f)
   : _step_f(step_f)
   , _learningRate(learningRate)
 {
