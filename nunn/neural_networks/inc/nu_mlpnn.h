@@ -6,20 +6,24 @@
 // See COPYING file in the project root for full license information.
 //
 
+// clang-format off
 /**
-    @file nu_mlpnn.h
-
-    @brief This is an implementation of an Artificial Neural Network using
-    the Back Propagation algorithm. The ANN learns by example, adjusting its
-    weights based on provided input-output pairs. The training continues until
-    the output error is minimized.
-
-    The Back Propagation algorithm involves:
-    1) Initializing the network's weights to small random numbers between -1 and
-   +1. 2) Applying inputs and calculating the output (forward pass). 3)
-   Calculating the error for each neuron (Target - Output). 4) Adjusting the
-   weights to reduce the overall error.
-*/
+ * @file nu_mlpnn.h
+ *
+ * @brief Implementation of an Artificial Neural Network using the Back Propagation algorithm.
+ *
+ * This file describes an implementation of an Artificial Neural Network (ANN)
+ * that learns through the Back Propagation algorithm. The ANN adjusts its weights
+ * based on provided input-output pairs during the training process, which continues
+ * until the output error is minimized.
+ *
+ * The Back Propagation algorithm involves the following steps:
+ * 1. Initializing the network's weights to small random numbers between -1 and +1.
+ * 2. Applying inputs and calculating the output (forward pass).
+ * 3. Calculating the error for each neuron (Target - Output).
+ * 4. Adjusting the weights to reduce the overall error.
+ */
+// clang-format on
 
 #pragma once
 
