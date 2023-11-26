@@ -6,14 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_QLGRAPH_H__
-#define __NU_QLGRAPH_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include "nu_qmtx.h"
 #include "nu_random_gen.h"
@@ -24,17 +17,10 @@
 #include <unordered_map>
 #include <vector>
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
 
-
-/* -------------------------------------------------------------------------- */
-
-class QLGraph
-{
-  public:
+class QLGraph {
+public:
     using valid_actions_t = std::vector<size_t>;
 
     enum
@@ -113,12 +99,4 @@ class QLGraph
     double _discountRate = 0.8;
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 }
-
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_QLGRAPH_H__

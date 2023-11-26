@@ -6,31 +6,17 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_QMTX_H__
-#define __NU_QMTX_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include "nu_vector.h"
 #include <iostream>
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
 
-
-/* -------------------------------------------------------------------------- */
-
-struct QMatrix
-{
-  public:
-    using vect_t = Vector<double>;
-    using data_t = std::vector<vect_t>;
+struct QMatrix {
+public:
+    using vect_t = Vector< double >;
+    using data_t = std::vector< vect_t >;
 
     enum class Exception
     {
@@ -88,12 +74,4 @@ struct QMatrix
     data_t _data;
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 }
-
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_QMTX_H__

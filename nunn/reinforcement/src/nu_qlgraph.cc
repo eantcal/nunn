@@ -6,29 +6,22 @@
 // See COPYING file in the project root for full license information.
 //
 
-/* -------------------------------------------------------------------------- */
-
 #include "nu_qlgraph.h"
 
-/* -------------------------------------------------------------------------- */
-
-namespace nu {
-
-/* -------------------------------------------------------------------------- */
-
-QLGraph::QLGraph(const size_t& n_of_states,
-                 const size_t& goal_state,
-                 const Topology& topology)
-  : _nOfStates(n_of_states)
-  , _goalState(goal_state)
-  , _rewardMtx(n_of_states)
-  , _q_mtx(n_of_states)
+namespace nu
 {
     assert(goal_state < n_of_states);
 
-    _rewardMtx.fill(FORBIDDEN);
-
-    for (const auto& state : topology) {
+    QLGraph::QLGraph(
+        const size_t &n_of_states,
+        const size_t &goal_state,
+        const Topology &topology)
+        : _nOfStates(n_of_states),
+          _goalState(goal_state),
+          _rewardMtx(n_of_states),
+          _q_mtx(n_of_states)
+    {
+        assert(goal_state < n_of_states);
 
         for (auto& destination : state.second) {
             _rewardMtx[state.first][destination] =
@@ -37,11 +30,10 @@ QLGraph::QLGraph(const size_t& n_of_states,
     }
 }
 
-/* -------------------------------------------------------------------------- */
-
-bool QLGraph::learn(const size_t& nOfEpisodes, const Helper& helper)
-{
-    for (size_t episode = 0; episode < nOfEpisodes; ++episode) {
+    bool QLGraph::learn(const size_t &nOfEpisodes, const Helper &helper)
+    {
+        for (size_t episode = 0; episode < nOfEpisodes; ++episode)
+        {
 
         helper.beginEpisode(episode, *this);
 
@@ -79,38 +71,27 @@ bool QLGraph::learn(const size_t& nOfEpisodes, const Helper& helper)
 
         helper.endEpisode(episode, *this);
 
-        if (helper.quitRequestPending()) {
-            return false;
-        }
+        return true;
     }
 
-    _q_mtx.normalize();
+    QLGraph::valid_actions_t
+    QLGraph::retrieveValidActions(const QMatrix &r, size_t state)
+    {
+        assert(state < r.size());
 
-    return true;
-}
+        valid_actions_t va;
+        const auto &actions = r[state].to_stdvec();
 
-/* -------------------------------------------------------------------------- */
+        size_t idx = 0;
 
-QLGraph::valid_actions_t QLGraph::retrieveValidActions(const QMatrix& r,
-                                                       size_t state)
-{
-    assert(state < r.size());
-
-    valid_actions_t va;
-    const auto& actions = r[state].to_stdvec();
-
-    size_t idx = 0;
-
-    for (const auto& action : actions) {
-        if (action >= 0) {
-            va.push_back(idx);
+        for (const auto &action : actions)
+        {
+            if (action >= 0)
+            {
+                va.push_back(idx);
+            }
+            ++idx;
         }
-        ++idx;
     }
-
-    return va;
-}
-
-/* -------------------------------------------------------------------------- */
 
 }

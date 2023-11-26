@@ -6,7 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
-/* -------------------------------------------------------------------------- */
+
 
 /*
  * Hopfield neural network test
@@ -14,12 +14,12 @@
  * copy for an input pattern to an associated pre-learned pattern
  */
 
-/* -------------------------------------------------------------------------- */
+
 
 #include "nu_hopfieldnn.h"
 #include <iostream>
 
-/* -------------------------------------------------------------------------- */
+
 
 const size_t pattern_size = 100;
 const size_t n_of_patterns = 5;
@@ -138,7 +138,7 @@ std::string g_test_patterns[] = { // 0123456789
       "**********" }
 };
 
-/* -------------------------------------------------------------------------- */
+
 
 static void print_pattern(const std::string& pattern)
 {
@@ -154,7 +154,7 @@ static void print_pattern(const std::string& pattern)
     std::cout << std::endl;
 }
 
-/* -------------------------------------------------------------------------- */
+
 
 static void print_pattern(const nu::HopfiledNN::FpVector& pattern)
 {
@@ -166,7 +166,7 @@ static void print_pattern(const nu::HopfiledNN::FpVector& pattern)
     print_pattern(s_pattern);
 }
 
-/* -------------------------------------------------------------------------- */
+
 
 static void convert_pattern_into_input_v(const std::string& pattern,
                                          nu::HopfiledNN::FpVector& input_vector)
@@ -177,7 +177,7 @@ static void convert_pattern_into_input_v(const std::string& pattern,
     }
 }
 
-/* -------------------------------------------------------------------------- */
+
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
@@ -215,4 +215,4 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     return 0;
 }
 
-/* -------------------------------------------------------------------------- */
+

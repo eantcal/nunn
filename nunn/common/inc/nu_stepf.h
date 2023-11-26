@@ -6,19 +6,9 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_STEPF_H__
-#define __NU_STEPF_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 namespace nu {
-
-
-/* -------------------------------------------------------------------------- */
 
 class StepFunction
 {
@@ -43,10 +33,4 @@ class StepFunction
     double _I_output;
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 } // namespace
-
-
-#endif // __NU_STEPF_H__

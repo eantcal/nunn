@@ -6,26 +6,13 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_E_GREEDY_POLICY_H__
-#define __NU_E_GREEDY_POLICY_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include "nu_random_gen.h"
 #include <cassert>
 #include <cmath>
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
-
-
-/* -------------------------------------------------------------------------- */
 
 template<class Action, class Agent, class RndGen = RandomGenerator<>>
 class EGreedyPolicy
@@ -82,12 +69,4 @@ class EGreedyPolicy
     mutable RndGen _rndGen;
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 }
-
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_E_GREEDY_POLICY_H__

@@ -6,23 +6,12 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
 #include "nu_costfuncs.h"
 #include <limits>
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace cf {
-
-/* -------------------------------------------------------------------------- */
 
 double calcCrossEntropy(Vector<double> output, const Vector<double>& target)
 {
@@ -55,13 +44,6 @@ double calcCrossEntropy(Vector<double> output, const Vector<double>& target)
     return -res.sum() / double(res.size());
 }
 
-
-/* --------------------------------------------------------------------------
- */
-
 } // namespace cf
-
-
-/* -------------------------------------------------------------------------- */
 
 } // namespace nu

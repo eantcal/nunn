@@ -15,7 +15,7 @@
  */
 
 
-/* -------------------------------------------------------------------------- */
+
 
 #include "winttt.h"
 #include "stdafx.h"
@@ -34,7 +34,7 @@
 #include <vector>
 
 
-/* -------------------------------------------------------------------------- */
+
 
 #define PROG_VERSION "1.55"
 #define ABOUT_TEXT "TicTacToe for Windows by A. Calderone (c) - 2015"
@@ -63,7 +63,7 @@
 #define TICTACTOE_CELLS (TICTACTOE_SIDE * TICTACTOE_SIDE)
 
 
-/* -------------------------------------------------------------------------- */
+
 
 class toolbar_t
 {
@@ -96,7 +96,7 @@ class toolbar_t
 };
 
 
-/* -------------------------------------------------------------------------- */
+
 
 struct sample_t
 {
@@ -113,7 +113,7 @@ struct sample_t
 using samples_t = std::set<sample_t>;
 
 
-/* -------------------------------------------------------------------------- */
+
 
 // Global Variables
 static HINSTANCE hInst;                     // current instance
@@ -136,7 +136,7 @@ static std::unique_ptr<nu::MlpNN> g_neural_net_copy;
 static samples_t g_training_samples_copy;
 
 
-/* -------------------------------------------------------------------------- */
+
 
 // Toolbar
 static toolbar_t* g_toolbar = nullptr;
@@ -190,7 +190,7 @@ TBBUTTON g_toolbar_buttons[] = {
 const int g_toolbar_n_of_buttons = sizeof(g_toolbar_buttons) / sizeof(TBBUTTON);
 
 
-/* -------------------------------------------------------------------------- */
+
 
 // Forward declarations of functions included in this code module:
 ATOM MyRegisterClass(HINSTANCE hInstance);
@@ -201,7 +201,7 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static void realignNNCopy()
 {
@@ -215,7 +215,7 @@ static void realignNNCopy()
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                        _In_opt_ HINSTANCE hPrevInstance,
@@ -251,7 +251,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
@@ -276,7 +276,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
@@ -306,7 +306,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void UpdateStatusBar(HWND hWnd)
 {
@@ -344,7 +344,7 @@ void UpdateStatusBar(HWND hWnd)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 {
@@ -411,7 +411,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void Training(HWND hWnd, HWND hwndPB)
 {
@@ -451,7 +451,7 @@ void Training(HWND hWnd, HWND hwndPB)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void TrainingThread()
 {
@@ -491,7 +491,7 @@ void TrainingThread()
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string& filename)
 {
@@ -519,7 +519,7 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string& filename)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 {
@@ -540,7 +540,7 @@ void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void DoSelectFont(HWND hwnd)
 {
@@ -560,7 +560,7 @@ void DoSelectFont(HWND hwnd)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static void DrawBm(HDC hdc, HANDLE image, int x, int y)
 {
@@ -578,7 +578,7 @@ static void DrawBm(HDC hdc, HANDLE image, int x, int y)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 class grid_t
 {
@@ -848,7 +848,7 @@ class grid_t
 };
 
 
-/* -------------------------------------------------------------------------- */
+
 
 class renderer_t
 {
@@ -895,7 +895,7 @@ class renderer_t
 };
 
 
-/* -------------------------------------------------------------------------- */
+
 
 class nn_io_converter_t
 {
@@ -933,7 +933,7 @@ class nn_io_converter_t
 };
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static void ExpertAlgo(grid_t& new_grid, grid_t::symbol_t symbol)
 {
@@ -1212,7 +1212,7 @@ static void ExpertAlgo(grid_t& new_grid, grid_t::symbol_t symbol)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static void NetAnswer(nu::MlpNN& nn, grid_t& grid, grid_t::symbol_t symbol)
 {
@@ -1249,7 +1249,7 @@ static void NetAnswer(nu::MlpNN& nn, grid_t& grid, grid_t::symbol_t symbol)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static void ComputerPlay(HWND hWnd,
                          HINSTANCE hInst,
@@ -1292,7 +1292,7 @@ static void ComputerPlay(HWND hWnd,
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static bool GetGridPos(HWND hWnd, std::pair<int, int>& gpt)
 {
@@ -1317,7 +1317,7 @@ static bool GetGridPos(HWND hWnd, std::pair<int, int>& gpt)
 };
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static void NewNN(HWND hWnd)
 {
@@ -1329,7 +1329,7 @@ static void NewNN(HWND hWnd)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static void RotateCW(HWND hWnd, bool acw, grid_t& grid)
 {
@@ -1339,7 +1339,7 @@ static void RotateCW(HWND hWnd, bool acw, grid_t& grid)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static void SetNewTopology(HWND hWnd, const nu::MlpNN::Topology& t)
 {
@@ -1348,7 +1348,7 @@ static void SetNewTopology(HWND hWnd, const nu::MlpNN::Topology& t)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1698,7 +1698,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -1720,7 +1720,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 toolbar_t::toolbar_t(HWND hWnd,
                      HINSTANCE hInstance,
@@ -1762,7 +1762,7 @@ toolbar_t::toolbar_t(HWND hWnd,
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void toolbar_t::on_resize()
 {
@@ -1770,7 +1770,7 @@ void toolbar_t::on_resize()
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void toolbar_t::on_customize()
 {
@@ -1779,7 +1779,7 @@ void toolbar_t::on_customize()
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
 {
@@ -1826,7 +1826,7 @@ BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void toolbar_t::enable(DWORD id)
 {
@@ -1834,7 +1834,7 @@ void toolbar_t::enable(DWORD id)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void toolbar_t::disable(DWORD id)
 {
@@ -1842,7 +1842,7 @@ void toolbar_t::disable(DWORD id)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 bool toolbar_t::get_rect(RECT& rect)
 {

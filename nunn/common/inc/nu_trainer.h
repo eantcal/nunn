@@ -6,19 +6,8 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_TRAINER_H__
-#define __NU_TRAINER_H__
-
-
-/* -------------------------------------------------------------------------- */
-
+#pragma once
 namespace nu {
-
-
-/* -------------------------------------------------------------------------- */
 
 //! The trainer class is a helper class for neural networks training
 template<class Net, class Input, class Target>
@@ -203,12 +192,5 @@ class NNTrainer
     double _err;
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 } // namespace nu
 
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_TRAINER_H__

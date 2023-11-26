@@ -10,20 +10,20 @@
    Shortest path finder example.
 */
 
-/* -------------------------------------------------------------------------- */
+
 
 #include "nu_qlgraph.h"
 #include <iostream>
 
 
-/* -------------------------------------------------------------------------- */
+
 
 const size_t NumberOfStates = 6;
 const size_t NumberOfEpisodies = 1000;
 const size_t GoalState = 5;
 
 
-/* -------------------------------------------------------------------------- */
+
 
 int main()
 {

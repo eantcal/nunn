@@ -6,24 +6,11 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_RANDOM_GEN_H__
-#define __NU_RANDOM_GEN_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include <random>
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
-
-
-/* -------------------------------------------------------------------------- */
 
 template<class Engine = std::mt19937,
          class Distribution = std::uniform_real_distribution<double>>
@@ -44,10 +31,4 @@ struct RandomGenerator
     Distribution _distribution;
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 }
-
-
-#endif // __NU_RANDOM_GEN_H__

@@ -7,23 +7,12 @@
 //
 
 
-#ifndef __NU_SIGMOID_H__
-#define __NU_SIGMOID_H__
-
-
-/* -------------------------------------------------------------------------- */
-
+#pragma once
 
 #include "nu_vector.h"
 #include <cmath>
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
-
-
-/* -------------------------------------------------------------------------- */
 
 //! This class represents the logistic function
 class Sigmoid
@@ -36,10 +25,4 @@ class Sigmoid
     static inline double derive(double y) noexcept { return (1 - y) * y; }
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 } // namespace
-
-
-#endif // __NU_SIGMOID_H__
