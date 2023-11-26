@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include "nu_random_gen.h"
 #include "nu_stepf.h"
 #include "nu_vector.h"
 
 #include <list>
+#include <random>
 #include <ranges>
 #include <string_view>
 
@@ -54,7 +54,11 @@ class HopfieldNN
       : _s(inputSize)
       , _w(inputSize * inputSize)
     {
+        std::random_device rd;
+        _rndgen.seed(rd());
     }
+
+    HopfieldNN() = delete;
 
     /**
      * @brief Returns the maximum number of patterns the network can store.
@@ -117,7 +121,7 @@ class HopfieldNN
     FpVector _w; // Weights matrix
     size_t _patternSize = 0;
 
-    RandomGenerator<> _rndgen;
+    std::mt19937 _rndgen;
 };
 
 // Serialization operators

@@ -1,20 +1,22 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
-
 #include "nu_hopfieldnn.h"
+#include <algorithm>
+#include <random>
+#include <span>
 
 namespace nu {
 
 void HopfieldNN::clear() noexcept
 {
-    _s = .0; // all zeros
-    _w = .0; // all zeros
+    std::fill(_s.begin(), _s.end(), 0.0); // Reset neuron states to all zeros
+    std::fill(_w.begin(), _w.end(), 0.0); // Reset weights to all zeros
     _patternSize = 0;
 }
 
@@ -25,11 +27,12 @@ void HopfieldNN::addPattern(const FpVector& input_pattern)
     if (size != input_pattern.size())
         throw Exception::size_mismatch;
 
-    for (size_t i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i) {
         for (size_t j = 0; j < size; ++j) {
             if (i != j)
                 _w[i * size + j] += input_pattern[i] * input_pattern[j];
         }
+    }
 
     ++_patternSize;
 }
@@ -47,65 +50,54 @@ void HopfieldNN::recall(const FpVector& input_pattern, FpVector& output_pattern)
 
 void HopfieldNN::_propagate() noexcept
 {
-    size_t it = 0;
-    size_t last_it = 0;
+    const size_t size = getInputSize();
+    std::uniform_int_distribution<size_t> dist(0, size - 1);
+
+    size_t it = 0, last_it = 0;
 
     do {
         ++it;
-        size_t rnd_idx = size_t(getInputSize() * _rndgen()) % getInputSize();
+        size_t rnd_idx = dist(_rndgen); // Generate a random index
 
         if (_propagateNeuron(rnd_idx))
             last_it = it;
 
-    } while (it - last_it < 10 * getInputSize());
+    } while (it - last_it < 10 * size);
 }
 
 bool HopfieldNN::_propagateNeuron(size_t i) noexcept
 {
-    bool changed = false;
-    double sum = 0;
+    double sum = std::inner_product(_w.begin() + i * getInputSize(),
+                                    _w.begin() + (i + 1) * getInputSize(),
+                                    _s.begin(),
+                                    0.0);
+    double state = (sum > 0.0) - (sum < 0.0);
 
-    const auto size = getInputSize();
-
-    for (size_t j = 0; j < size; ++j)
-        sum += _w[i * size + j] * _s[j];
-
-    double state = 0.0;
-
-    if (sum != 0.0) {
-        if (sum < 0.0)
-            state = -1;
-
-        if (sum > 0.0)
-            state = 1;
-
-        if (state != _s[i]) {
-            changed = true;
-            _s[i] = state;
-        }
+    if (state != _s[i]) {
+        _s[i] = state;
+        return true;
     }
 
-    return changed;
+    return false;
 }
 
 std::stringstream& HopfieldNN::load(std::stringstream& ss)
 {
     std::string s;
     ss >> s;
-    if (s != HopfieldNN::ID_ANN)
+    if (s != ID_ANN)
         throw Exception::invalid_sstream_format;
 
     ss >> _patternSize;
 
-
     ss >> s;
-    if (s != HopfieldNN::ID_NEURON_ST)
+    if (s != ID_NEURON_ST)
         throw Exception::invalid_sstream_format;
 
     ss >> _s;
 
     ss >> s;
-    if (s != HopfieldNN::ID_WEIGHTS)
+    if (s != ID_WEIGHTS)
         throw Exception::invalid_sstream_format;
 
     ss >> _w;
@@ -117,28 +109,20 @@ std::stringstream& HopfieldNN::save(std::stringstream& ss) noexcept
 {
     ss.clear();
 
-    ss << HopfieldNN::ID_ANN << std::endl;
-
-    ss << _patternSize << std::endl;
-
-    ss << HopfieldNN::ID_NEURON_ST << std::endl;
-    ss << _s << std::endl;
-
-    ss << HopfieldNN::ID_WEIGHTS << std::endl;
-    ss << _w << std::endl;
+    ss << ID_ANN << "\n"
+       << _patternSize << "\n"
+       << ID_NEURON_ST << "\n"
+       << _s << "\n"
+       << ID_WEIGHTS << "\n"
+       << _w;
 
     return ss;
 }
 
 std::ostream& HopfieldNN::dump(std::ostream& os) noexcept
 {
-    os << "Hopfield " << std::endl;
-
-    os << "\t# of patterns  " << _patternSize << std::endl;
-    os << "\tNeurons Status " << _s << std::endl;
-    os << "\tNet Weights    " << _w << std::endl;
-
-    os << std::endl;
+    os << "Hopfield Neural Network\n# of Patterns: " << _patternSize
+       << "\nNeuron States: " << _s << "\nNet Weights: " << _w << "\n";
 
     return os;
 }
