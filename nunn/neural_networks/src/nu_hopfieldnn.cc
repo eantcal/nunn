@@ -11,7 +11,14 @@
 
 namespace nu {
 
-void HopfiledNN::addPattern(const FpVector& input_pattern)
+void HopfieldNN::clear() noexcept
+{
+    _s = .0; // all zeros
+    _w = .0; // all zeros
+    _patternSize = 0;
+}
+
+void HopfieldNN::addPattern(const FpVector& input_pattern)
 {
     const auto size = getInputSize();
 
@@ -27,7 +34,7 @@ void HopfiledNN::addPattern(const FpVector& input_pattern)
     ++_patternSize;
 }
 
-void HopfiledNN::recall(const FpVector& input_pattern, FpVector& output_pattern)
+void HopfieldNN::recall(const FpVector& input_pattern, FpVector& output_pattern)
 {
     if (getInputSize() != input_pattern.size())
         throw Exception::size_mismatch;
@@ -38,7 +45,7 @@ void HopfiledNN::recall(const FpVector& input_pattern, FpVector& output_pattern)
     output_pattern = _s;
 }
 
-void HopfiledNN::_propagate() noexcept
+void HopfieldNN::_propagate() noexcept
 {
     size_t it = 0;
     size_t last_it = 0;
@@ -53,7 +60,7 @@ void HopfiledNN::_propagate() noexcept
     } while (it - last_it < 10 * getInputSize());
 }
 
-bool HopfiledNN::_propagateNeuron(size_t i) noexcept
+bool HopfieldNN::_propagateNeuron(size_t i) noexcept
 {
     bool changed = false;
     double sum = 0;
@@ -81,24 +88,24 @@ bool HopfiledNN::_propagateNeuron(size_t i) noexcept
     return changed;
 }
 
-std::stringstream& HopfiledNN::load(std::stringstream& ss)
+std::stringstream& HopfieldNN::load(std::stringstream& ss)
 {
     std::string s;
     ss >> s;
-    if (s != HopfiledNN::ID_ANN)
+    if (s != HopfieldNN::ID_ANN)
         throw Exception::invalid_sstream_format;
 
     ss >> _patternSize;
 
 
     ss >> s;
-    if (s != HopfiledNN::ID_NEURON_ST)
+    if (s != HopfieldNN::ID_NEURON_ST)
         throw Exception::invalid_sstream_format;
 
     ss >> _s;
 
     ss >> s;
-    if (s != HopfiledNN::ID_WEIGHTS)
+    if (s != HopfieldNN::ID_WEIGHTS)
         throw Exception::invalid_sstream_format;
 
     ss >> _w;
@@ -106,24 +113,24 @@ std::stringstream& HopfiledNN::load(std::stringstream& ss)
     return ss;
 }
 
-std::stringstream& HopfiledNN::save(std::stringstream& ss) noexcept
+std::stringstream& HopfieldNN::save(std::stringstream& ss) noexcept
 {
     ss.clear();
 
-    ss << HopfiledNN::ID_ANN << std::endl;
+    ss << HopfieldNN::ID_ANN << std::endl;
 
     ss << _patternSize << std::endl;
 
-    ss << HopfiledNN::ID_NEURON_ST << std::endl;
+    ss << HopfieldNN::ID_NEURON_ST << std::endl;
     ss << _s << std::endl;
 
-    ss << HopfiledNN::ID_WEIGHTS << std::endl;
+    ss << HopfieldNN::ID_WEIGHTS << std::endl;
     ss << _w << std::endl;
 
     return ss;
 }
 
-std::ostream& HopfiledNN::dump(std::ostream& os) noexcept
+std::ostream& HopfieldNN::dump(std::ostream& os) noexcept
 {
     os << "Hopfield " << std::endl;
 
@@ -135,9 +142,5 @@ std::ostream& HopfiledNN::dump(std::ostream& os) noexcept
 
     return os;
 }
-
-const char* HopfiledNN::ID_ANN = "hopfield";
-const char* HopfiledNN::ID_NEURON_ST = "neuron_st";
-const char* HopfiledNN::ID_WEIGHTS = "net_weights";
 
 } // namespace nu
