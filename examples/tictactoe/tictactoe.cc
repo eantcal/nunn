@@ -17,7 +17,7 @@
  */
 
 
-/* -------------------------------------------------------------------------- */
+
 
 #include <cassert>
 #include <fstream>
@@ -34,7 +34,7 @@
 #include "nu_mlpnn.h"
 
 
-/* -------------------------------------------------------------------------- */
+
 
 #define PROG_VERSION "1.55"
 #define TICTACTOE_SIDE 3
@@ -47,7 +47,7 @@
 #define TRAINING_ERR_THRESHOLD 0.01
 
 
-/* -------------------------------------------------------------------------- */
+
 
 class grid_t
 {
@@ -224,7 +224,7 @@ class grid_t
 };
 
 
-/* -------------------------------------------------------------------------- */
+
 
 class renderer_t
 {
@@ -286,7 +286,7 @@ class renderer_t
 };
 
 
-/* -------------------------------------------------------------------------- */
+
 
 class nn_io_converter_t
 {
@@ -322,7 +322,7 @@ class nn_io_converter_t
 };
 
 
-/* -------------------------------------------------------------------------- */
+
 
 class NNTrainer
 {
@@ -725,7 +725,7 @@ class NNTrainer
 };
 
 
-/* -------------------------------------------------------------------------- */
+
 
 class game_t
 {
@@ -877,7 +877,7 @@ class game_t
 };
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static void usage(const char* appname)
 {
@@ -925,7 +925,7 @@ static void usage(const char* appname)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 static bool process_cl(int argc, char* argv[], std::string& files_path,
                        std::string& load_file_name, std::string& save_file_name,
@@ -1039,7 +1039,7 @@ static bool process_cl(int argc, char* argv[], std::string& files_path,
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 bool save_the_net(const std::string& filename, std::stringstream& ss)
 {
@@ -1058,7 +1058,7 @@ bool save_the_net(const std::string& filename, std::stringstream& ss)
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 int main(int argc, char* argv[])
 {

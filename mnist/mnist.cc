@@ -7,7 +7,7 @@
 //
 
 
-/* -------------------------------------------------------------------------- */
+
 
 /*
 
@@ -44,12 +44,12 @@ Pixel values are 0 to 255. 0 means background (white), 255 means foreground
 */
 
 
-/* -------------------------------------------------------------------------- */
+
 
 #include "mnist.h"
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void DigitData::toVect(nu::Vector<double>& v) const noexcept
 {
@@ -61,7 +61,7 @@ void DigitData::toVect(nu::Vector<double>& v) const noexcept
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void DigitData::labelToTarget(nu::Vector<double>& v) const noexcept
 {
@@ -71,7 +71,7 @@ void DigitData::labelToTarget(nu::Vector<double>& v) const noexcept
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 
 #ifdef _WIN32
@@ -103,7 +103,7 @@ void DigitData::paint(int xoff, int yoff, HWND hwnd) const noexcept
 #endif
 
 
-/* -------------------------------------------------------------------------- */
+
 
 int TrainingData::load()
 {
@@ -211,4 +211,4 @@ int TrainingData::load()
 }
 
 
-/* -------------------------------------------------------------------------- */
+

@@ -6,7 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
-/* -------------------------------------------------------------------------- */
+
 
 /*
 
@@ -29,7 +29,7 @@ See also http://yann.lecun.com/exdb/mnist/
 
 */
 
-/* -------------------------------------------------------------------------- */
+
 
 #include "mnist.h"
 #include "nu_mlpnn.h"
@@ -49,11 +49,11 @@ See also http://yann.lecun.com/exdb/mnist/
 #include <Windows.h>
 #endif
 
-/* -------------------------------------------------------------------------- */
+
 
 using NeuralNet = nu::MlpNN;
 
-/* -------------------------------------------------------------------------- */
+
 
 const size_t HIDDEN_LAYER_SIZE = 300; // neurons
 const size_t OUTPUT_LAYER_SIZE = 10;  // neurons
@@ -67,7 +67,7 @@ std::string TEST_IMAGES_FN = "t10k-images.idx3-ubyte";
 
 const int TRAINING_EPOCH_NUMBER = 100;
 
-/* -------------------------------------------------------------------------- */
+
 
 static bool process_cl(int argc, char *argv[], std::string &files_path,
                        std::string &load_file_name, std::string &save_file_name,
@@ -218,7 +218,7 @@ static bool process_cl(int argc, char *argv[], std::string &files_path,
     return true;
 }
 
-/* -------------------------------------------------------------------------- */
+
 
 static int get_y_pos()
 {
@@ -232,7 +232,7 @@ static int get_y_pos()
 #endif
 }
 
-/* -------------------------------------------------------------------------- */
+
 
 static void locate(int x, int y = 0)
 {
@@ -247,7 +247,7 @@ static void locate(int x, int y = 0)
 #endif
 }
 
-/* -------------------------------------------------------------------------- */
+
 
 static void usage(const char *appname)
 {
@@ -311,7 +311,7 @@ static void usage(const char *appname)
         << ")" << std::endl;
 }
 
-/* -------------------------------------------------------------------------- */
+
 
 static double test_net(std::unique_ptr<NeuralNet> &net,
                        const TrainingData::data_t &test_data,
@@ -360,7 +360,7 @@ static double test_net(std::unique_ptr<NeuralNet> &net,
     return err_rate;
 }
 
-/* -------------------------------------------------------------------------- */
+
 
 bool save_the_net(const std::string &filename, NeuralNet &net)
 {
@@ -387,7 +387,7 @@ bool save_the_net(const std::string &filename, NeuralNet &net)
     return true;
 }
 
-/* -------------------------------------------------------------------------- */
+
 
 int main(int argc, char *argv[])
 {

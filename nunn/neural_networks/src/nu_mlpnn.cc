@@ -6,19 +6,10 @@
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
 #include "nu_mlpnn.h"
 #include "nu_random_gen.h"
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
-
-
-/* -------------------------------------------------------------------------- */
 
 MlpNN::MlpNN(
     const Topology& topology,
@@ -30,9 +21,6 @@ MlpNN::MlpNN(
     _build(_topology, _neuronLayers, _inputVector);
     reshuffleWeights();
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 void MlpNN::_updateNeuronWeights(Neuron& neuron, size_t layerIdx)
 {
@@ -50,9 +38,6 @@ void MlpNN::_updateNeuronWeights(Neuron& neuron, size_t layerIdx)
 
     neuron.bias = lr_err + m_err * neuron.bias;
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 void MlpNN::reshuffleWeights() noexcept
 {
@@ -82,9 +67,6 @@ void MlpNN::reshuffleWeights() noexcept
     }
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 //! Get the net outputs
 void MlpNN::copyOutputVector(FpVector& outputs) noexcept {
     const auto& last_layer = *_neuronLayers.crbegin();
@@ -94,9 +76,6 @@ void MlpNN::copyOutputVector(FpVector& outputs) noexcept {
     for (const auto& neuron : last_layer)
         outputs[idx++] = neuron.output;
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 void MlpNN::feedForward() noexcept 
 {
@@ -113,9 +92,6 @@ void MlpNN::feedForward() noexcept
     }
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 void MlpNN::backPropagate(const FpVector& targetVector, FpVector& outputVector) 
 {
     // Calculate and get the outputs
@@ -125,9 +101,6 @@ void MlpNN::backPropagate(const FpVector& targetVector, FpVector& outputVector)
     // Apply backPropagate algo
     _backPropagate(targetVector, outputVector);
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 std::stringstream& MlpNN::load(std::stringstream& ss)
 {
@@ -170,9 +143,6 @@ std::stringstream& MlpNN::load(std::stringstream& ss)
     return ss;
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 std::stringstream& MlpNN::save(std::stringstream& ss) noexcept
 {
     ss.clear();
@@ -199,9 +169,6 @@ std::stringstream& MlpNN::save(std::stringstream& ss) noexcept
 
     return ss;
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 std::ostream& MlpNN::formatJson(std::ostream& ss) noexcept
 {
@@ -247,9 +214,6 @@ std::ostream& MlpNN::formatJson(std::ostream& ss) noexcept
     return ss;
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 std::ostream& MlpNN::dump(std::ostream& os) noexcept
 {
     os << "Net Inputs" << std::endl;
@@ -293,9 +257,6 @@ std::ostream& MlpNN::dump(std::ostream& os) noexcept
     return os;
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 double MlpNN::calcMSE(const FpVector& targetVector)
 {
     FpVector outputVector;
@@ -307,9 +268,6 @@ double MlpNN::calcMSE(const FpVector& targetVector)
     return cf::calcMSE(outputVector, targetVector);
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 double MlpNN::calcCrossEntropy(const FpVector& targetVector)
 {
     FpVector outputVector;
@@ -320,9 +278,6 @@ double MlpNN::calcCrossEntropy(const FpVector& targetVector)
 
     return cf::calcCrossEntropy(outputVector, targetVector);
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 void MlpNN::_fireNeuron(
     NeuronLayer& nlayer, 
@@ -342,9 +297,6 @@ void MlpNN::_fireNeuron(
 
     neuron.output = Sigmoid()(sum);
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 void MlpNN::_backPropagate(const FpVector& targetVector,
     const FpVector& outputVector)
@@ -446,9 +398,6 @@ void MlpNN::_backPropagate(const FpVector& targetVector,
     }
 }
 
-
-/* -------------------------------------------------------------------------- */
-
 void MlpNN::_build(
     const Topology& topology,
     std::vector<NeuronLayer>& neuronLayers,
@@ -484,7 +433,7 @@ void MlpNN::_build(
 }
 
 
-/* -------------------------------------------------------------------------- */
+
 
 void MlpNN::_calcMSE(
     const FpVector& targetVector,
@@ -503,8 +452,5 @@ void MlpNN::_calcMSE(
     // Error vector = (1 - out) * out * (target - out)
     res_v *= diff_v;
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 } // namespace nu
