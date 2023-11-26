@@ -6,22 +6,40 @@
 // See COPYING file in the project root for full license information.
 //
 
+/**
+ * @file hopfield_nn.h
+ * @brief Implementation of the Hopfield Neural Network.
+ *
+ * The Hopfield Neural Network is a form of recurrent artificial neural network
+ * popularized by John Hopfield. Hopfield networks serve as content-addressable
+ * memory systems with binary threshold nodes. They are guaranteed to converge
+ * to a local minimum, but convergence to one of the stored patterns is not
+ * guaranteed.
+ */
+
 #pragma once
 
-
-#include "nu_random_gen.h"
 #include "nu_stepf.h"
 #include "nu_vector.h"
 
 #include <list>
-
+#include <random>
+#include <ranges>
+#include <string_view>
 
 namespace nu {
 
-//! This is an implementation of a Hopfield Neural Network
-class HopfiledNN
+/**
+ * @class HopfieldNN
+ * @brief Implementation of a Hopfield Neural Network.
+ *
+ * This class represents a Hopfield Neural Network, which is a type of recurrent
+ * neural network. It can store patterns and recall them when provided with a
+ * key pattern. The network's capacity and the number of stored patterns can be
+ * queried.
+ */
+class HopfieldNN
 {
-
   public:
     using FpVector = Vector<double>;
 
@@ -31,125 +49,96 @@ class HopfiledNN
         invalid_sstream_format
     };
 
-
-    //! default ctor
-    HopfiledNN() = default;
-
-
-    //! Create a net with pattern size equal to inputSize
-    HopfiledNN(const size_t& inputSize) noexcept
+    //! Constructs a Hopfield Neural Network.
+    explicit HopfieldNN(size_t inputSize = 0) noexcept
       : _s(inputSize)
       , _w(inputSize * inputSize)
     {
+        std::random_device rd;
+        _rndgen.seed(rd());
     }
 
+    HopfieldNN() = delete;
 
-    //! Returns the capacity of the net
+    /**
+     * @brief Returns the maximum number of patterns the network can store.
+     * @return size_t The maximum number of storable patterns.
+     */
     size_t getCapacity() const noexcept
     {
-        return size_t(0.138 * double(_s.size()));
+        return static_cast<size_t>(0.138 * static_cast<double>(_s.size()));
     }
 
-
-    //! Returns the number of patterns added to the net
+    /**
+     * @brief Gets the count of patterns added to the network.
+     * @return size_t The number of stored patterns.
+     */
     size_t getPatternsCount() const noexcept { return _patternSize; }
 
-
-    //! Adds specified pattern
+    //! Adds a specified pattern to the network.
     void addPattern(const FpVector& input_pattern);
 
-
-    //! Recall a pattern using as key the input one (it must be a vector
-    //! containing [-1,1] values
+    //! Attempts to recall a pattern using a given input pattern.
     void recall(const FpVector& input_pattern, FpVector& output_pattern);
 
+    //! Loads network configuration from a stringstream.
+    HopfieldNN(std::stringstream& ss) { load(ss); }
 
-    //! Create a perceptron using data serialized into
-    //! the given stream
-    HopfiledNN(std::stringstream& ss) { load(ss); }
+    //! Default copy and move constructors.
+    HopfieldNN(const HopfieldNN& nn) = default;
+    HopfieldNN(HopfieldNN&& nn) noexcept = default;
 
-    //! copy-ctor
-    HopfiledNN(const HopfiledNN& nn) = default;
+    //! Default copy and move assignment operators.
+    HopfieldNN& operator=(const HopfieldNN& nn) = default;
+    HopfieldNN& operator=(HopfieldNN&& nn) noexcept = default;
 
-
-    //! move-ctor
-    HopfiledNN(HopfiledNN&& nn) noexcept
-      : _s(std::move(nn._s))
-      , _w(std::move(nn._w))
-      , _patternSize(std::move(nn._patternSize))
-    {
-    }
-
-
-    //! default assignment operator
-    HopfiledNN& operator=(const HopfiledNN& nn) = default;
-
-
-    //! default assignment-move operator
-    HopfiledNN& operator=(HopfiledNN&& nn) noexcept = default;
-
-
-    //! Returns the number of inputs
+    //! Gets the number of inputs to the network.
     size_t getInputSize() const noexcept { return _s.size(); }
 
-    //! Build the net by using data of the given string stream
+    //! Loads network configuration from a given string stream.
     std::stringstream& load(std::stringstream& ss);
 
-
-    //! Save net status into the given string stream
+    //! Saves network configuration to a given string stream.
     std::stringstream& save(std::stringstream& ss) noexcept;
 
-
-    //! Print the net state out to the given ostream
+    //! Dumps the network state to an output stream.
     std::ostream& dump(std::ostream& os) noexcept;
 
-
-    //! Build the net by using data of the given string stream
-    friend std::stringstream& operator>>(std::stringstream& ss, HopfiledNN& net)
-    {
-        return net.load(ss);
-    }
-
-
-    //! Save net status into the given string stream
-    friend std::stringstream& operator<<(std::stringstream& ss,
-                                         HopfiledNN& net) noexcept
-    {
-        return net.save(ss);
-    }
-
-
-    //! Print the net state out to the given ostream
-    friend std::ostream& operator<<(std::ostream& os, HopfiledNN& net) noexcept
-    {
-        return net.dump(os);
-    }
-
-
-    //! Reset the net status
-    void clear() noexcept
-    {
-        _s = .0; // all zeros
-        _w = .0; // all zeros
-        _patternSize = 0;
-    }
+    //! Clears the network state, resetting it to its initial configuration.
+    void clear() noexcept;
 
   private:
-    static const char* ID_ANN;
-    static const char* ID_WEIGHTS;
-    static const char* ID_NEURON_ST;
+    static constexpr std::string_view ID_ANN = "HopfieldNN";
+    static constexpr std::string_view ID_WEIGHTS = "Weights";
+    static constexpr std::string_view ID_NEURON_ST = "NeuronStates";
 
     StepFunction step_f = StepFunction(0, -1, 1);
 
     void _propagate() noexcept;
     bool _propagateNeuron(size_t i) noexcept;
 
-    FpVector _s; // neuron states
-    FpVector _w; // weights matrix
+    FpVector _s; // Neuron states
+    FpVector _w; // Weights matrix
     size_t _patternSize = 0;
 
-    RandomGenerator<> _rndgen;
+    std::mt19937 _rndgen;
 };
 
+// Serialization operators
+inline std::stringstream& operator>>(std::stringstream& ss, HopfieldNN& net)
+{
+    return net.load(ss);
+}
+
+inline std::stringstream& operator<<(std::stringstream& ss,
+                                     HopfieldNN& net) noexcept
+{
+    return net.save(ss);
+}
+
+inline std::ostream& operator<<(std::ostream& os, HopfieldNN& net) noexcept
+{
+    return net.dump(os);
+}
 
 } // namespace nu
