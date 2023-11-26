@@ -43,6 +43,7 @@
 #include <vector>
 
 #include <utility>
+#include <string_view>
 
 namespace nu {
 
@@ -79,31 +80,13 @@ public:
     MlpNN(const MlpNN& nn) = default;
 
     //! move-ctor
-    MlpNN(MlpNN&& nn) noexcept
-        : 
-        _topology(std::move(nn._topology)),
-        _learningRate(std::move(nn._learningRate)),
-        _momentum(std::move(nn._momentum)),
-        _inputVector(std::move(nn._inputVector)),
-        _neuronLayers(std::move(nn._neuronLayers))
-    {
-    }
+    MlpNN(MlpNN&& nn) noexcept = default;
 
     //! copy-assignment operator
     MlpNN& operator=(const MlpNN& nn) = default;
 
     //! move-assignment operator
-    MlpNN& operator=(MlpNN&& nn) noexcept {
-        if (this != &nn) {
-            _topology = std::move(nn._topology);
-            _learningRate = std::move(nn._learningRate);
-            _momentum = std::move(nn._momentum);
-            _inputVector = std::move(nn._inputVector);
-            _neuronLayers = std::move(nn._neuronLayers);
-        }
-
-        return *this;
-    }
+    MlpNN& operator=(MlpNN&& nn) noexcept = default;
 
     //! Return the number of inputs
     size_t getInputSize() const noexcept { 
@@ -159,11 +142,19 @@ public:
     //! Copy content of output vector to outputs
     void copyOutputVector(FpVector& outputs) noexcept;
 
-    //! Fire all neurons of the net and calculate the outputs
+    /**
+     * @brief Fires all neurons in the network and calculates the outputs.
+     *        This is the 'forward pass' of the Back Propagation algorithm.
+     */
     void feedForward() noexcept;
 
-    //! Fire all neurons of the net and calculate the outputs
-    //! and then apply the Back Propagation Algorithm to the net
+    /**
+     * @brief Applies the Back Propagation algorithm to adjust the network's weights.
+     *        It computes the gradient of the error and updates the weights to minimize it.
+     * 
+     * @param targetVector The desired output for the given inputs.
+     * @param outputVector The actual output of the network which will be adjusted.
+     */
     void backPropagate(const FpVector& targetVector, FpVector& outputVector);
 
     //! Fire all neurons of the net and calculate the outputs
@@ -217,27 +208,27 @@ public:
     void reshuffleWeights() noexcept;
 
     //! Called for serializing network status, returns NN id string
-    constexpr const char* getNetId() const noexcept {
+    constexpr std::string_view getNetId() const noexcept {
         return ID_ANN;
     }
 
     // Called for serializing network status, returns neuron id string
-    constexpr const char* getNeuronId() const noexcept {
+    constexpr std::string_view getNeuronId() const noexcept {
         return ID_NEURON;
     }
 
     // Called for serializing network status, returns neuron-layer id string
-    constexpr const char* getNeuronLayerId() const noexcept {
+    constexpr std::string_view getNeuronLayerId() const noexcept {
         return ID_NEURON_LAYER;
     }
 
     // Called for serializing network status, returns topology id string
-    constexpr const char* getTopologyId() const noexcept {
+    constexpr std::string_view getTopologyId() const noexcept {
         return ID_TOPOLOGY;
     }
 
     //! Called for serializing network status, returns inputs id string
-    constexpr const char* getInputVectorId() const noexcept {
+    constexpr std::string_view getInputVectorId() const noexcept {
         return ID_INPUTS;
     }
 
@@ -278,16 +269,16 @@ private:
     // Attributes
     costFunction_t _userdef_costf = nullptr;
     Topology _topology;
-    double _learningRate = 0.1;
-    double _momentum = 0.1;
+    double _learningRate{ 0.1 };
+    double _momentum { 0.1 };
     FpVector _inputVector;
     std::vector<NeuronLayer> _neuronLayers;
     
-    constexpr static const char* ID_ANN = "ann";
-    constexpr static const char* ID_NEURON = "neuron";
-    constexpr static const char* ID_NEURON_LAYER = "layer";
-    constexpr static const char* ID_TOPOLOGY = "topology";
-    constexpr static const char* ID_INPUTS = "inputs";
+    constexpr static std::string_view ID_ANN {"ann"};
+    constexpr static std::string_view ID_NEURON {"neuron"};
+    constexpr static std::string_view ID_NEURON_LAYER { "layer" };
+    constexpr static std::string_view ID_TOPOLOGY { "topology" };
+    constexpr static std::string_view ID_INPUTS { "inputs" };
 };
 
 //! The trainer class is a helper class for MLP network training
