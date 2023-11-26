@@ -1,8 +1,8 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -28,10 +28,12 @@
 namespace nu {
 
 //! This class represents a Perceptron neural net
-struct Perceptron {
+struct Perceptron
+{
     using FpVector = Vector<double>;
 
-    enum class Exception {
+    enum class Exception
+    {
         size_mismatch,
         invalid_sstream_format
     };
@@ -40,8 +42,9 @@ struct Perceptron {
     Perceptron() = default;
 
     //! ctor
-    Perceptron(const size_t& inputSize, double learningRate = 0.1,
-                 StepFunction step_f = StepFunction());
+    Perceptron(const size_t& inputSize,
+               double learningRate = 0.1,
+               StepFunction step_f = StepFunction());
 
     //! Create a perceptron using data serialized into the given stream
     Perceptron(std::stringstream& ss) { load(ss); }
@@ -59,22 +62,17 @@ struct Perceptron {
     Perceptron& operator=(Perceptron&& nn) = default;
 
     //! Return the number of inputs
-    size_t getInputSize() const noexcept { 
-        return _inputVector.size(); 
-    }
+    size_t getInputSize() const noexcept { return _inputVector.size(); }
 
     //! Return current learning rate
-    double getLearningRate() const noexcept { 
-        return _learningRate; 
-    }
+    double getLearningRate() const noexcept { return _learningRate; }
 
     //! Change net learning rate
-    void setLearningRate(double new_rate) { 
-        _learningRate = new_rate; 
-    }
+    void setLearningRate(double new_rate) { _learningRate = new_rate; }
 
     //! Set net inputs
-    void setInputVector(const FpVector& inputs) {
+    void setInputVector(const FpVector& inputs)
+    {
         if (inputs.size() != _inputVector.size())
             throw Exception::size_mismatch;
 
@@ -82,19 +80,16 @@ struct Perceptron {
     }
 
     //! Get net inputs
-    void getInputVector(FpVector& inputs) const noexcept { 
-        inputs = _inputVector; 
+    void getInputVector(FpVector& inputs) const noexcept
+    {
+        inputs = _inputVector;
     }
 
     //! Get net output
-    double getOutput() const noexcept { 
-        return _neuron.output; 
-    }
+    double getOutput() const noexcept { return _neuron.output; }
 
     //! Return f(getOutput()), where f is the step function
-    double getSharpOutput() const noexcept {
-        return _step_f(getOutput());
-    }
+    double getSharpOutput() const noexcept { return _step_f(getOutput()); }
 
     //! Fire all neurons of the net and calculate the outputs
     void feedForward() noexcept;
@@ -105,13 +100,15 @@ struct Perceptron {
 
     //! Fire the neuron, calculate the output
     //! then apply the learning algorithm to the net
-    void backPropagate(const double& target) noexcept {
+    void backPropagate(const double& target) noexcept
+    {
         double output;
         backPropagate(target, output);
     }
 
     //! Compute global error
-    double error(const double& target) const noexcept {
+    double error(const double& target) const noexcept
+    {
         return std::abs(target - getOutput());
     }
 
@@ -125,27 +122,28 @@ struct Perceptron {
     std::ostream& dump(std::ostream& os) noexcept;
 
     //! Build the net by using data of the given string stream
-    friend 
-    std::stringstream& operator>>(std::stringstream& ss, Perceptron& net) {
+    friend std::stringstream& operator>>(std::stringstream& ss, Perceptron& net)
+    {
         return net.load(ss);
     }
 
     //! Save net status into the given string stream
-    friend 
-    std::stringstream& operator<<(std::stringstream& ss, Perceptron& net) noexcept {
+    friend std::stringstream& operator<<(std::stringstream& ss,
+                                         Perceptron& net) noexcept
+    {
         return net.save(ss);
     }
 
     //! Print the net state out to the given ostream
-    friend
-    std::ostream& operator<<(std::ostream& os, Perceptron& net) noexcept {
+    friend std::ostream& operator<<(std::ostream& os, Perceptron& net) noexcept
+    {
         return net.dump(os);
     }
 
     //! Reset all net weights using new random values
     void reshuffleWeights() noexcept;
 
-private:
+  private:
     constexpr static const char* ID_ANN = "perceptron";
     constexpr static const char* ID_NEURON = "neuron";
     constexpr static const char* ID_INPUTS = "inputs";
@@ -157,7 +155,8 @@ private:
 };
 
 //! The perceptron trainer class is a helper class for training perceptrons
-struct PerceptronTrainer : public NNTrainer<Perceptron, nu::Vector<double>, double>
+struct PerceptronTrainer
+  : public NNTrainer<Perceptron, nu::Vector<double>, double>
 {
     PerceptronTrainer(Perceptron& nn, size_t epochs, double minErr)
       : NNTrainer<Perceptron, nu::Vector<double>, double>(nn, epochs, minErr)

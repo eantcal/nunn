@@ -1,8 +1,8 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -15,8 +15,6 @@
  * https://sites.google.com/site/eantcal/home/c/artificial-neural-network-library
  * for more information about this demo
  */
-
-
 
 
 #include <cassert>
@@ -34,8 +32,6 @@
 #include "nu_mlpnn.h"
 
 
-
-
 #define PROG_VERSION "1.55"
 #define TICTACTOE_SIDE 3
 #define TICTACTOE_CELLS (TICTACTOE_SIDE * TICTACTOE_SIDE)
@@ -45,8 +41,6 @@
 #define MOMENTUM 0.50
 #define TRAINING_EPOCH_NUMBER 100000
 #define TRAINING_ERR_THRESHOLD 0.01
-
-
 
 
 class grid_t
@@ -224,8 +218,6 @@ class grid_t
 };
 
 
-
-
 class renderer_t
 {
   private:
@@ -286,13 +278,12 @@ class renderer_t
 };
 
 
-
-
 class nn_io_converter_t
 {
   public:
-    static void getInputVector(const grid_t& grid, grid_t::symbol_t turn_of_symb,
-                           nu::Vector<double>& inputs)
+    static void getInputVector(const grid_t& grid,
+                               grid_t::symbol_t turn_of_symb,
+                               nu::Vector<double>& inputs)
     {
         inputs.resize(10, 0.0);
         size_t i = 0;
@@ -305,8 +296,9 @@ class nn_io_converter_t
         inputs[9] = turn_of_symb == grid_t::O ? 1.0 : 0.5;
     }
 
-    static void copyOutputVector(const grid_t& grid, const grid_t& new_grid,
-                            nu::Vector<double>& outputs)
+    static void copyOutputVector(const grid_t& grid,
+                                 const grid_t& new_grid,
+                                 nu::Vector<double>& outputs)
     {
         outputs.resize(grid.size(), 0.0);
 
@@ -320,8 +312,6 @@ class nn_io_converter_t
         }
     }
 };
-
-
 
 
 class NNTrainer
@@ -683,7 +673,8 @@ class NNTrainer
     }
 
 
-    void _create_sample(const grid_t& init_grid_st, grid_t::symbol_t symb_turn,
+    void _create_sample(const grid_t& init_grid_st,
+                        grid_t::symbol_t symb_turn,
                         nu::Vector<double>& inputs,
                         nu::Vector<double>& outputs)
     {
@@ -725,8 +716,6 @@ class NNTrainer
 };
 
 
-
-
 class game_t
 {
   private:
@@ -756,11 +745,12 @@ class game_t
     }
 
   public:
-    game_t(renderer_t& renderer, nu::MlpNN& nn,
+    game_t(renderer_t& renderer,
+           nu::MlpNN& nn,
            bool computer_alone = false) noexcept
-      : _renderer(renderer),
-        _nn(nn),
-        _computer_alone(computer_alone)
+      : _renderer(renderer)
+      , _nn(nn)
+      , _computer_alone(computer_alone)
     {
     }
 
@@ -877,8 +867,6 @@ class game_t
 };
 
 
-
-
 static void usage(const char* appname)
 {
     std::cerr
@@ -925,13 +913,18 @@ static void usage(const char* appname)
 }
 
 
-
-
-static bool process_cl(int argc, char* argv[], std::string& files_path,
-                       std::string& load_file_name, std::string& save_file_name,
-                       bool& skip_training, double& learningRate,
-                       bool& change_lr, double& momentum, bool& change_m,
-                       int& epoch, double& threshold,
+static bool process_cl(int argc,
+                       char* argv[],
+                       std::string& files_path,
+                       std::string& load_file_name,
+                       std::string& save_file_name,
+                       bool& skip_training,
+                       double& learningRate,
+                       bool& change_lr,
+                       double& momentum,
+                       bool& change_m,
+                       int& epoch,
+                       double& threshold,
                        std::vector<size_t>& hidden_layer,
                        bool& use_cross_entropy)
 {
@@ -1039,8 +1032,6 @@ static bool process_cl(int argc, char* argv[], std::string& files_path,
 }
 
 
-
-
 bool save_the_net(const std::string& filename, std::stringstream& ss)
 {
     // Save the net status if needed //
@@ -1056,8 +1047,6 @@ bool save_the_net(const std::string& filename, std::stringstream& ss)
 
     return true;
 }
-
-
 
 
 int main(int argc, char* argv[])
@@ -1083,9 +1072,19 @@ int main(int argc, char* argv[])
     double threshold = TRAINING_ERR_THRESHOLD;
 
     if (argc > 1) {
-        if (!process_cl(argc, argv, files_path, load_file_name, save_file_name,
-                        skip_training, learningRate, change_lr, momentum,
-                        change_m, epoch_cnt, threshold, hidden_layer,
+        if (!process_cl(argc,
+                        argv,
+                        files_path,
+                        load_file_name,
+                        save_file_name,
+                        skip_training,
+                        learningRate,
+                        change_lr,
+                        momentum,
+                        change_m,
+                        epoch_cnt,
+                        threshold,
+                        hidden_layer,
                         use_cross_entropy)) {
             usage(argv[0]);
             return 1;
@@ -1191,8 +1190,8 @@ int main(int argc, char* argv[])
                       << "Learning epoch " << epoch + 1 << " of "
                       << max_epoch_number
                       << " ( LR = " << net->getLearningRate()
-                      << ", M = " << net->getMomentum()
-                      << ", T = " << threshold << " )"
+                      << ", M = " << net->getMomentum() << ", T = " << threshold
+                      << " )"
 
                       << std::endl
                       << std::endl;

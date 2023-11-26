@@ -1,8 +1,8 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -17,8 +17,8 @@ namespace cf {
 
 //! Calculate the mean squared error of given
 //! 'output vector' - 'target vector'
-inline 
-double calcMSE(Vector<double> output, const Vector<double>& target) {
+inline double calcMSE(Vector<double> output, const Vector<double>& target)
+{
     output -= target;
     return 0.5 * output.euclideanNorm2();
 }
@@ -32,4 +32,3 @@ using costfunc_t = double(Vector<double>, const Vector<double>&);
 } // namespace cf
 
 } // namespace nu
-

@@ -1,8 +1,8 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -15,8 +15,8 @@
 #include <cstdint>
 #include <list>
 #include <memory>
-#include <vector>
 #include <random>
+#include <vector>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -38,11 +38,11 @@ class DigitData
 
   public:
     //! ctor
-    DigitData(size_t dx, size_t dy, int label,
-                 const data_t& data) noexcept : _dx(dx),
-                                                _dy(dy),
-                                                _label(label),
-                                                _data(data)
+    DigitData(size_t dx, size_t dy, int label, const data_t& data) noexcept
+      : _dx(dx)
+      , _dy(dy)
+      , _label(label)
+      , _data(data)
     {
     }
 
@@ -55,16 +55,18 @@ class DigitData
 
 
     //! move ctor
-    DigitData(DigitData&& other) noexcept : _dx(std::move(other._dx)),
-                                                  _dy(std::move(other._dy)),
-                                                  _label(std::move(other._label)),
-                                                  _data(std::move(other._data))
+    DigitData(DigitData&& other) noexcept
+      : _dx(std::move(other._dx))
+      , _dy(std::move(other._dy))
+      , _label(std::move(other._label))
+      , _data(std::move(other._data))
     {
     }
 
 
     //! move assign operator
-    DigitData& operator=(DigitData&& other) noexcept {
+    DigitData& operator=(DigitData&& other) noexcept
+    {
         if (this != &other) {
             _dx = std::move(other._dx);
             _dy = std::move(other._dy);
@@ -77,27 +79,19 @@ class DigitData
 
 
     //! Returns the digit width in pixels
-    size_t get_dx() const noexcept { 
-        return _dx; 
-    }
+    size_t get_dx() const noexcept { return _dx; }
 
 
     //! Returns the digit height in pixels
-    size_t get_dy() const noexcept { 
-        return _dy; 
-    }
+    size_t get_dy() const noexcept { return _dy; }
 
 
     //! Returns the digit classification
-    int getLabel() const noexcept { 
-        return _label; 
-    }
+    int getLabel() const noexcept { return _label; }
 
 
     //! Returns a reference to internal data
-    const data_t& data() const noexcept { 
-        return _data; 
-    }
+    const data_t& data() const noexcept { return _data; }
 
 
     //! Converts the image data into a vector normalizing each item
@@ -125,13 +119,12 @@ class TrainingData
     using data_t = std::list<std::unique_ptr<DigitData>>;
 
     //! Return a reference to a list of DigitData objects
-    const data_t& data() const noexcept { 
-        return _data; 
-    }
+    const data_t& data() const noexcept { return _data; }
 
 
     //! reshuffle objects
-    void reshuffle() {
+    void reshuffle()
+    {
         std::vector<std::unique_ptr<DigitData>> data;
 
         for (auto& e : _data)
@@ -149,7 +142,8 @@ class TrainingData
             _data.push_back(std::move(e));
     }
 
-    enum class Exception {
+    enum class Exception
+    {
         lbls_file_not_found,
         imgs_file_not_found,
         lbls_file_read_error,
@@ -162,7 +156,7 @@ class TrainingData
     TrainingData() = delete;
 
     TrainingData(const std::string& lbls_file,
-                    const std::string& imgs_file) throw()
+                 const std::string& imgs_file) throw()
       : _lblsFile(lbls_file)
       , _imgsFile(imgs_file)
     {
@@ -180,4 +174,3 @@ class TrainingData
 
     data_t _data;
 };
-

@@ -1,8 +1,8 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -12,13 +12,10 @@
 */
 
 
-
+#include "nu_e_greedy_policy.h"
 #include "nu_qlearn.h"
 #include "nu_sarsa.h"
-#include "nu_e_greedy_policy.h"
 #include "nu_softmax_policy.h"
-
-
 
 
 #ifdef _WIN32
@@ -27,54 +24,86 @@
 #endif
 
 
-
-
-#include <list>
-#include <iostream>
-#include <vector>
-#include <thread>
 #include <iomanip>
-
-
+#include <iostream>
+#include <list>
+#include <thread>
+#include <vector>
 
 
 struct Envirnoment
 {
-    enum {_X=46, _Y=31};
-    
+    enum
+    {
+        _X = 46,
+        _Y = 31
+    };
+
     const bool map[_Y][_X] = {
-    { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 },
-    { 1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1 },
-    { 1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1 },
-    { 1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1 },
-    { 1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1,0,0,1 },
-    { 1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1 },
-    { 1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1 },
-    { 1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1 },
-    { 1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1 },
-    { 1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1 },
-    { 1,1,1,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1 },
-    { 1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1 },
-    { 1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1 },
-    { 1,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1 },
-    { 1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1 },
-    { 1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1 },
-    { 1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1 },
-    { 1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1 },
-    { 1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1 },
-    { 1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1 },
-    { 1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,0,0,1,0,0,1 },
-    { 1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1 },
-    { 1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1 },
-    { 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1 },
-    { 1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1 },
-    { 1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1 },
-    { 1,0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1 },
-    { 1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1 },
-    { 1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1 },
-    { 1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1 },
-    { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 } };
-    
+        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+          0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1 },
+        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
+          0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1 },
+        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
+          0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1 },
+        { 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0,
+          0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1 },
+        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+          0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
+        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0,
+          0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1 },
+        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+          0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+          0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+          0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
+        { 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1,
+          1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1 },
+        { 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0,
+          0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1,
+          1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+          0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+          1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+          0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1 },
+        { 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0,
+          0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+          0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
+        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1,
+          1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0,
+          0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
+          0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
+          0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1,
+          1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1 },
+        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+          0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1 },
+        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+          0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+          0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1,
+          1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+          0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
+        { 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0,
+          0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1 },
+        { 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+          0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
+        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
+    };
+
     Envirnoment() = default;
 
     constexpr int max_x() const { return _X; }
@@ -82,49 +111,56 @@ struct Envirnoment
 };
 
 
-
-
 struct Action
 {
-    enum class move_t : int { Left, Right, Up, Down };
+    enum class move_t : int
+    {
+        Left,
+        Right,
+        Up,
+        Down
+    };
 
     using list_t = std::vector<Action>;
 
-    Action(const move_t& m) noexcept : _move(m) {}
+    Action(const move_t& m) noexcept
+      : _move(m)
+    {
+    }
 
     Action(const Action&) = default;
     Action& operator=(const Action&) = default;
 
-    const move_t& get() const noexcept {
-        return _move;
-    }
+    const move_t& get() const noexcept { return _move; }
 
-    bool operator==(const Action& other) const noexcept {
+    bool operator==(const Action& other) const noexcept
+    {
         return _move == other._move;
     }
-    
-    static list_t make_complete_list() noexcept {
-        return {
-            Action(move_t::Left),
-            Action(move_t::Right),
-            Action(move_t::Up),
-            Action(move_t::Down)
-        };
+
+    static list_t make_complete_list() noexcept
+    {
+        return { Action(move_t::Left),
+                 Action(move_t::Right),
+                 Action(move_t::Up),
+                 Action(move_t::Down) };
     }
 
-private:
+  private:
     move_t _move;
 };
 
 
-
-
 struct State
 {
-public:
+  public:
     State() = default;
 
-    State(const int& x, const int& y) noexcept : _x(x), _y(y) {}
+    State(const int& x, const int& y) noexcept
+      : _x(x)
+      , _y(y)
+    {
+    }
 
     State(const State&) = default;
     State& operator=(const State&) = default;
@@ -132,66 +168,60 @@ public:
     int get_x() const noexcept { return _x; }
     int get_y() const noexcept { return _y; }
 
-    void apply(const Action& action) noexcept {
+    void apply(const Action& action) noexcept
+    {
         if (action.get() == Action::move_t::Left) {
             --_x;
-        }
-        else if (action.get() == Action::move_t::Right) {
+        } else if (action.get() == Action::move_t::Right) {
             ++_x;
-        }
-        else if (action.get() == Action::move_t::Up) {
+        } else if (action.get() == Action::move_t::Up) {
             --_y;
-        }
-        else if (action.get() == Action::move_t::Down) {
+        } else if (action.get() == Action::move_t::Down) {
             ++_y;
         }
     }
 
-    bool operator==(const State& other) const noexcept {
+    bool operator==(const State& other) const noexcept
+    {
         return _x == other._x && _y == other._y;
     }
 
-private:
+  private:
     int _x = 0;
     int _y = 0;
 };
 
 
+class Agent
+{
+  public:
+    Agent(const Envirnoment& env, const State& init, const State& goal) noexcept
+      : _env(env)
+      , _state(init)
+      , _goalState(goal)
+    {
+    }
 
-
-class Agent {
-public:
-    Agent(
-        const Envirnoment & env, 
-        const State& init, 
-        const State& goal) noexcept 
-        : 
-        _env(env),
-        _state(init),
-        _goalState(goal)
-    {}
-
-    bool isValid(const Action& action) const noexcept {
+    bool isValid(const Action& action) const noexcept
+    {
         const auto x = _state.get_x();
         const auto y = _state.get_y();
 
         if (action.get() == Action::move_t::Left) {
             return (x > 0 && _env.map[y][x - 1] == false);
-        }
-        else if (action.get() == Action::move_t::Right) {
-            return (x < (_env.max_x()-1) && _env.map[y][x + 1] == false);
-        }
-        else if (action.get() == Action::move_t::Up) {
+        } else if (action.get() == Action::move_t::Right) {
+            return (x < (_env.max_x() - 1) && _env.map[y][x + 1] == false);
+        } else if (action.get() == Action::move_t::Up) {
             return (y > 0 && _env.map[y - 1][x] == false);
-        }
-        else if (action.get() == Action::move_t::Down) {
-            return (y < (_env.max_y()-1) && _env.map[y + 1][x] == false);
+        } else if (action.get() == Action::move_t::Down) {
+            return (y < (_env.max_y() - 1) && _env.map[y + 1][x] == false);
         }
 
         return false;
     }
 
-    Action::list_t getValidActions() const noexcept {
+    Action::list_t getValidActions() const noexcept
+    {
         const auto list = Action::make_complete_list();
 
         Action::list_t vlist;
@@ -205,7 +235,8 @@ public:
         return vlist;
     }
 
-    bool doAction(const Action& action) {
+    bool doAction(const Action& action)
+    {
 
         if (isValid(action)) {
             _state.apply(action);
@@ -215,46 +246,31 @@ public:
         return false;
     }
 
-    const State& getCurrentState() const noexcept {
-        return _state;
-    }
+    const State& getCurrentState() const noexcept { return _state; }
 
-    const State& getGoalState() const noexcept {
-        return _goalState;
-    }
+    const State& getGoalState() const noexcept { return _goalState; }
 
-    void setCurrentState(const State& state) noexcept {
-        _state = state;
-    }
+    void setCurrentState(const State& state) noexcept { _state = state; }
 
-    void setGoalState(const State& state) noexcept {
-        _goalState = state;
-    }
+    void setGoalState(const State& state) noexcept { _goalState = state; }
 
-    const Envirnoment& getEnv() const noexcept {
-        return _env;
-    }
+    const Envirnoment& getEnv() const noexcept { return _env; }
 
-    bool goal() const noexcept {
-        return _state == _goalState;
-    }
+    bool goal() const noexcept { return _state == _goalState; }
 
-    double reward() const noexcept {
-        return goal() ? 100.0 : 0;
-    }
+    double reward() const noexcept { return goal() ? 100.0 : 0; }
 
-private:
-    const Envirnoment & _env;
+  private:
+    const Envirnoment& _env;
     State _state;
     State _goalState;
 };
 
 
-
-
 struct Render
 {
-    void show(const Agent& a, std::ostream & os) const {
+    void show(const Agent& a, std::ostream& os) const
+    {
         const auto x = a.getCurrentState().get_x();
         const auto y = a.getCurrentState().get_y();
 
@@ -268,18 +284,14 @@ struct Render
 
                 if (x == gx && y == gy && gx == col && gy == row) {
                     os << "$";
-                }
-                else if (x == col && y == row) {
+                } else if (x == col && y == row) {
                     os << "A";
-                }
-                else if (gx == col && gy == row) {
+                } else if (gx == col && gy == row) {
                     os << "G";
-                }
-                else {
+                } else {
                     if (env.map[row][col]) {
                         os << '*';
-                    }
-                    else {
+                    } else {
                         os << " ";
                     }
                 }
@@ -290,24 +302,19 @@ struct Render
 };
 
 
-
-
 namespace std {
 
-template <>
+template<>
 struct hash<State>
 {
     std::size_t operator()(const State& k) const
     {
-        return std::hash<int>{} (k.get_x()) ^ 
-               std::hash<int>{} (k.get_y() << 1);
+        return std::hash<int>{}(k.get_x()) ^ std::hash<int>{}(k.get_y() << 1);
     }
 };
 
 
-
-
-template <>
+template<>
 struct hash<Action>
 {
     std::size_t operator()(const Action& k) const
@@ -317,8 +324,6 @@ struct hash<Action>
 };
 
 } // std
-
-
 
 
 void locate(int y, int x)
@@ -332,18 +337,15 @@ void locate(int y, int x)
 }
 
 
-
-
 static void cls()
 {
 #ifdef _WIN32
-    ::system("cls"); 
+    ::system("cls");
 #else
-    auto res = ::system("clear"); 
-    (void) res;
+    auto res = ::system("clear");
+    (void)res;
 #endif
 }
-
 
 
 #define E_GREEDY_POLICY
@@ -356,35 +358,23 @@ using Policy = nu::SoftmaxPolicy<Action, Agent>;
 #define USE_SARSA
 // define USE_SARSA to switch over Sarsa algorithm at compile time
 #ifdef USE_SARSA
-using Learner = 
-    nu::Sarsa<
-        Action, 
-        State, 
-        Agent, 
-        Policy>;
+using Learner = nu::Sarsa<Action, State, Agent, Policy>;
 
 #else // USE_QLEARN
-using Learner = 
-    nu::QLearn<
-        Action, 
-        State, 
-        Agent, 
-        Policy>;
+using Learner = nu::QLearn<Action, State, Agent, Policy>;
 #endif
 
 
-
-
-struct simulator_t {
+struct simulator_t
+{
 
     template<class Render>
-    size_t play(
-        int episode,
-        const Render& r,
-        const Envirnoment& env,
-        const State & goal,
-        Learner & ql,
-        int timeout)
+    size_t play(int episode,
+                const Render& r,
+                const Envirnoment& env,
+                const State& goal,
+                Learner& ql,
+                int timeout)
     {
         size_t moveCnt = 0;
 
@@ -394,10 +384,8 @@ struct simulator_t {
         while (!agent.goal() && timeout--) {
 
             locate(1, 1);
-            std::cout 
-                << "Episode #" 
-                << episode 
-                << "                                 ";
+            std::cout << "Episode #" << episode
+                      << "                                 ";
 
             std::cout << std::endl;
             r.show(agent, std::cout);
@@ -420,16 +408,12 @@ struct simulator_t {
 
         if (timeout < 1) {
             locate(1, 1);
-            std::cout
-                << "Episode #" << episode
-                << " not completed: timeout! " << std::endl;
-        }
-        else {
+            std::cout << "Episode #" << episode << " not completed: timeout! "
+                      << std::endl;
+        } else {
             locate(1, 1);
-            std::cout
-                << "Episode #" << episode
-                << " completed in " << moveCnt
-                << " moves" << std::endl;
+            std::cout << "Episode #" << episode << " completed in " << moveCnt
+                      << " moves" << std::endl;
         }
 
         r.show(agent, std::cout);
@@ -437,17 +421,14 @@ struct simulator_t {
 
         return moveCnt;
     }
-
 };
-
-
 
 
 int main()
 {
     // envirnoment
     Envirnoment env;
-    State goal(44,29);
+    State goal(44, 29);
     Render r;
     Learner ql;
 
@@ -459,8 +440,8 @@ int main()
 
     simulator_t simulator;
 
-    auto line=[](size_t n) {
-        while (n-->0) {
+    auto line = [](size_t n) {
+        while (n-- > 0) {
             std::cout << "-";
         }
         std::cout << std::endl;
@@ -469,26 +450,23 @@ int main()
     std::cout << "Learning... " << std::endl;
 
     int episode = 0;
-    for (;  episode < episodies; ++episode) {
+    for (; episode < episodies; ++episode) {
         State st(1, 1);
         Agent agent(env, st, goal);
 
         auto reward = size_t(ql.learn(agent));
-                
+
         std::cout << std::setw(5) << reward << " ";
         line(size_t(10 * log(double(reward))));
 
-        if (reward>greward) {
+        if (reward > greward) {
             break;
         }
     }
 
     while (true) {
-        simulator.play<Render>(
-            episode, r, env, goal, ql, timeout);
+        simulator.play<Render>(episode, r, env, goal, ql, timeout);
     }
-    
+
     return 0;
 }
-
-

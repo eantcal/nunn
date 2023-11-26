@@ -1,8 +1,8 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -27,8 +27,7 @@ void HopfiledNN::addPattern(const FpVector& input_pattern)
     ++_patternSize;
 }
 
-void HopfiledNN::recall(const FpVector& input_pattern,
-                          FpVector& output_pattern)
+void HopfiledNN::recall(const FpVector& input_pattern, FpVector& output_pattern)
 {
     if (getInputSize() != input_pattern.size())
         throw Exception::size_mismatch;
@@ -46,8 +45,7 @@ void HopfiledNN::_propagate() noexcept
 
     do {
         ++it;
-        size_t rnd_idx = 
-            size_t ( getInputSize() * _rndgen() ) % getInputSize();
+        size_t rnd_idx = size_t(getInputSize() * _rndgen()) % getInputSize();
 
         if (_propagateNeuron(rnd_idx))
             last_it = it;
