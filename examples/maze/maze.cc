@@ -6,30 +6,26 @@
 // See COPYING file in the project root for full license information.
 //
 
-
 /*
    Maze example.
 */
-
 
 #include "nu_e_greedy_policy.h"
 #include "nu_qlearn.h"
 #include "nu_sarsa.h"
 #include "nu_softmax_policy.h"
 
-
 #ifdef _WIN32
 #include <conio.h>
 #include <windows.h>
 #endif
 
-
 #include <iomanip>
 #include <iostream>
 #include <list>
+#include <ranges>
 #include <thread>
 #include <vector>
-
 
 struct Envirnoment
 {
@@ -39,70 +35,41 @@ struct Envirnoment
         _Y = 31
     };
 
+    // clang-format off
     const bool map[_Y][_X] = {
-        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-          0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
-          0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1 },
-        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
-          0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0,
-          0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
-          0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0,
-          0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1 },
-        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-          0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-          0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-          0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1,
-          1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0,
-          0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1,
-          1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-          0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-          1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-          0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1 },
-        { 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0,
-          0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-          0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1,
-          1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0,
-          0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
-          0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
-          0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1,
-          1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
-          0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-          0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-          0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1,
-          1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-          0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
-        { 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0,
-          0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-          0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
+        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 },
+        {1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1 },
+        {1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1 },
+        {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1 },
+        {1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1,0,0,1 },
+        {1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1 },
+        {1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1 },
+        {1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1 },
+        {1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1 },
+        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1 },
+        {1,1,1,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1 },
+        {1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1 },
+        {1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1 },
+        {1,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1 },
+        {1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1 },
+        {1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1 },
+        {1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1 },
+        {1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1 },
+        {1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1 },
+        {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1 },
+        {1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,0,0,1,0,0,1 },
+        {1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1 },
+        {1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1 },
+        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1 },
+        {1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,0,0,1,0,0,1 },
+        {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1 },
+        {1,0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1 },
+        {1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1 },
+        {1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,0,0,1 },
+        {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1 },
+        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 }
     };
+    // clang-format on
 
     Envirnoment() = default;
 
@@ -113,6 +80,7 @@ struct Envirnoment
 
 struct Action
 {
+    // Enum representing possible movements
     enum class move_t : int
     {
         Left,
@@ -121,29 +89,36 @@ struct Action
         Down
     };
 
+    // Using std::array for fixed-size list of actions
     using list_t = std::vector<Action>;
 
-    Action(const move_t& m) noexcept
+    // Explicit constructor to prevent implicit conversions
+    explicit Action(move_t m) noexcept
       : _move(m)
     {
     }
 
+    // Defaulted copy constructor and assignment operator
+    Action() = default;
     Action(const Action&) = default;
     Action& operator=(const Action&) = default;
 
-    const move_t& get() const noexcept { return _move; }
+    // Getter method for move
+    move_t get() const noexcept { return _move; }
 
+    // Equality comparison operator
     bool operator==(const Action& other) const noexcept
     {
         return _move == other._move;
     }
 
+    // Static method to generate a complete list of possible actions
     static list_t make_complete_list() noexcept
     {
-        return { Action(move_t::Left),
-                 Action(move_t::Right),
-                 Action(move_t::Up),
-                 Action(move_t::Down) };
+        return { { Action(move_t::Left),
+                   Action(move_t::Right),
+                   Action(move_t::Up),
+                   Action(move_t::Down) } };
     }
 
   private:
@@ -156,41 +131,52 @@ struct State
   public:
     State() = default;
 
-    State(const int& x, const int& y) noexcept
+    // Constructor using structured binding for clarity
+    State(int x, int y) noexcept
       : _x(x)
       , _y(y)
     {
     }
 
+    // Defaulted copy constructor and assignment operator
     State(const State&) = default;
     State& operator=(const State&) = default;
 
-    int get_x() const noexcept { return _x; }
-    int get_y() const noexcept { return _y; }
+    // [[nodiscard]] attribute encourages checking the return value
+    [[nodiscard]] int get_x() const noexcept { return _x; }
+    [[nodiscard]] int get_y() const noexcept { return _y; }
 
+    std::pair<int, int> getCoordinates() const noexcept { return { _x, _y }; }
+
+    // Apply action to the state
     void apply(const Action& action) noexcept
     {
-        if (action.get() == Action::move_t::Left) {
-            --_x;
-        } else if (action.get() == Action::move_t::Right) {
-            ++_x;
-        } else if (action.get() == Action::move_t::Up) {
-            --_y;
-        } else if (action.get() == Action::move_t::Down) {
-            ++_y;
+        switch (action.get()) {
+            case Action::move_t::Left:
+                --_x;
+                break;
+            case Action::move_t::Right:
+                ++_x;
+                break;
+            case Action::move_t::Up:
+                --_y;
+                break;
+            case Action::move_t::Down:
+                ++_y;
+                break;
         }
     }
 
+    // Operator for comparing states
     bool operator==(const State& other) const noexcept
     {
         return _x == other._x && _y == other._y;
     }
 
   private:
-    int _x = 0;
-    int _y = 0;
+    int _x{ 0 };
+    int _y{ 0 };
 };
-
 
 class Agent
 {
@@ -207,58 +193,56 @@ class Agent
         const auto x = _state.get_x();
         const auto y = _state.get_y();
 
-        if (action.get() == Action::move_t::Left) {
-            return (x > 0 && _env.map[y][x - 1] == false);
-        } else if (action.get() == Action::move_t::Right) {
-            return (x < (_env.max_x() - 1) && _env.map[y][x + 1] == false);
-        } else if (action.get() == Action::move_t::Up) {
-            return (y > 0 && _env.map[y - 1][x] == false);
-        } else if (action.get() == Action::move_t::Down) {
-            return (y < (_env.max_y() - 1) && _env.map[y + 1][x] == false);
+        switch (action.get()) {
+            case Action::move_t::Left:
+                return (x > 0 && !_env.map[y][x - 1]);
+            case Action::move_t::Right:
+                return (x < (_env.max_x() - 1) && !_env.map[y][x + 1]);
+            case Action::move_t::Up:
+                return (y > 0 && !_env.map[y - 1][x]);
+            case Action::move_t::Down:
+                return (y < (_env.max_y() - 1) && !_env.map[y + 1][x]);
+            default:
+                return false;
         }
-
-        return false;
     }
 
     Action::list_t getValidActions() const noexcept
     {
-        const auto list = Action::make_complete_list();
-
-        Action::list_t vlist;
-
-        for (const auto& action : list) {
-            if (isValid(action)) {
-                vlist.push_back(action);
-            }
-        }
-
-        return vlist;
+        auto all_actions = Action::make_complete_list();
+        Action::list_t valid_actions;
+        std::ranges::copy_if(
+          all_actions,
+          std::back_inserter(valid_actions),
+          [this](const auto& action) { return isValid(action); });
+        return valid_actions;
     }
 
     bool doAction(const Action& action)
     {
-
         if (isValid(action)) {
             _state.apply(action);
             return true;
         }
-
         return false;
     }
 
-    const State& getCurrentState() const noexcept { return _state; }
-
-    const State& getGoalState() const noexcept { return _goalState; }
+    [[nodiscard]] const State& getCurrentState() const noexcept
+    {
+        return _state;
+    }
+    [[nodiscard]] const State& getGoalState() const noexcept
+    {
+        return _goalState;
+    }
 
     void setCurrentState(const State& state) noexcept { _state = state; }
-
     void setGoalState(const State& state) noexcept { _goalState = state; }
 
-    const Envirnoment& getEnv() const noexcept { return _env; }
+    [[nodiscard]] const Envirnoment& getEnv() const noexcept { return _env; }
 
-    bool goal() const noexcept { return _state == _goalState; }
-
-    double reward() const noexcept { return goal() ? 100.0 : 0; }
+    [[nodiscard]] bool goal() const noexcept { return _state == _goalState; }
+    [[nodiscard]] double reward() const noexcept { return goal() ? 100.0 : 0; }
 
   private:
     const Envirnoment& _env;
@@ -266,108 +250,119 @@ class Agent
     State _goalState;
 };
 
-
 struct Render
 {
-    void show(const Agent& a, std::ostream& os) const
+    static constexpr char AGENT_CHAR = 'A';
+    static constexpr char GOAL_CHAR = 'G';
+    static constexpr char PATH_CHAR = ' ';
+    static constexpr char WALL_CHAR = '*';
+    static constexpr char AGENT_AT_GOAL_CHAR = '$';
+
+    void show(const Agent& agent, std::ostream& os) const
     {
-        const auto x = a.getCurrentState().get_x();
-        const auto y = a.getCurrentState().get_y();
+        const auto& [agentX, agentY] = agent.getCurrentState().getCoordinates();
+        const auto& [goalX, goalY] = agent.getGoalState().getCoordinates();
+        const auto& env = agent.getEnv();
 
-        const auto gx = a.getGoalState().get_x();
-        const auto gy = a.getGoalState().get_y();
-
-        const auto& env = a.getEnv();
-
-        for (auto row = 0; row < env.max_y(); ++row) {
-            for (auto col = 0; col < env.max_x(); ++col) {
-
-                if (x == gx && y == gy && gx == col && gy == row) {
-                    os << "$";
-                } else if (x == col && y == row) {
-                    os << "A";
-                } else if (gx == col && gy == row) {
-                    os << "G";
-                } else {
-                    if (env.map[row][col]) {
-                        os << '*';
-                    } else {
-                        os << " ";
-                    }
-                }
+        for (int row = 0; row < env.max_y(); ++row) {
+            for (int col = 0; col < env.max_x(); ++col) {
+                char displayChar =
+                  getDisplayChar(row, col, agentX, agentY, goalX, goalY, env);
+                os << displayChar;
             }
             os << std::endl;
         }
     }
-};
 
+  private:
+    char getDisplayChar(int row,
+                        int col,
+                        int agentX,
+                        int agentY,
+                        int goalX,
+                        int goalY,
+                        const Envirnoment& env) const
+    {
+        if (row == agentY && col == agentX) {
+            return (agentX == goalX && agentY == goalY) ? AGENT_AT_GOAL_CHAR
+                                                        : AGENT_CHAR;
+        } else if (row == goalY && col == goalX) {
+            return GOAL_CHAR;
+        } else {
+            return env.map[row][col] ? WALL_CHAR : PATH_CHAR;
+        }
+    }
+};
 
 namespace std {
 
 template<>
 struct hash<State>
 {
-    std::size_t operator()(const State& k) const
+    size_t operator()(const State& k) const
     {
-        return std::hash<int>{}(k.get_x()) ^ std::hash<int>{}(k.get_y() << 1);
+        // A better hash combination technique using a prime number
+        size_t h1 = std::hash<int>{}(k.get_x());
+        size_t h2 = std::hash<int>{}(k.get_y());
+        return h1 ^ (h2 << 1);
     }
 };
-
 
 template<>
 struct hash<Action>
 {
-    std::size_t operator()(const Action& k) const
+    size_t operator()(const Action& k) const
     {
-        return std::hash<int>{}(int(k.get()));
+        // Hashing the underlying integer value of the enum
+        return std::hash<size_t>{}(static_cast<size_t>(k.get()));
     }
 };
 
-} // std
+} // namespace std
 
 
 void locate(int y, int x)
 {
 #ifdef _WIN32
-    COORD c = { short((x - 1) & 0xffff), short((y - 1) & 0xffff) };
-    ::SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
+    COORD coord = { static_cast<SHORT>(x - 1), static_cast<SHORT>(y - 1) };
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 #else
-    printf("%c[%d;%df", 0x1B, y, x);
+    printf("\033[%d;%dH", y, x);
 #endif
 }
 
-
-static void cls()
+void cls()
 {
 #ifdef _WIN32
-    ::system("cls");
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (GetConsoleScreenBufferInfo(hStdOut, &csbi)) {
+        DWORD count;
+        DWORD cellCount = csbi.dwSize.X * csbi.dwSize.Y;
+        COORD homeCoords = { 0, 0 };
+        FillConsoleOutputCharacter(hStdOut, ' ', cellCount, homeCoords, &count);
+        FillConsoleOutputAttribute(
+          hStdOut, csbi.wAttributes, cellCount, homeCoords, &count);
+        SetConsoleCursorPosition(hStdOut, homeCoords);
+    }
 #else
-    auto res = ::system("clear");
-    (void)res;
+    system("clear");
 #endif
 }
 
+constexpr bool useEGreedyPolicy = true;
+using Policy = std::conditional<useEGreedyPolicy,
+                                nu::EGreedyPolicy<Action, Agent>,
+                                nu::SoftmaxPolicy<Action, Agent>>::type;
 
-#define E_GREEDY_POLICY
-#ifdef E_GREEDY_POLICY
-using Policy = nu::EGreedyPolicy<Action, Agent>;
-#else
-using Policy = nu::SoftmaxPolicy<Action, Agent>;
-#endif
+constexpr bool useSarsa = true;
+using Learner =
+  std::conditional<useSarsa,
+                   nu::Sarsa<Action, State, Agent, Policy>,
+                   nu::QLearn<Action, State, Agent, Policy>>::type;
 
-#define USE_SARSA
-// define USE_SARSA to switch over Sarsa algorithm at compile time
-#ifdef USE_SARSA
-using Learner = nu::Sarsa<Action, State, Agent, Policy>;
-
-#else // USE_QLEARN
-using Learner = nu::QLearn<Action, State, Agent, Policy>;
-#endif
-
-
-struct simulator_t
+struct Simulator
 {
-
     template<class Render>
     size_t play(int episode,
                 const Render& r,
@@ -390,10 +385,8 @@ struct simulator_t
             std::cout << std::endl;
             r.show(agent, std::cout);
 
-            auto vlist = agent.getValidActions();
-
-            if (!vlist.empty()) {
-                auto action = ql.selectAction(agent);
+            if (const auto vlist = agent.getValidActions(); !vlist.empty()) {
+                const auto action = ql.selectAction(agent);
 
                 if (!agent.doAction(action)) {
                     std::cerr << "Invalid operation, bug?!" << std::endl;
@@ -423,50 +416,60 @@ struct simulator_t
     }
 };
 
-
-int main()
+struct App
 {
     // envirnoment
     Envirnoment env;
-    State goal(44, 29);
-    Render r;
-    Learner ql;
+    State goal{ 44, 29 };
+    Render render;
+    Learner learner;
+    Simulator simulator;
 
-    const int episodies = 100000;
-    const int timeout = 3000;
-    const double greward = 1000;
+    static constexpr int episodies{ 100000 };
+    static constexpr int timeout{ 3000 };
+    static constexpr double greward{ 1000 };
 
-    cls();
+    int learn()
+    {
+        const auto line = [](size_t n) {
+            while (n-- > 0) {
+                std::cout << "-";
+            }
+            std::cout << std::endl;
+        };
 
-    simulator_t simulator;
+        std::cout << "Learning... " << std::endl;
 
-    auto line = [](size_t n) {
-        while (n-- > 0) {
-            std::cout << "-";
+        for (int episode = 0; episode < episodies; ++episode) {
+            State st(1, 1);
+            Agent agent(env, st, goal);
+
+            auto reward = size_t(learner.learn(agent));
+
+            std::cout << std::setw(5) << reward << " ";
+            line(size_t(10 * log(double(reward))));
+
+            if (reward > greward) {
+                return episode;
+            }
         }
-        std::cout << std::endl;
-    };
 
-    std::cout << "Learning... " << std::endl;
-
-    int episode = 0;
-    for (; episode < episodies; ++episode) {
-        State st(1, 1);
-        Agent agent(env, st, goal);
-
-        auto reward = size_t(ql.learn(agent));
-
-        std::cout << std::setw(5) << reward << " ";
-        line(size_t(10 * log(double(reward))));
-
-        if (reward > greward) {
-            break;
-        }
+        return 0;
     }
 
-    while (true) {
-        simulator.play<Render>(episode, r, env, goal, ql, timeout);
+    void play(int episode)
+    {
+        while (true) {
+            simulator.play<Render>(
+              episode, render, env, goal, learner, timeout);
+        }
     }
+};
 
+int main()
+{
+    App app;
+    const auto episode{ app.learn() };
+    app.play(episode);
     return 0;
 }

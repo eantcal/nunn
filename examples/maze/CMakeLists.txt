@@ -16,9 +16,6 @@ file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 # Add executable
 add_executable(maze ${SOURCES})
 
-# Link libraries
-target_link_libraries(maze nunn)
-
 # Compiler-specific configurations
 if(MSVC)
     # Using Visual Studio C++
@@ -28,10 +25,12 @@ else()
     target_compile_options(maze PRIVATE -Wall -Wextra -pedantic)
 endif()
 
+# Link libraries
+target_link_libraries(maze nunn)
+
 # Set target properties (optional, for more fine-grained control)
 set_target_properties(maze PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS OFF
 )
-
