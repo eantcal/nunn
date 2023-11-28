@@ -1,13 +1,11 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
 
 /*
 
@@ -44,12 +42,8 @@ Pixel values are 0 to 255. 0 means background (white), 255 means foreground
 */
 
 
-/* -------------------------------------------------------------------------- */
-
 #include "mnist.h"
 
-
-/* -------------------------------------------------------------------------- */
 
 void DigitData::toVect(nu::Vector<double>& v) const noexcept
 {
@@ -61,17 +55,12 @@ void DigitData::toVect(nu::Vector<double>& v) const noexcept
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 void DigitData::labelToTarget(nu::Vector<double>& v) const noexcept
 {
     v.resize(10);
     std::fill(v.begin(), v.end(), 0.0);
     v[getLabel() % 10] = 1.0;
 }
-
-
-/* -------------------------------------------------------------------------- */
 
 
 #ifdef _WIN32
@@ -93,7 +82,9 @@ void DigitData::paint(int xoff, int yoff, HWND hwnd) const noexcept
         for (size_t x = 0; x < dx; ++x) {
             int c = dataBits[idx++];
 
-            SetPixel(hdc, int(x) + xoff, int(y) + yoff,
+            SetPixel(hdc,
+                     int(x) + xoff,
+                     int(y) + yoff,
                      RGB(255 - c, 255 - c, 255 - c));
         }
     }
@@ -102,8 +93,6 @@ void DigitData::paint(int xoff, int yoff, HWND hwnd) const noexcept
 }
 #endif
 
-
-/* -------------------------------------------------------------------------- */
 
 int TrainingData::load()
 {
@@ -209,6 +198,3 @@ int TrainingData::load()
 
     return ret;
 }
-
-
-/* -------------------------------------------------------------------------- */

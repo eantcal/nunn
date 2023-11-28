@@ -1,34 +1,23 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_NEURON_H__
-#define __NU_NEURON_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include "nu_vector.h"
 #include <iostream>
 #include <sstream>
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
 
-
-/* -------------------------------------------------------------------------- */
-
 //! This class represents a neuron of a neural net neuron layer
-struct Neuron {
+struct Neuron
+{
     //! neuron weights
     Vector<double> weights;
 
@@ -45,8 +34,9 @@ struct Neuron {
     double error = 0.0;
 
     //! Save neuron status into a given string stream
-    friend 
-    std::stringstream& operator<<(std::stringstream& ss, const Neuron& n) noexcept {
+    friend std::stringstream& operator<<(std::stringstream& ss,
+                                         const Neuron& n) noexcept
+    {
         ss << n.bias << std::endl;
         ss << n.weights << std::endl;
         ss << n.deltaW << std::endl;
@@ -55,8 +45,9 @@ struct Neuron {
     }
 
     //! Load neuron status from a given string stream
-    friend 
-    std::stringstream& operator>>(std::stringstream& ss, Neuron& n) noexcept {
+    friend std::stringstream& operator>>(std::stringstream& ss,
+                                         Neuron& n) noexcept
+    {
         ss >> n.bias;
         ss >> n.weights;
         ss >> n.deltaW;
@@ -65,8 +56,9 @@ struct Neuron {
     }
 
     //! Save JSON formatted neuron status into a given string stream
-    std::ostream& formatJson(std::ostream& ss) noexcept {
-        ss << "{\"bias\":"<< bias << ",";
+    std::ostream& formatJson(std::ostream& ss) noexcept
+    {
+        ss << "{\"bias\":" << bias << ",";
         ss << "\"weights\":";
         weights.formatJson(ss) << ",";
         ss << "\"deltaW\":";
@@ -76,18 +68,11 @@ struct Neuron {
     }
 
     //! Resize both the weights and deltaW vectors
-    void resize(size_t size) noexcept {
+    void resize(size_t size) noexcept
+    {
         weights.resize(size);
         deltaW.resize(size);
     }
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 }
-
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_NEURON_H__

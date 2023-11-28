@@ -1,21 +1,19 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 
 /*
-* Tic-Tac-Toe Demo for Windows (winttt)
-* This is an interactive demo which uses a trained MLP neural network
-* created by using tictactoe demo program.
-* See www.enatcal.eu for more information about this demo
-*/
+ * Tic-Tac-Toe Demo for Windows (winttt)
+ * This is an interactive demo which uses a trained MLP neural network
+ * created by using tictactoe demo program.
+ * See www.enatcal.eu for more information about this demo
+ */
 
-
-/* -------------------------------------------------------------------------- */
 
 #include "winttt.h"
 #include "stdafx.h"
@@ -23,6 +21,7 @@
 #include "nu_mlpnn.h"
 
 #include <fstream>
+#include <list>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -31,10 +30,7 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include <list>
 
-
-/* -------------------------------------------------------------------------- */
 
 #define PROG_VERSION "1.55"
 #define ABOUT_TEXT "TicTacToe for Windows by A. Calderone (c) - 2015"
@@ -63,8 +59,6 @@
 #define TICTACTOE_CELLS (TICTACTOE_SIDE * TICTACTOE_SIDE)
 
 
-/* -------------------------------------------------------------------------- */
-
 class toolbar_t
 {
   private:
@@ -73,10 +67,17 @@ class toolbar_t
     HWND _hparent;
 
   public:
-    toolbar_t(HWND hParentWnd, HINSTANCE hInstance, UINT idi_toolbar,
-              UINT_PTR res_id, int n_of_bitmaps, TBBUTTON buttons[],
-              int n_of_buttons, int bmwidth = 28, int bmheight = 32,
-              int btwidth = 28, int btheight = 32);
+    toolbar_t(HWND hParentWnd,
+              HINSTANCE hInstance,
+              UINT idi_toolbar,
+              UINT_PTR res_id,
+              int n_of_bitmaps,
+              TBBUTTON buttons[],
+              int n_of_buttons,
+              int bmwidth = 28,
+              int bmheight = 32,
+              int btwidth = 28,
+              int btheight = 32);
 
     virtual void on_resize();
     virtual void on_customize();
@@ -88,8 +89,6 @@ class toolbar_t
     bool get_rect(RECT& rect);
 };
 
-
-/* -------------------------------------------------------------------------- */
 
 struct sample_t
 {
@@ -105,8 +104,6 @@ struct sample_t
 
 using samples_t = std::set<sample_t>;
 
-
-/* -------------------------------------------------------------------------- */
 
 // Global Variables
 static HINSTANCE hInst;                     // current instance
@@ -128,8 +125,6 @@ static std::mutex g_tsync_mtx;
 static std::unique_ptr<nu::MlpNN> g_neural_net_copy;
 static samples_t g_training_samples_copy;
 
-
-/* -------------------------------------------------------------------------- */
 
 // Toolbar
 static toolbar_t* g_toolbar = nullptr;
@@ -183,8 +178,6 @@ TBBUTTON g_toolbar_buttons[] = {
 const int g_toolbar_n_of_buttons = sizeof(g_toolbar_buttons) / sizeof(TBBUTTON);
 
 
-/* -------------------------------------------------------------------------- */
-
 // Forward declarations of functions included in this code module:
 ATOM MyRegisterClass(HINSTANCE hInstance);
 BOOL InitInstance(HINSTANCE, int);
@@ -194,24 +187,21 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
 
 
-/* -------------------------------------------------------------------------- */
-
 static void realignNNCopy()
 {
     g_tsync_mtx.lock();
 
     if (g_neural_net)
-        g_neural_net_copy = std::move(std::unique_ptr<nu::MlpNN>(
-          new nu::MlpNN(*g_neural_net)));
+        g_neural_net_copy =
+          std::move(std::unique_ptr<nu::MlpNN>(new nu::MlpNN(*g_neural_net)));
 
     g_tsync_mtx.unlock();
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
-                       _In_opt_ HINSTANCE hPrevInstance, _In_ LPTSTR lpCmdLine,
+                       _In_opt_ HINSTANCE hPrevInstance,
+                       _In_ LPTSTR lpCmdLine,
                        _In_ int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
@@ -243,8 +233,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
     WNDCLASSEX wcex;
@@ -268,17 +256,23 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
     HWND hWnd;
 
     hInst = hInstance; // Store instance handle in our global variable
 
-    hWnd =
-      CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
-                   0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
+    hWnd = CreateWindow(szWindowClass,
+                        szTitle,
+                        WS_OVERLAPPEDWINDOW,
+                        CW_USEDEFAULT,
+                        0,
+                        CW_USEDEFAULT,
+                        0,
+                        NULL,
+                        NULL,
+                        hInstance,
+                        NULL);
 
     if (!hWnd)
         return FALSE;
@@ -289,8 +283,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     return TRUE;
 }
 
-
-/* -------------------------------------------------------------------------- */
 
 void UpdateStatusBar(HWND hWnd)
 {
@@ -314,11 +306,11 @@ void UpdateStatusBar(HWND hWnd)
     const auto tsc = g_training_samples.size();
     const auto mse = g_last_mse;
 
-    g_net_desc = "   LR: " + std::to_string(learningRate) + "   M: " +
-                 std::to_string(momentum) + "   HL(" +
-                 std::to_string(topology.size() - 2) + ") :" + hl + "   SC: " +
-                 std::to_string(tsc) + "   TL: " +
-                 std::to_string(100.00 - mse * 100.00);
+    g_net_desc = "   LR: " + std::to_string(learningRate) +
+                 "   M: " + std::to_string(momentum) + "   HL(" +
+                 std::to_string(topology.size() - 2) + ") :" + hl +
+                 "   SC: " + std::to_string(tsc) +
+                 "   TL: " + std::to_string(100.00 - mse * 100.00);
 
     static int cyVScroll = GetSystemMetrics(SM_CYVSCROLL);
 
@@ -327,8 +319,6 @@ void UpdateStatusBar(HWND hWnd)
     UpdateWindow(hWnd);
 }
 
-
-/* -------------------------------------------------------------------------- */
 
 bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 {
@@ -356,7 +346,9 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
         std::stringstream ss;
 
         if (!nf.is_open()) {
-            MessageBox(hWnd, "Cannot open the file", open_file_name.data(),
+            MessageBox(hWnd,
+                       "Cannot open the file",
+                       open_file_name.data(),
                        MB_ICONERROR);
 
             return false;
@@ -372,8 +364,10 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
             if (g_neural_net)
                 g_neural_net->load(ss);
         } catch (...) {
-            MessageBox(hWnd, "Error loading data from file",
-                       open_file_name.data(), MB_ICONERROR);
+            MessageBox(hWnd,
+                       "Error loading data from file",
+                       open_file_name.data(),
+                       MB_ICONERROR);
 
             return false;
         }
@@ -391,8 +385,6 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 void Training(HWND hWnd, HWND hwndPB)
 {
     if (!g_neural_net || g_training_samples.empty())
@@ -403,8 +395,8 @@ void Training(HWND hWnd, HWND hwndPB)
     KillTimer(hWnd, 0);
 
     if (hwndPB)
-        SendMessage(hwndPB, PBM_SETPOS, (WPARAM)((1.0 - g_last_mse) * 100.0),
-                    0);
+        SendMessage(
+          hwndPB, PBM_SETPOS, (WPARAM)((1.0 - g_last_mse) * 100.0), 0);
 
     g_tsync_mtx.lock();
 
@@ -414,13 +406,13 @@ void Training(HWND hWnd, HWND hwndPB)
         if (g_training_samples_copy.size() != g_training_samples.size()) {
             g_training_samples_copy = g_training_samples;
 
-            g_neural_net_copy = std::unique_ptr<nu::MlpNN>(
-              new nu::MlpNN(*g_neural_net));
+            g_neural_net_copy =
+              std::unique_ptr<nu::MlpNN>(new nu::MlpNN(*g_neural_net));
         }
     } else {
         if (g_neural_net_copy)
-            g_neural_net = std::unique_ptr<nu::MlpNN>(
-              new nu::MlpNN(*g_neural_net_copy));
+            g_neural_net =
+              std::unique_ptr<nu::MlpNN>(new nu::MlpNN(*g_neural_net_copy));
     }
 
     g_tsync_mtx.unlock();
@@ -430,8 +422,6 @@ void Training(HWND hWnd, HWND hwndPB)
     SetTimer(hWnd, 0, TRAINING_TICK, 0);
 }
 
-
-/* -------------------------------------------------------------------------- */
 
 void TrainingThread()
 {
@@ -471,8 +461,6 @@ void TrainingThread()
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string& filename)
 {
     if (!g_neural_net) {
@@ -489,8 +477,8 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string& filename)
         nf << ss.str() << std::endl;
         nf.close();
     } else {
-        MessageBox(hWnd, "Cannot save current network status", "Error",
-                   MB_ICONERROR);
+        MessageBox(
+          hWnd, "Cannot save current network status", "Error", MB_ICONERROR);
         return;
     }
 
@@ -498,8 +486,6 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string& filename)
     SetWindowText(hWnd, filename.c_str());
 }
 
-
-/* -------------------------------------------------------------------------- */
 
 void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 {
@@ -520,8 +506,6 @@ void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 void DoSelectFont(HWND hwnd)
 {
     HDC hdc = GetDC(NULL);
@@ -540,8 +524,6 @@ void DoSelectFont(HWND hwnd)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 static void DrawBm(HDC hdc, HANDLE image, int x, int y)
 {
     HDC hdcMem = ::CreateCompatibleDC(hdc);
@@ -550,15 +532,13 @@ static void DrawBm(HDC hdc, HANDLE image, int x, int y)
     BITMAP bm = { 0 };
     ::GetObject(image, sizeof(bm), &bm);
 
-    auto ret = ::BitBlt(hdc, 0, 0, bm.bmWidth + x, bm.bmHeight + y, hdcMem, -x,
-                        -y, SRCCOPY);
+    auto ret = ::BitBlt(
+      hdc, 0, 0, bm.bmWidth + x, bm.bmHeight + y, hdcMem, -x, -y, SRCCOPY);
 
     ::SelectObject(hdcMem, hbmOld);
     ::DeleteDC(hdcMem);
 }
 
-
-/* -------------------------------------------------------------------------- */
 
 class grid_t
 {
@@ -569,20 +549,11 @@ class grid_t
 
     int& _at(int x, int y) noexcept { return _grid[x][y]; }
 
-    const int& _at(int x, int y) const noexcept
-    {
-        return _grid[x][y];
-    }
+    const int& _at(int x, int y) const noexcept { return _grid[x][y]; }
 
-    static int _pos2y(int pos) noexcept
-    {
-        return pos / TICTACTOE_SIDE;
-    }
+    static int _pos2y(int pos) noexcept { return pos / TICTACTOE_SIDE; }
 
-    static int _pos2x(int pos) noexcept
-    {
-        return pos % TICTACTOE_SIDE;
-    }
+    static int _pos2x(int pos) noexcept { return pos % TICTACTOE_SIDE; }
 
   public:
     enum symbol_t
@@ -837,8 +808,6 @@ class grid_t
 };
 
 
-/* -------------------------------------------------------------------------- */
-
 class renderer_t
 {
   private:
@@ -867,12 +836,12 @@ class renderer_t
                     case 0:
                         break;
                     case 1:
-                        DrawBm(hdc, _ximg, BOARDOFF_X + x * DX,
-                               BOARDOFF_Y + y * DY);
+                        DrawBm(
+                          hdc, _ximg, BOARDOFF_X + x * DX, BOARDOFF_Y + y * DY);
                         break;
                     case 2:
-                        DrawBm(hdc, _oimg, BOARDOFF_X + x * DX,
-                               BOARDOFF_Y + y * DY);
+                        DrawBm(
+                          hdc, _oimg, BOARDOFF_X + x * DX, BOARDOFF_Y + y * DY);
                         break;
                     default:
                         assert(0);
@@ -884,13 +853,12 @@ class renderer_t
 };
 
 
-/* -------------------------------------------------------------------------- */
-
 class nn_io_converter_t
 {
   public:
-    static void getInputVector(const grid_t& grid, grid_t::symbol_t turn_of_symb,
-                           nu::Vector<double>& inputs)
+    static void getInputVector(const grid_t& grid,
+                               grid_t::symbol_t turn_of_symb,
+                               nu::Vector<double>& inputs)
     {
         inputs.resize(10, 0.0);
         size_t i = 0;
@@ -903,8 +871,9 @@ class nn_io_converter_t
         inputs[9] = turn_of_symb == grid_t::O ? 1.0 : 0.5;
     }
 
-    static void copyOutputVector(const grid_t& grid, const grid_t& new_grid,
-                            nu::Vector<double>& outputs)
+    static void copyOutputVector(const grid_t& grid,
+                                 const grid_t& new_grid,
+                                 nu::Vector<double>& outputs)
     {
         outputs.resize(grid.size(), 0.0);
 
@@ -919,8 +888,6 @@ class nn_io_converter_t
     }
 };
 
-
-/* -------------------------------------------------------------------------- */
 
 static void ExpertAlgo(grid_t& new_grid, grid_t::symbol_t symbol)
 {
@@ -1199,10 +1166,7 @@ static void ExpertAlgo(grid_t& new_grid, grid_t::symbol_t symbol)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
-static void NetAnswer(nu::MlpNN& nn, grid_t& grid,
-                      grid_t::symbol_t symbol)
+static void NetAnswer(nu::MlpNN& nn, grid_t& grid, grid_t::symbol_t symbol)
 {
     try {
         nu::Vector<double> inputs, outputs;
@@ -1231,16 +1195,17 @@ static void NetAnswer(nu::MlpNN& nn, grid_t& grid,
             }
         }
     } catch (...) {
-        MessageBox(0, "Are you loaded an incompatibile net?", "Error",
-                   MB_ICONERROR);
+        MessageBox(
+          0, "Are you loaded an incompatibile net?", "Error", MB_ICONERROR);
     }
 }
 
 
-/* -------------------------------------------------------------------------- */
-
-static void ComputerPlay(HWND hWnd, HINSTANCE hInst, nu::MlpNN& nn,
-                         grid_t& grid, grid_t::symbol_t symbol)
+static void ComputerPlay(HWND hWnd,
+                         HINSTANCE hInst,
+                         nu::MlpNN& nn,
+                         grid_t& grid,
+                         grid_t::symbol_t symbol)
 {
     auto grid_old = grid;
     auto grid_expert_move = grid;
@@ -1266,7 +1231,8 @@ static void ComputerPlay(HWND hWnd, HINSTANCE hInst, nu::MlpNN& nn,
             grid_expert_move.rotate_cw();
 
             nn_io_converter_t::getInputVector(grid_old, symbol, inputs);
-            nn_io_converter_t::copyOutputVector(grid_old, grid_expert_move, target);
+            nn_io_converter_t::copyOutputVector(
+              grid_old, grid_expert_move, target);
 
             g_training_samples.insert({ inputs, target });
         }
@@ -1275,8 +1241,6 @@ static void ComputerPlay(HWND hWnd, HINSTANCE hInst, nu::MlpNN& nn,
     }
 }
 
-
-/* -------------------------------------------------------------------------- */
 
 static bool GetGridPos(HWND hWnd, std::pair<int, int>& gpt)
 {
@@ -1301,8 +1265,6 @@ static bool GetGridPos(HWND hWnd, std::pair<int, int>& gpt)
 };
 
 
-/* -------------------------------------------------------------------------- */
-
 static void NewNN(HWND hWnd)
 {
     g_neural_net = std::unique_ptr<nu::MlpNN>(
@@ -1313,8 +1275,6 @@ static void NewNN(HWND hWnd)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 static void RotateCW(HWND hWnd, bool acw, grid_t& grid)
 {
     grid.rotate_cw(acw);
@@ -1323,16 +1283,12 @@ static void RotateCW(HWND hWnd, bool acw, grid_t& grid)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 static void SetNewTopology(HWND hWnd, const nu::MlpNN::Topology& t)
 {
     g_topology = t;
     NewNN(hWnd);
 }
 
-
-/* -------------------------------------------------------------------------- */
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1363,22 +1319,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                             WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
                 SetWindowLong(hWnd, GWL_STYLE, lStyle);
 
-                SetWindowPos(hWnd, NULL, 0, 0, 0, 0,
+                SetWindowPos(hWnd,
+                             NULL,
+                             0,
+                             0,
+                             0,
+                             0,
                              SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE |
                                SWP_NOZORDER | SWP_NOOWNERZORDER);
             }
 
             MoveWindow(hWnd, 0, 0, PROG_WINXRES, PROG_WINYRES, TRUE);
 
-            g_toolbar = new toolbar_t(hWnd, hInst, IDI_TOOLBAR, IDI_TOOLBAR,
-                                      g_toolbar_n_of_bmps, g_toolbar_buttons,
+            g_toolbar = new toolbar_t(hWnd,
+                                      hInst,
+                                      IDI_TOOLBAR,
+                                      IDI_TOOLBAR,
+                                      g_toolbar_n_of_bmps,
+                                      g_toolbar_buttons,
                                       g_toolbar_n_of_buttons);
 
 
-            hwndPB = CreateWindowEx(0, PROGRESS_CLASS, (LPTSTR)NULL,
-                                    WS_CHILD | WS_VISIBLE, 0,
-                                    YBMPOFF + cyVScroll / 2, PROG_WINXRES,
-                                    cyVScroll, hWnd, (HMENU)0, hInst, NULL);
+            hwndPB = CreateWindowEx(0,
+                                    PROGRESS_CLASS,
+                                    (LPTSTR)NULL,
+                                    WS_CHILD | WS_VISIBLE,
+                                    0,
+                                    YBMPOFF + cyVScroll / 2,
+                                    PROG_WINXRES,
+                                    cyVScroll,
+                                    hWnd,
+                                    (HMENU)0,
+                                    hInst,
+                                    NULL);
 
             NewNN(hWnd);
 
@@ -1472,12 +1445,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     game_board.clear();
 
                     if (g_neural_net)
-                        ComputerPlay(hWnd, hInst, *g_neural_net, game_board,
-                                     grid_t::O);
+                        ComputerPlay(
+                          hWnd, hInst, *g_neural_net, game_board, grid_t::O);
                     else
                         MessageBox(
-                          hWnd, "Please, load neural network data to proceed",
-                          "Warning", MB_ICONEXCLAMATION | MB_OK);
+                          hWnd,
+                          "Please, load neural network data to proceed",
+                          "Warning",
+                          MB_ICONEXCLAMATION | MB_OK);
 
                     InvalidateRect(hWnd, NULL, TRUE);
                     break;
@@ -1495,8 +1470,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
 
                 case IDM_ABOUT: {
-                    MessageBox(hWnd, ABOUT_TEXT, ABOUT_INFO,
-                               MB_ICONINFORMATION | MB_OK);
+                    MessageBox(
+                      hWnd, ABOUT_TEXT, ABOUT_INFO, MB_ICONINFORMATION | MB_OK);
                 }
 
                 default:
@@ -1510,8 +1485,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
 
             if (!g_neural_net) {
-                MessageBox(hWnd, "Please, load neural network data to proceed",
-                           "Warning", MB_ICONEXCLAMATION | MB_OK);
+                MessageBox(hWnd,
+                           "Please, load neural network data to proceed",
+                           "Warning",
+                           MB_ICONEXCLAMATION | MB_OK);
 
                 break;
             }
@@ -1542,8 +1519,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 bool nnet_ok = g_neural_net != nullptr;
 
                 if (modified && nnet_ok && win_symb == grid_t::EMPTY) {
-                    ComputerPlay(hWnd, hInst, *g_neural_net, game_board,
-                                 grid_t::O);
+                    ComputerPlay(
+                      hWnd, hInst, *g_neural_net, game_board, grid_t::O);
                     win_symb = game_board.get_winner_symbol();
                 }
 
@@ -1574,18 +1551,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
 
                     if (win_symb) {
-                        MoveToEx(hdc, BOARDOFF_X + start.first * BOARDCELLSIZE +
-                                        BOARDCELLSIZE / 2,
+                        MoveToEx(hdc,
+                                 BOARDOFF_X + start.first * BOARDCELLSIZE +
+                                   BOARDCELLSIZE / 2,
                                  BOARDOFF_Y + start.second * BOARDCELLSIZE +
                                    BOARDCELLSIZE / 2,
                                  NULL);
 
-                        LineTo(hdc, BOARDOFF_X + end.first * BOARDCELLSIZE +
-                                      BOARDCELLSIZE / 2,
+                        LineTo(hdc,
+                               BOARDOFF_X + end.first * BOARDCELLSIZE +
+                                 BOARDCELLSIZE / 2,
                                BOARDOFF_Y + end.second * BOARDCELLSIZE +
                                  BOARDCELLSIZE / 2);
 
-                        MessageBox(hWnd, verdict.c_str(), "Verdict",
+                        MessageBox(hWnd,
+                                   verdict.c_str(),
+                                   "Verdict",
                                    MB_ICONINFORMATION | MB_OK);
                     }
 
@@ -1618,7 +1599,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 GetClientRect(hWnd, &rcClient);
                 rcClient.top = rcClient.bottom - GetSystemMetrics(SM_CYVSCROLL);
                 FillRect(hdc, &rcClient, GetStockBrush(WHITE_BRUSH));
-                TextOut(hdc, 0, rcClient.top, g_net_desc.c_str(),
+                TextOut(hdc,
+                        0,
+                        rcClient.top,
+                        g_net_desc.c_str(),
                         int(g_net_desc.size() + 1));
             }
 
@@ -1654,8 +1638,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1676,11 +1658,16 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
-toolbar_t::toolbar_t(HWND hWnd, HINSTANCE hInstance, UINT idi_toolbar,
-                     UINT_PTR res_id, int n_of_bitmaps, TBBUTTON buttons[],
-                     int n_of_buttons, int bmwidth, int bmheight, int btwidth,
+toolbar_t::toolbar_t(HWND hWnd,
+                     HINSTANCE hInstance,
+                     UINT idi_toolbar,
+                     UINT_PTR res_id,
+                     int n_of_bitmaps,
+                     TBBUTTON buttons[],
+                     int n_of_buttons,
+                     int bmwidth,
+                     int bmheight,
+                     int btwidth,
                      int btheight)
   : _hinstance(hInstance)
 {
@@ -1690,23 +1677,26 @@ toolbar_t::toolbar_t(HWND hWnd, HINSTANCE hInstance, UINT idi_toolbar,
       CreateToolbarEx(hWnd, // parent
                       WS_CHILD | WS_BORDER | WS_VISIBLE | TBSTYLE_TOOLTIPS |
                         CCS_ADJUSTABLE | TBSTYLE_FLAT,
-                      idi_toolbar,             // toolbar id
-                      n_of_bitmaps,            // number of bitmaps
-                      hInstance,               // mod instance
-                      res_id,                  // resource ID for bitmap
-                      0, 0, btwidth, btheight, // width & height of buttons
-                      bmwidth, bmheight,       // width & height of bitmaps
-                      sizeof(TBBUTTON));       // structure size
+                      idi_toolbar,  // toolbar id
+                      n_of_bitmaps, // number of bitmaps
+                      hInstance,    // mod instance
+                      res_id,       // resource ID for bitmap
+                      0,
+                      0,
+                      btwidth,
+                      btheight, // width & height of buttons
+                      bmwidth,
+                      bmheight,          // width & height of bitmaps
+                      sizeof(TBBUTTON)); // structure size
 
     assert(_toolbar);
 
-    SendMessage(_toolbar, TB_ADDBUTTONS,
+    SendMessage(_toolbar,
+                TB_ADDBUTTONS,
                 (WPARAM)n_of_buttons, // number of buttons
                 (LPARAM)buttons);
 }
 
-
-/* -------------------------------------------------------------------------- */
 
 void toolbar_t::on_resize()
 {
@@ -1714,16 +1704,12 @@ void toolbar_t::on_resize()
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 void toolbar_t::on_customize()
 {
     // Double-click on the toolbar -- display the customization dialog.
     SendMessage(_toolbar, TB_CUSTOMIZE, 0L, 0L);
 }
 
-
-/* -------------------------------------------------------------------------- */
 
 BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
 {
@@ -1770,23 +1756,17 @@ BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 void toolbar_t::enable(DWORD id)
 {
     SendMessage(_toolbar, TB_ENABLEBUTTON, id, (LPARAM)MAKELONG(TRUE, 0));
 }
 
 
-/* -------------------------------------------------------------------------- */
-
 void toolbar_t::disable(DWORD id)
 {
     SendMessage(_toolbar, TB_ENABLEBUTTON, id, (LPARAM)MAKELONG(FALSE, 0));
 }
 
-
-/* -------------------------------------------------------------------------- */
 
 bool toolbar_t::get_rect(RECT& rect)
 {

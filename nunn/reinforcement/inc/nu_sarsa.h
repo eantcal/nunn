@@ -1,87 +1,71 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_SARSA_H__
-#define __NU_SARSA_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include "nu_learner_listener.h"
 
 #include <unordered_map>
 
-
-/* -------------------------------------------------------------------------- */
-
 namespace nu {
 
-
-/* -------------------------------------------------------------------------- */
-
-template<
-    class Action,
-    class State,
-    class Agent,
-    class Policy,
-    class ActionRewardMap = std::unordered_map<Action, double>,
-    class QMap = std::unordered_map<State, ActionRewardMap>>
-class Sarsa {
-public:
+template<class Action,
+         class State,
+         class Agent,
+         class Policy,
+         class ActionRewardMap = std::unordered_map<Action, double>,
+         class QMap = std::unordered_map<State, ActionRewardMap>>
+class Sarsa
+{
+  public:
     using reward_t = double;
     using Listener = LearnerListener;
 
-    Sarsa(Listener * listener = nullptr) noexcept 
-        : _listener(listener) 
-    {}
-    
+    Sarsa(Listener* listener = nullptr) noexcept
+      : _listener(listener)
+    {
+    }
+
     Sarsa(const Sarsa&) = default;
     Sarsa& operator=(const Sarsa&) = default;
 
-    double getLearningRate() const noexcept {
-        return _learningRate;
-    }
+    double getLearningRate() const noexcept { return _learningRate; }
 
-    double getDiscountRate() const noexcept {
-        return _discountRate;
-    }
+    double getDiscountRate() const noexcept { return _discountRate; }
 
-    void setLearningRate(const double& lr) const noexcept {
+    void setLearningRate(const double& lr) const noexcept
+    {
         _learningRate = lr;
     }
 
-    void setDiscountRate(const double& dr) const noexcept {
+    void setDiscountRate(const double& dr) const noexcept
+    {
         _discountRate = dr;
     }
 
-    Action selectAction(
-        const Agent& agent, 
-        const Policy & policy = Policy()) 
+    Action selectAction(const Agent& agent, const Policy& policy = Policy())
     {
         return policy.template getLearnedAction<QMap>(agent, getQMap());
     }
 
     // learn episode
-    double learn(Agent& agent, const Policy & policy=Policy()) {
+    double learn(Agent& agent, const Policy& policy = Policy())
+    {
 
         size_t moveCnt = 0;
 
-        Action action = 
-            policy.template selectAction<QMap>(agent, getQMap());
-        
+        Action action = policy.template selectAction<QMap>(agent, getQMap());
+
         auto state = agent.getCurrentState();
 
         double reward = 0;
 
-        while (!agent.goal() ) {
+        while (!agent.goal()) {
             if (_listener && !_listener->notify(reward, moveCnt++)) {
                 break;
             }
@@ -93,38 +77,31 @@ public:
         return reward;
     }
 
-    const QMap & getQMap() const noexcept {
-        return _qMap;
-    }
-    
-protected:
-    QMap & getQMap() noexcept {
-        return _qMap;
-    }  
+    const QMap& getQMap() const noexcept { return _qMap; }
 
-    double updateQ(
-        Agent& agent, 
-        const Policy & policy, 
-        State & state,
-        Action & action) 
+  protected:
+    QMap& getQMap() noexcept { return _qMap; }
+
+    double updateQ(Agent& agent,
+                   const Policy& policy,
+                   State& state,
+                   Action& action)
     {
-        auto & qsa = getQMap()[agent.getCurrentState()][action];
+        auto& qsa = getQMap()[agent.getCurrentState()][action];
 
         // update agent state
-        agent.doAction(action); 
+        agent.doAction(action);
 
         // get current agent state
-        const auto & state1 = agent.getCurrentState();
+        const auto& state1 = agent.getCurrentState();
 
         // get a reward for current state
-        const auto reward = agent.reward(); 
+        const auto reward = agent.reward();
 
-        auto action1 = 
-            policy.template selectAction<QMap>(agent, getQMap());
+        auto action1 = policy.template selectAction<QMap>(agent, getQMap());
 
-        qsa += 
-            getLearningRate() * 
-            (reward + getDiscountRate() * getQMap()[state1][action1] - qsa);
+        qsa += getLearningRate() *
+               (reward + getDiscountRate() * getQMap()[state1][action1] - qsa);
 
         state = state1;
         action = action1;
@@ -132,23 +109,14 @@ protected:
         return qsa;
     }
 
-private:
+  private:
     double _learningRate = 0.1;
     double _discountRate = 0.9;
 
     QMap _qMap;
     Policy _policy;
 
-    Listener * _listener = nullptr;
+    Listener* _listener = nullptr;
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 }
-
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_SARSA_H__
-

@@ -1,13 +1,11 @@
 //
 // This file is part of nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
-
-/* -------------------------------------------------------------------------- */
 
 /*
  * Hopfield neural network test
@@ -15,14 +13,9 @@
  * copy for an input pattern to an associated pre-learned pattern
  */
 
-
-/* -------------------------------------------------------------------------- */
-
 #include "nu_hopfieldnn.h"
 #include <iostream>
 
-
-/* -------------------------------------------------------------------------- */
 
 const size_t pattern_size = 100;
 const size_t n_of_patterns = 5;
@@ -84,7 +77,6 @@ std::string g_learning_patterns[] = { // 0123456789
       "**********" }
 };
 
-
 std::string g_test_patterns[] = { // 0123456789
     { "   ***    "                // 0
       "   ***    "                // 1
@@ -143,8 +135,6 @@ std::string g_test_patterns[] = { // 0123456789
 };
 
 
-/* -------------------------------------------------------------------------- */
-
 static void print_pattern(const std::string& pattern)
 {
     std::cout << "+----------+" << std::endl;
@@ -160,9 +150,7 @@ static void print_pattern(const std::string& pattern)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
-static void print_pattern(const nu::HopfiledNN::FpVector& pattern)
+static void print_pattern(const nu::HopfieldNN::FpVector& pattern)
 {
     std::string s_pattern;
     for (int y = 0; y < 10; ++y)
@@ -173,42 +161,41 @@ static void print_pattern(const nu::HopfiledNN::FpVector& pattern)
 }
 
 
-/* -------------------------------------------------------------------------- */
-
-static void convert_pattern_into_input_v(
-  const std::string& pattern, nu::HopfiledNN::FpVector& input_vector)
+static void convert_pattern_into_input_v(const std::string& pattern,
+                                         nu::HopfieldNN::FpVector& input_vector)
 {
     size_t i = 0;
-    for (auto c : pattern)
+    for (auto c : pattern) {
         input_vector[i++] = c == '*' ? 1 : -1;
+    }
 }
 
 
-/* -------------------------------------------------------------------------- */
-
-int main(int argc, char* argv[])
+int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
-    nu::HopfiledNN net(pattern_size);
+    nu::HopfieldNN net(pattern_size);
 
     std::cout << "LEARNING THE FOLLOWING IMAGES:" << std::endl;
 
-    for (int i = 0; i < n_of_patterns; ++i) {
-        nu::HopfiledNN::FpVector input_v(pattern_size);
+    for (size_t i = 0; i < n_of_patterns; ++i) {
+        nu::HopfieldNN::FpVector input_v(pattern_size);
         convert_pattern_into_input_v(g_learning_patterns[i], input_v);
         net.addPattern(input_v);
         print_pattern(g_learning_patterns[i]);
     }
 
     // Test the net
-    for (int i = 0; i < n_of_patterns; ++i) {
-        nu::HopfiledNN::FpVector input_v(pattern_size);
-        nu::HopfiledNN::FpVector output_pattern(pattern_size);
+    for (size_t i = 0; i < n_of_patterns; ++i) {
+        nu::HopfieldNN::FpVector input_v(pattern_size);
+        nu::HopfieldNN::FpVector output_pattern(pattern_size);
 
         convert_pattern_into_input_v(g_test_patterns[i], input_v);
         net.recall(input_v, output_pattern);
 
-        std::cout << std::endl << std::endl;
-        std::cout << std::endl << " THIS IMAGE" << std::endl;
+        std::cout << std::endl
+                  << std::endl
+                  << std::endl
+                  << " THIS IMAGE" << std::endl;
 
         print_pattern(g_test_patterns[i]);
 
@@ -219,5 +206,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
-/* -------------------------------------------------------------------------- */

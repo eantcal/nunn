@@ -1,208 +1,169 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
+/**
+ * @file nu_perceptron.h
+ * @brief Implementation of a Perceptron Neural Network.
+ *
+ * The Perceptron is a type of artificial neuron which uses a step function for
+ * activation. It is a fundamental building block for certain types of neural
+ * networks and serves as a binary classifier in its simplest form. This
+ * implementation allows for training the perceptron using examples to adjust
+ * its weights, thereby learning to produce the desired output for a given
+ * input.
+ */
 
-/*
-  This is an implementation of a Perceptron Neural Network which learns by
-  example.
-
-  You can give it examples of what you want the network to do and the algorithm
-  changes the network's weights. When training is finished, the net will give
-  you
-  the required output for a particular input.
-*/
-
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __NU_PERCEPTRON_H__
-#define __NU_PERCEPTRON_H__
-
-
-/* -------------------------------------------------------------------------- */
+#pragma once
 
 #include "nu_neuron.h"
-
 #include "nu_stepf.h"
 #include "nu_trainer.h"
 #include "nu_vector.h"
 
-
-/* -------------------------------------------------------------------------- */
+#include <string_view>
 
 namespace nu {
 
-
-/* -------------------------------------------------------------------------- */
-
-//! This class represents a Perceptron neural net
-struct Perceptron {
+/**
+ * @class Perceptron
+ * @brief Represents a Perceptron neural network.
+ *
+ * This class models a perceptron, a type of single-layer neural network.
+ * It provides functionalities for setting the learning rate, input vector, and
+ * performing operations like feedforward and backpropagation.
+ */
+struct Perceptron
+{
     using FpVector = Vector<double>;
 
-    enum class Exception {
+    enum class Exception
+    {
         size_mismatch,
         invalid_sstream_format
     };
 
-    //! default ctor
+    //! Default constructor.
     Perceptron() = default;
 
-    //! ctor
-    Perceptron(const size_t& inputSize, double learningRate = 0.1,
-                 StepFunction step_f = StepFunction());
+    /**
+     * @brief Constructs a perceptron with a specified input size.
+     * @param inputSize The size of the input vector.
+     * @param learningRate The learning rate of the perceptron.
+     * @param step_f The step function used for neuron activation.
+     */
+    Perceptron(size_t inputSize,
+               double learningRate = 0.1,
+               StepFunction step_f = StepFunction());
 
-    //! Create a perceptron using data serialized into the given stream
+    //! Constructs a perceptron from serialized data in a stream.
     Perceptron(std::stringstream& ss) { load(ss); }
 
-    //! copy-ctor
+    //! Default copy and move constructors.
     Perceptron(const Perceptron& nn) = default;
+    Perceptron(Perceptron&& nn) = default;
 
-    //! move-ctor
-    Perceptron(Perceptron&& nn)
-      : _inputSize(std::move(nn._inputSize))
-      , _learningRate(std::move(nn._learningRate))
-      , _inputVector(std::move(nn._inputVector))
-      , _neuron(std::move(nn._neuron))
-    {
-    }
-
-    //! default assignment operator
+    //! Default copy and move assignment operators.
     Perceptron& operator=(const Perceptron& nn) = default;
+    Perceptron& operator=(Perceptron&& nn) = default;
 
-    //! default assignment-move operator
-    Perceptron& operator=(Perceptron&& nn) {
-        if (this != &nn) {
-            _inputSize = std::move(nn._inputSize);
-            _learningRate = std::move(nn._learningRate);
-            _inputVector = std::move(nn._inputVector);
-            _neuron = std::move(nn._neuron);
-        }
+    //! Returns the number of inputs to the perceptron.
+    size_t getInputSize() const noexcept { return _inputVector.size(); }
 
-        return *this;
+    //! Returns the current learning rate of the perceptron.
+    double getLearningRate() const noexcept { return _learningRate; }
+
+    //! Sets a new learning rate for the perceptron.
+    void setLearningRate(double new_rate) { _learningRate = new_rate; }
+
+    //! Sets the input vector for the perceptron.
+    void setInputVector(const FpVector& inputs);
+
+    //! Retrieves the input vector of the perceptron.
+    void getInputVector(FpVector& inputs) const noexcept
+    {
+        inputs = _inputVector;
     }
 
-    //! Return the number of inputs
-    size_t getInputSize() const noexcept { 
-        return _inputVector.size(); 
-    }
+    //! Returns the output of the perceptron.
+    double getOutput() const noexcept { return _neuron.output; }
 
-    //! Return current learning rate
-    double getLearningRate() const noexcept { 
-        return _learningRate; 
-    }
+    //! Returns the sharp output (after applying the step function) of the
+    //! perceptron.
+    double getSharpOutput() const noexcept { return _step_f(getOutput()); }
 
-    //! Change net learning rate
-    void setLearningRate(double new_rate) { 
-        _learningRate = new_rate; 
-    }
-
-    //! Set net inputs
-    void setInputVector(const FpVector& inputs) {
-        if (inputs.size() != _inputVector.size())
-            throw Exception::size_mismatch;
-
-        _inputVector = inputs;
-    }
-
-    //! Get net inputs
-    void getInputVector(FpVector& inputs) const noexcept { 
-        inputs = _inputVector; 
-    }
-
-    //! Get net output
-    double getOutput() const noexcept { 
-        return _neuron.output; 
-    }
-
-    //! Return f(getOutput()), where f is the step function
-    double getSharpOutput() const noexcept {
-        return _step_f(getOutput());
-    }
-
-    //! Fire all neurons of the net and calculate the outputs
+    //! Performs the feedforward operation.
     void feedForward() noexcept;
 
-    //! Fire the neuron, calculate the output
-    //! then apply the learning algorithm to the net
+    //! Performs backpropagation to adjust the weights based on the target
+    //! output.
     void backPropagate(const double& target, double& output) noexcept;
 
-    //! Fire the neuron, calculate the output
-    //! then apply the learning algorithm to the net
-    void backPropagate(const double& target) noexcept {
-        double output;
-        backPropagate(target, output);
-    }
+    //! Performs backpropagation using only the target output.
+    void backPropagate(const double& target) noexcept;
 
-    //! Compute global error
-    double error(const double& target) const noexcept {
-        return std::abs(target - getOutput());
-    }
+    //! Computes the error between the target and actual output.
+    double error(const double& target) const noexcept;
 
-    //! Build the net by using data of the given string stream
+    //! Loads the perceptron configuration from a stream.
     std::stringstream& load(std::stringstream& ss);
 
-    //! Save net status into the given string stream
+    //! Saves the perceptron configuration to a stream.
     std::stringstream& save(std::stringstream& ss) noexcept;
 
-    //! Print the net state out to the given ostream
+    //! Dumps the state of the perceptron to an output stream.
     std::ostream& dump(std::ostream& os) noexcept;
 
+    //! Resets the perceptron's weights to random values.
+    void reshuffleWeights() noexcept;
+
     //! Build the net by using data of the given string stream
-    friend 
-    std::stringstream& operator>>(std::stringstream& ss, Perceptron& net) {
+    friend std::stringstream& operator>>(std::stringstream& ss, Perceptron& net)
+    {
         return net.load(ss);
     }
 
     //! Save net status into the given string stream
-    friend 
-    std::stringstream& operator<<(std::stringstream& ss, Perceptron& net) noexcept {
+    friend std::stringstream& operator<<(std::stringstream& ss,
+                                         Perceptron& net) noexcept
+    {
         return net.save(ss);
     }
 
     //! Print the net state out to the given ostream
-    friend
-    std::ostream& operator<<(std::ostream& os, Perceptron& net) noexcept {
+    friend std::ostream& operator<<(std::ostream& os, Perceptron& net) noexcept
+    {
         return net.dump(os);
     }
 
-    //! Reset all net weights using new random values
-    void reshuffleWeights() noexcept;
-
-private:
-    constexpr static const char* ID_ANN = "perceptron";
-    constexpr static const char* ID_NEURON = "neuron";
-    constexpr static const char* ID_INPUTS = "inputs";
+  private:
+    constexpr static std::string_view ID_ANN = "perceptron";
+    constexpr static std::string_view ID_NEURON = "neuron";
+    constexpr static std::string_view ID_INPUTS = "inputs";
 
     StepFunction _step_f;
-    size_t _inputSize;
     double _learningRate = 0.1;
     FpVector _inputVector;
     Neuron _neuron;
 };
 
-
-/* -------------------------------------------------------------------------- */
-
-//! The perceptron trainer class is a helper class for training perceptrons
-struct PerceptronTrainer : public NNTrainer<Perceptron, nu::Vector<double>, double>
+/**
+ * @class PerceptronTrainer
+ * @brief Helper class for training Perceptron neural networks.
+ *
+ * Facilitates the training of a perceptron by providing methods to run training
+ * sessions over multiple epochs and evaluate the perceptron's performance.
+ */
+struct PerceptronTrainer : public NNTrainer<Perceptron, Vector<double>, double>
 {
     PerceptronTrainer(Perceptron& nn, size_t epochs, double minErr)
-      : NNTrainer<Perceptron, nu::Vector<double>, double>(nn, epochs, minErr)
+      : NNTrainer<Perceptron, Vector<double>, double>(nn, epochs, minErr)
     {
     }
 };
 
-
-/* -------------------------------------------------------------------------- */
-
 } // namespace nu
-
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_PERCEPTRON_H__
