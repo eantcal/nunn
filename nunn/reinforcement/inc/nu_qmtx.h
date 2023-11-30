@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -13,35 +13,28 @@
 
 namespace nu {
 
-struct QMatrix
-{
-  public:
+struct QMatrix {
+public:
     using vect_t = Vector<double>;
     using data_t = std::vector<vect_t>;
 
-    enum class Exception
-    {
+    enum class Exception {
         invalid_index
     };
 
-    QMatrix(const data_t& m)
-      : _data(m)
-    {
-    }
-    QMatrix() = delete;
-    QMatrix(size_t size);
-    QMatrix(const QMatrix& other)
-      : _data(other._data)
+    explicit QMatrix(const data_t& m)
+        : _data(m)
     {
     }
 
-    QMatrix& operator=(const QMatrix& other)
+    QMatrix() = delete;
+    QMatrix(size_t size);
+    QMatrix(const QMatrix& other)
+        : _data(other._data)
     {
-        if (this != &other) {
-            _data = other._data;
-        }
-        return *this;
     }
+
+    QMatrix& operator=(const QMatrix& other) = default;
 
     void fill(const double& value) noexcept;
 
@@ -61,15 +54,12 @@ struct QMatrix
 
     void normalize();
 
-  protected:
+protected:
     data_t& data() noexcept { return _data; }
-
     const data_t& data() const noexcept { return _data; }
-
     void show(std::ostream& os, size_t width = 3) const;
 
-
-  private:
+private:
     void _max(size_t rowidx, size_t& idx, double& max) const;
 
     data_t _data;

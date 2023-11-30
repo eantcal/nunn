@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -48,8 +48,8 @@ void Passenger ::processNew(NN& nn)
 
     fare = pclass == 1 ? 150 : (pclass == 2 ? 30 : 10);
 
-    NN::FpVector input{ getInputVector() };
-    NN::FpVector output{ 0 };
+    NN::FpVector input { getInputVector() };
+    NN::FpVector output { 0 };
 
     nn.setInputVector(input);
     nn.feedForward();
@@ -89,8 +89,8 @@ void Passenger ::find(const Passenger* db, const std::string& searchFor, NN& nn)
                       << std::string(db[i].survived ? "Yes" : "No")
                       << std::endl;
 
-            NN::FpVector input{ db[i].getInputVector() };
-            NN::FpVector output{ 0 };
+            NN::FpVector input { db[i].getInputVector() };
+            NN::FpVector output { 0 };
 
             nn.setInputVector(input);
             nn.feedForward();
@@ -108,9 +108,9 @@ void Passenger ::find(const Passenger* db, const std::string& searchFor, NN& nn)
 // Function which can be used to genrate training and test sets
 // from Passenger database
 void Passenger ::populateDataSet(const Passenger* db,
-                                 TrainingSet& trainingSet,
-                                 TestSet& testSet,
-                                 double trainingSetRate)
+    TrainingSet& trainingSet,
+    TestSet& testSet,
+    double trainingSetRate)
 {
     const size_t dataSetSize = [db] {
         size_t i = 0;
@@ -120,8 +120,7 @@ void Passenger ::populateDataSet(const Passenger* db,
     }();
     std::set<size_t> usedIndex;
 
-    const size_t trainingSetSize =
-      size_t(double(dataSetSize) * trainingSetRate);
+    const size_t trainingSetSize = size_t(double(dataSetSize) * trainingSetRate);
 
     auto reshuffle = [&usedIndex, dataSetSize]() {
         size_t rndIndex = 0;
@@ -145,8 +144,7 @@ void Passenger ::populateDataSet(const Passenger* db,
 
     for (size_t i = 0; i < trainingSetSize; ++i) {
         const size_t rndIndex = reshuffle();
-        trainingSet[db[rndIndex].getInputVector()] =
-          db[rndIndex].getOutputVector();
+        trainingSet[db[rndIndex].getInputVector()] = db[rndIndex].getOutputVector();
     }
 
     for (size_t i = trainingSetSize; i < dataSetSize; ++i) {
@@ -160,8 +158,8 @@ void Passenger ::populateDataSet(const Passenger* db,
 
 void test(const TestSet& testSet, NN& nn)
 {
-    NN::FpVector output{ 0 };
-    NN::FpVector input{ 0 };
+    NN::FpVector output { 0 };
+    NN::FpVector input { 0 };
     size_t sampleCnt = 0;
     size_t errCnt = 0;
 
@@ -231,14 +229,14 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     NN::Topology topology = {
         6, // number of inputs
         6, // hidden layer
-        1  // output
+        1 // output
     };
 
     // Construct the network using topology, learning rate and momentum
-    NN nn{
+    NN nn {
         topology,
         0.10, // learning rate
-        0     // momentum
+        0 // momentum
     };
 
     printDivider();
@@ -252,22 +250,22 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     // Train the net
     trainer.runTraining<DataSet>(
-      trainingSet,
+        trainingSet,
 
-      // Error cost function
-      [](NN& net, const NN::FpVector& target) { return net.calcMSE(target); },
+        // Error cost function
+        [](NN& net, const NN::FpVector& target) { return net.calcMSE(target); },
 
-      // Progress callback
-      [&trainingSet]([[maybe_unused]] NN& nn,
-                     [[maybe_unused]] const nu::Vector<double>& i,
-                     [[maybe_unused]] const nu::Vector<double>& t,
-                     size_t epoch,
-                     size_t sample,
-                     [[maybe_unused]] double err) {
-          if (sample == trainingSet.size() - 1 && epoch % 1000 == 0)
-              std::clog << ".";
-          return false;
-      });
+        // Progress callback
+        [&trainingSet]([[maybe_unused]] NN& nn,
+            [[maybe_unused]] const nu::Vector<double>& i,
+            [[maybe_unused]] const nu::Vector<double>& t,
+            size_t epoch,
+            size_t sample,
+            [[maybe_unused]] double err) {
+            if (sample == trainingSet.size() - 1 && epoch % 1000 == 0)
+                std::clog << ".";
+            return false;
+        });
 
     std::cout << " Done." << std::endl;
 

@@ -8,10 +8,10 @@
 namespace nu {
 
 Perceptron::Perceptron(size_t inputSize,
-                       double learningRate,
-                       StepFunction step_f)
-  : _step_f(step_f)
-  , _learningRate(learningRate)
+    double learningRate,
+    StepFunction step_f)
+    : _step_f(step_f)
+    , _learningRate(learningRate)
 {
     if (inputSize < 1) {
         throw Exception::size_mismatch;
@@ -36,10 +36,10 @@ void Perceptron::setInputVector(const FpVector& inputs)
 void Perceptron::feedForward() noexcept
 {
     double sum = std::inner_product(_inputVector.begin(),
-                                    _inputVector.end(),
-                                    _neuron.weights.begin(),
-                                    0.0) +
-                 _neuron.bias;
+                     _inputVector.end(),
+                     _neuron.weights.begin(),
+                     0.0)
+        + _neuron.bias;
     _neuron.output = Sigmoid()(sum);
 }
 
@@ -52,11 +52,11 @@ void Perceptron::backPropagate(const double& target, double& output) noexcept
     double e = _learningRate * error;
 
     std::transform(
-      _inputVector.begin(),
-      _inputVector.end(),
-      _neuron.weights.begin(),
-      _neuron.weights.begin(),
-      [&](double input, double weight) { return weight + e * input; });
+        _inputVector.begin(),
+        _inputVector.end(),
+        _neuron.weights.begin(),
+        _neuron.weights.begin(),
+        [&](double input, double weight) { return weight + e * input; });
 
     _neuron.bias += e;
 }

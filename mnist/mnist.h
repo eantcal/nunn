@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -25,24 +25,23 @@
 
 //! This class represents a single handwritten digit and its classification
 //! (label)
-class DigitData
-{
-  public:
+class DigitData {
+public:
     using data_t = std::vector<char>;
 
-  private:
+private:
     size_t _dx;
     size_t _dy;
     int _label;
     data_t _data;
 
-  public:
+public:
     //! ctor
     DigitData(size_t dx, size_t dy, int label, const data_t& data) noexcept
-      : _dx(dx)
-      , _dy(dy)
-      , _label(label)
-      , _data(data)
+        : _dx(dx)
+        , _dy(dy)
+        , _label(label)
+        , _data(data)
     {
     }
 
@@ -56,10 +55,10 @@ class DigitData
 
     //! move ctor
     DigitData(DigitData&& other) noexcept
-      : _dx(std::move(other._dx))
-      , _dy(std::move(other._dy))
-      , _label(std::move(other._label))
-      , _data(std::move(other._data))
+        : _dx(std::move(other._dx))
+        , _dy(std::move(other._dy))
+        , _label(std::move(other._label))
+        , _data(std::move(other._data))
     {
     }
 
@@ -113,9 +112,8 @@ class DigitData
 
 //! This class provides a method to load MNIST pair of images and labels files
 //! The data can be retrieved as a list of DigitData objects
-class TrainingData
-{
-  public:
+class TrainingData {
+public:
     using data_t = std::list<std::unique_ptr<DigitData>>;
 
     //! Return a reference to a list of DigitData objects
@@ -142,8 +140,7 @@ class TrainingData
             _data.push_back(std::move(e));
     }
 
-    enum class Exception
-    {
+    enum class Exception {
         lbls_file_not_found,
         imgs_file_not_found,
         lbls_file_read_error,
@@ -156,9 +153,9 @@ class TrainingData
     TrainingData() = delete;
 
     TrainingData(const std::string& lbls_file,
-                 const std::string& imgs_file) throw()
-      : _lblsFile(lbls_file)
-      , _imgsFile(imgs_file)
+        const std::string& imgs_file) throw()
+        : _lblsFile(lbls_file)
+        , _imgsFile(imgs_file)
     {
     }
 
@@ -168,7 +165,7 @@ class TrainingData
     int load();
 
 
-  private:
+private:
     std::string _lblsFile;
     std::string _imgsFile;
 

@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -15,9 +15,8 @@
 namespace nu {
 
 //! This class represents the logistic function
-class Sigmoid
-{
-  public:
+class Sigmoid {
+public:
     //! Calculate logistic function of x
     double operator()(double x) const noexcept { return (1 / (1 + exp(-x))); }
 

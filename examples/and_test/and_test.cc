@@ -1,56 +1,54 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
-
 /*
- * AND function implemented using a Perceptron neural net
+ * Perceptron Neural Network Implementation of the AND Function
+ * ------------------------------------------------------------
+ * This code implements the logical AND function using a Perceptron, 
+ * a type of single-layer neural network. The AND function is a classic 
+ * example of a linearly separable function, making it well-suited for 
+ * learning with a Perceptron.
  *
- * AND is a typical example of linearly separable function. This type
- * of function can be learned by a single Perceptron neural net
+ * The AND function accepts two binary inputs (0 or 1) and produces a single
+ * binary output based on the following truth table:
  *
- * AND takes two input arguments with values in [0,1]
- * and returns one output in [0,1], as specified in the following table:
+ *  Input1 (x1) | Input2 (x2) | Output (y)
+ *  --------------------------------------
+ *       0      |      0      |     0
+ *       0      |      1      |     0
+ *       1      |      0      |     0
+ *       1      |      1      |     1
  *
- *  x1 x2 |  y
- * ---+---+----
- *  0 | 0 |  0
- *  0 | 1 |  0
- *  1 | 0 |  0
- *  1 | 1 |  1
- *
- * It computes the logical-AND, which yields 1 if and only if the two
- * inputs have 1 values.
- *
+ * The output is 1 only when both inputs are 1, embodying the logical AND operation.
+ * This neural network model learns to replicate this behavior by adjusting its 
+ * weights based on the provided training data.
  */
-
 
 #include "nu_perceptron.h"
 #include <iostream>
-
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
     try {
         nu::StepFunction step_f(
-          0.5 /* Lo/Hi-threshold */, 0 /* Lo - Output */, 1 /* Hi - Output */);
+            0.5 /* Lo/Hi-threshold */, 0 /* Lo - Output */, 1 /* Hi - Output */);
 
         nu::Perceptron nn(2 /* inputs */, 0.2 /* learning rate */, step_f);
 
         // This is the bipolar-and function used for the training
         auto and_function = [](int a, int b) { return a & b; };
 
-
         // ---- TRAINING
         // ---------------------------------------------------------
 
         nu::PerceptronTrainer trainer(nn,
-                                      2000, // Max number of epochs
-                                      0.01  // Min error
+            2000, // Max number of epochs
+            0.01 // Min error
         );
 
         std::cout << "AND training start ( Max epochs count="
@@ -66,23 +64,25 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             for (int a = 0; a < 2; ++a) {
                 for (int b = 0; b < 2; ++b) {
                     training_epoch.train(
-                      { double(a), double(b) },       // input vector
-                      { double(and_function(a, b)) }, // target
+                        { double(a), double(b) }, // input vector
+                        { double(and_function(a, b)) }, // target
 
-                      // cost function
-                      [&err](nu::Perceptron& net, const double& target) {
-                          err = net.error(target);
-                          return err;
-                      });
+                        // cost function
+                        [&err](nu::Perceptron& net, const double& target) {
+                            err = net.error(target);
+                            return err;
+                        });
                 }
             }
 
-            if (epoch_n++ % 100 == 0)
+            if (epoch_n++ % 100 == 0) {
                 std::cout << "Epoch #" << epoch_n << " Err = " << err
                           << std::endl;
+            }
 
-            if (err < trainer.getMinErr())
+            if (err < trainer.getMinErr()) {
                 break;
+            }
         }
 
         // ---- TEST
@@ -93,7 +93,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         for (int a = 0; a < 2; ++a) {
             for (int b = 0; b < 2; ++b) {
                 double output = 0.0;
-                nu::Vector<double> input_vec{ double(a), double(b) };
+                nu::Vector<double> input_vec { double(a), double(b) };
 
                 nn.setInputVector(input_vec);
                 nn.feedForward();

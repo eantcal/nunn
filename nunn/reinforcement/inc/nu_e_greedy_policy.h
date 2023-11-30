@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -14,18 +14,17 @@
 
 namespace nu {
 
-template<class Action, class Agent, class RndGen = RandomGenerator<>>
-class EGreedyPolicy
-{
-  public:
+template <class Action, class Agent, class RndGen = RandomGenerator<>>
+class EGreedyPolicy {
+public:
     void setEpsilon(const double& e) noexcept { _epsilon = e; }
 
     double getEpsilon() const noexcept { return _epsilon; }
 
-    template<class QMap>
+    template <class QMap>
     Action selectAction(const Agent& agent,
-                        QMap& qMap,
-                        bool dontExplore = false) const
+        QMap& qMap,
+        bool dontExplore = false) const
     {
         auto validActions = agent.getValidActions();
 
@@ -51,20 +50,19 @@ class EGreedyPolicy
         }
 
         if (reward == .0) {
-            action =
-              validActions[size_t(_rndGen() * double(validActions.size()))];
+            action = validActions[size_t(_rndGen() * double(validActions.size()))];
         }
 
         return action;
     }
 
-    template<class QMap>
+    template <class QMap>
     Action getLearnedAction(const Agent& agent, QMap& qMap) const
     {
         return selectAction(agent, qMap, true);
     }
 
-  private:
+private:
     double _epsilon = .1;
     mutable RndGen _rndGen;
 };

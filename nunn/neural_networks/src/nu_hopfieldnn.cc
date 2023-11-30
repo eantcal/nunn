@@ -68,9 +68,9 @@ void HopfieldNN::_propagate() noexcept
 bool HopfieldNN::_propagateNeuron(size_t i) noexcept
 {
     double sum = std::inner_product(_w.begin() + i * getInputSize(),
-                                    _w.begin() + (i + 1) * getInputSize(),
-                                    _s.begin(),
-                                    0.0);
+        _w.begin() + (i + 1) * getInputSize(),
+        _s.begin(),
+        0.0);
     double state = (sum > 0.0) - (sum < 0.0);
 
     if (state != _s[i]) {

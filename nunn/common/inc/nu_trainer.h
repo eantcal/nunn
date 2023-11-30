@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -10,12 +10,11 @@
 namespace nu {
 
 //! The trainer class is a helper class for neural networks training
-template<class Net, class Input, class Target>
-class NNTrainer
-{
+template <class Net, class Input, class Target>
+class NNTrainer {
     friend class iterator;
 
-  public:
+public:
     using type_t = NNTrainer<Net, Input, Target>;
 
     //! Cost function pointer
@@ -27,31 +26,30 @@ class NNTrainer
     //! Progress call back function prototype
     //! It can break training session returning true
     using progressCallbackPrototype_t = bool(Net&,
-                                             const Input&,
-                                             const Target&,
-                                             size_t /*epoch*/,
-                                             size_t /* sampleIdx */,
-                                             double /* err */);
+        const Input&,
+        const Target&,
+        size_t /*epoch*/,
+        size_t /* sampleIdx */,
+        double /* err */);
 
     //! Progress call back function object wrapper
     using progressCallback_t = std::function<progressCallbackPrototype_t>;
 
     //! Trainer iterator
-    struct iterator
-    {
+    struct iterator {
         friend class NNTrainer;
 
-      private:
+    private:
         NNTrainer* _trainer = nullptr;
         size_t _epoch = 0;
 
         iterator(type_t& trainer, size_t epoch) noexcept
-          : _trainer(&trainer)
-          , _epoch(epoch)
+            : _trainer(&trainer)
+            , _epoch(epoch)
         {
         }
 
-      public:
+    public:
         //! Copy constructor
         iterator(const iterator& it) = default;
 
@@ -60,8 +58,8 @@ class NNTrainer
 
         //! Move constructor
         iterator(iterator&& it) noexcept
-          : _trainer(std::move(it._trainer))
-          , _epoch(std::move(it._epoch))
+            : _trainer(std::move(it._trainer))
+            , _epoch(std::move(it._epoch))
         {
         }
 
@@ -125,10 +123,10 @@ class NNTrainer
     //! @epochs:  max epoch count at which to stop training
     //! @minErr: min error value at which to stop training
     NNTrainer(Net& nn, size_t epochs, double minErr = -1.0) noexcept
-      : _nn(nn)
-      , _epochs(epochs)
-      , _minError(minErr)
-      , _err(0.0)
+        : _nn(nn)
+        , _epochs(epochs)
+        , _minError(minErr)
+        , _err(.0)
     {
     }
 
@@ -157,11 +155,11 @@ class NNTrainer
 
 
     //! Trains the net using a training set of samples
-    template<class TSet>
+    template <class TSet>
     size_t runTraining(const TSet& trainingSet,
-                       costFunction_t errCost,
-                       progressCallback_t progressCbk = nullptr,
-                       double p2use = 1.0)
+        costFunction_t errCost,
+        progressCallback_t progressCbk = nullptr,
+        double p2use = 1.0)
     {
         size_t epoch = 0;
         size_t end_idx = size_t(double(trainingSet.size()) * p2use);
@@ -172,7 +170,7 @@ class NNTrainer
             for (const auto& [input, target] : trainingSet) {
                 if (progressCbk)
                     bContinue = !progressCbk(
-                      _nn, input, target, epoch, sampleIdx++, _err);
+                        _nn, input, target, epoch, sampleIdx++, _err);
 
                 if (train(input, target, errCost) == true)
                     return epoch;
@@ -185,11 +183,11 @@ class NNTrainer
         return epoch;
     }
 
-  protected:
+protected:
     Net& _nn;
-    size_t _epochs;
-    double _minError;
-    double _err;
+    size_t _epochs { 0 };
+    double _minError { .0 };
+    double _err { .0 };
 };
 
 } // namespace nu

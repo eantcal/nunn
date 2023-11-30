@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -14,20 +14,19 @@
 
 namespace nu {
 
-template<class Action, // possible action in state S
-         class State,  // representation of the environmental states
-         class Agent,  // the Q-learning agent
-         class Policy, // policy to follow
-         class ActionRewardMap = std::unordered_map<Action, double>,
-         class QMap = std::unordered_map<State, ActionRewardMap>>
-class QLearn
-{
-  public:
+template <class Action, // possible action in state S
+    class State, // representation of the environmental states
+    class Agent, // the Q-learning agent
+    class Policy, // policy to follow
+    class ActionRewardMap = std::unordered_map<Action, double>,
+    class QMap = std::unordered_map<State, ActionRewardMap>>
+class QLearn {
+public:
     using reward_t = double; // the reward
     using Listener = LearnerListener;
 
     QLearn(Listener* listener = nullptr) noexcept
-      : _listener(listener)
+        : _listener(listener)
     {
     }
 
@@ -56,7 +55,6 @@ class QLearn
     // learn episode
     double learn(Agent& agent, const Policy& policy = Policy())
     {
-
         size_t moveCnt = 0;
         double reward = 0;
 
@@ -73,12 +71,11 @@ class QLearn
 
     const QMap& getQMap() const noexcept { return _qMap; }
 
-  protected:
+protected:
     QMap& getQMap() noexcept { return _qMap; }
 
     double updateQ(Agent& agent, const Policy& policy)
     {
-
         Action action = policy.template selectAction<QMap>(agent, getQMap());
 
         auto& qsa = getQMap()[agent.getCurrentState()][action];
@@ -109,14 +106,14 @@ class QLearn
         return qsa;
     }
 
-  private:
-    double _learningRate = 0.1;
-    double _discountRate = 0.9;
+private:
+    double _learningRate { 0.1 };
+    double _discountRate { 0.9 };
 
     QMap _qMap;
     Policy _policy;
 
-    Listener* _listener = nullptr;
+    Listener* _listener  { nullptr };
 };
 
 }

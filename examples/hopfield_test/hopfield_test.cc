@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -21,16 +21,16 @@ const size_t pattern_size = 100;
 const size_t n_of_patterns = 5;
 
 std::string g_learning_patterns[] = { // 0123456789
-    { "   ***    "                    // 0
-      "  ****    "                    // 1
-      " *****    "                    // 2
-      "   ***    "                    // 3
-      "   ***    "                    // 4
-      "   ***    "                    // 5
-      "   ***    "                    // 6
-      "   ***    "                    // 7
-      " *******  "                    // 8
-      " *******  " },                 // 9
+    { "   ***    " // 0
+      "  ****    " // 1
+      " *****    " // 2
+      "   ***    " // 3
+      "   ***    " // 4
+      "   ***    " // 5
+      "   ***    " // 6
+      "   ***    " // 7
+      " *******  " // 8
+      " *******  " }, // 9
 
     { "**********"
       "**********"
@@ -78,16 +78,16 @@ std::string g_learning_patterns[] = { // 0123456789
 };
 
 std::string g_test_patterns[] = { // 0123456789
-    { "   ***    "                // 0
-      "   ***    "                // 1
-      "   ***    "                // 2
-      "   ***    "                // 3
-      "   ***    "                // 4
-      "   ***    "                // 5
-      "   ***    "                // 6
-      "   ***    "                // 7
-      "   ***    "                // 8
-      "   ***    " },             // 9
+    { "   ***    " // 0
+      "   ***    " // 1
+      "   ***    " // 2
+      "   ***    " // 3
+      "   ***    " // 4
+      "   ***    " // 5
+      "   ***    " // 6
+      "   ***    " // 7
+      "   ***    " // 8
+      "   ***    " }, // 9
 
     { "**********"
       "**********"
@@ -162,7 +162,7 @@ static void print_pattern(const nu::HopfieldNN::FpVector& pattern)
 
 
 static void convert_pattern_into_input_v(const std::string& pattern,
-                                         nu::HopfieldNN::FpVector& input_vector)
+    nu::HopfieldNN::FpVector& input_vector)
 {
     size_t i = 0;
     for (auto c : pattern) {
@@ -199,7 +199,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         print_pattern(g_test_patterns[i]);
 
-        std::cout << std::endl << "  RECALLS" << std::endl;
+        std::cout << std::endl
+                  << "  RECALLS" << std::endl;
 
         print_pattern(output_pattern);
     }

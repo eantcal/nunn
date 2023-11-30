@@ -37,12 +37,10 @@ namespace nu {
  * It provides functionalities for setting the learning rate, input vector, and
  * performing operations like feedforward and backpropagation.
  */
-struct Perceptron
-{
+struct Perceptron {
     using FpVector = Vector<double>;
 
-    enum class Exception
-    {
+    enum class Exception {
         size_mismatch,
         invalid_sstream_format
     };
@@ -57,8 +55,8 @@ struct Perceptron
      * @param step_f The step function used for neuron activation.
      */
     Perceptron(size_t inputSize,
-               double learningRate = 0.1,
-               StepFunction step_f = StepFunction());
+        double learningRate = 0.1,
+        StepFunction step_f = StepFunction());
 
     //! Constructs a perceptron from serialized data in a stream.
     Perceptron(std::stringstream& ss) { load(ss); }
@@ -129,7 +127,7 @@ struct Perceptron
 
     //! Save net status into the given string stream
     friend std::stringstream& operator<<(std::stringstream& ss,
-                                         Perceptron& net) noexcept
+        Perceptron& net) noexcept
     {
         return net.save(ss);
     }
@@ -140,13 +138,13 @@ struct Perceptron
         return net.dump(os);
     }
 
-  private:
+private:
     constexpr static std::string_view ID_ANN = "perceptron";
     constexpr static std::string_view ID_NEURON = "neuron";
     constexpr static std::string_view ID_INPUTS = "inputs";
 
     StepFunction _step_f;
-    double _learningRate = 0.1;
+    double _learningRate { 0.1 };
     FpVector _inputVector;
     Neuron _neuron;
 };
@@ -158,10 +156,9 @@ struct Perceptron
  * Facilitates the training of a perceptron by providing methods to run training
  * sessions over multiple epochs and evaluate the perceptron's performance.
  */
-struct PerceptronTrainer : public NNTrainer<Perceptron, Vector<double>, double>
-{
+struct PerceptronTrainer : public NNTrainer<Perceptron, Vector<double>, double> {
     PerceptronTrainer(Perceptron& nn, size_t epochs, double minErr)
-      : NNTrainer<Perceptron, Vector<double>, double>(nn, epochs, minErr)
+        : NNTrainer<Perceptron, Vector<double>, double>(nn, epochs, minErr)
     {
     }
 };

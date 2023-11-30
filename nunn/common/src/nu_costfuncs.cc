@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -17,9 +17,11 @@ double calcCrossEntropy(Vector<double> output, const Vector<double>& target)
 {
     auto log_output = output;
 
-    for (auto& i : log_output)
-        if (i == 0.0)
+    for (auto& i : log_output) {
+        if (i == 0.0) {
             i = std::numeric_limits<double>::min();
+        }
+    }
 
     log_output.log();
 
@@ -29,13 +31,15 @@ double calcCrossEntropy(Vector<double> output, const Vector<double>& target)
     Vector<double> log_inv_output(output.size(), 1.0);
     log_inv_output -= output;
 
-    for (auto& i : log_inv_output)
-        if (i == 0.0)
+    for (auto& i : log_inv_output) {
+        if (i == 0.0) {
             i = std::numeric_limits<double>::min();
+        }
+    }
 
     log_inv_output.log();
 
-    auto res = target;
+    auto res { target};
     res *= log_output;
 
     inv_target *= log_inv_output;

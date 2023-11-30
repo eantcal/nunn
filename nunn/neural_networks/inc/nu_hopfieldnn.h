@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -38,21 +38,19 @@ namespace nu {
  * key pattern. The network's capacity and the number of stored patterns can be
  * queried.
  */
-class HopfieldNN
-{
-  public:
+class HopfieldNN {
+public:
     using FpVector = Vector<double>;
 
-    enum class Exception
-    {
+    enum class Exception {
         size_mismatch,
         invalid_sstream_format
     };
 
     //! Constructs a Hopfield Neural Network.
     explicit HopfieldNN(size_t inputSize = 0) noexcept
-      : _s(inputSize)
-      , _w(inputSize * inputSize)
+        : _s(inputSize)
+        , _w(inputSize * inputSize)
     {
         std::random_device rd;
         _rndgen.seed(rd());
@@ -107,7 +105,7 @@ class HopfieldNN
     //! Clears the network state, resetting it to its initial configuration.
     void clear() noexcept;
 
-  private:
+private:
     static constexpr std::string_view ID_ANN = "HopfieldNN";
     static constexpr std::string_view ID_WEIGHTS = "Weights";
     static constexpr std::string_view ID_NEURON_ST = "NeuronStates";
@@ -131,7 +129,7 @@ inline std::stringstream& operator>>(std::stringstream& ss, HopfieldNN& net)
 }
 
 inline std::stringstream& operator<<(std::stringstream& ss,
-                                     HopfieldNN& net) noexcept
+    HopfieldNN& net) noexcept
 {
     return net.save(ss);
 }

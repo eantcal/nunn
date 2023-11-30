@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -19,13 +19,11 @@
 
 namespace nu {
 
-class QLGraph
-{
-  public:
+class QLGraph {
+public:
     using valid_actions_t = std::vector<size_t>;
 
-    enum
-    {
+    enum {
         NO_REWARD = 0,
         REWARD = 100,
         FORBIDDEN = -1
@@ -35,13 +33,13 @@ class QLGraph
     using Topology = std::unordered_map<size_t, std::list<size_t>>;
 
     QLGraph(const size_t& n_of_states,
-            const size_t& goal_state,
-            const Topology& topology);
+        const size_t& goal_state,
+        const Topology& topology);
 
     QLGraph(const QMatrix& reward_mtx)
-      : _nOfStates(reward_mtx.size())
-      , _rewardMtx(reward_mtx)
-      , _q_mtx(reward_mtx.size())
+        : _nOfStates(reward_mtx.size())
+        , _rewardMtx(reward_mtx)
+        , _q_mtx(reward_mtx.size())
     {
         assert(_nOfStates > 0);
     }
@@ -54,21 +52,20 @@ class QLGraph
 
     double getDiscountRate() const noexcept { return _discountRate; }
 
-    struct Helper
-    {
+    struct Helper {
         Helper() noexcept
-          : _rndGen(new RandomGenerator<>)
+            : _rndGen(new RandomGenerator<>)
         {
         }
-        virtual ~Helper(){};
+        virtual ~Helper() {};
         virtual void beginEpisode(const size_t& /*episode*/,
-                                  QLGraph& /*qlobj*/) const {};
+            QLGraph& /*qlobj*/) const {};
         virtual void endEpisode(const size_t& /*episode*/,
-                                QLGraph& /*qlobj*/) const {};
+            QLGraph& /*qlobj*/) const {};
         virtual bool quitRequestPending() const { return false; }
         virtual double rnd() const noexcept { return (*_rndGen)(); }
 
-      private:
+    private:
         std::unique_ptr<RandomGenerator<>> _rndGen;
     };
 
@@ -81,7 +78,7 @@ class QLGraph
         return _q_mtx.maxarg(state);
     }
 
-  private:
+private:
     static valid_actions_t retrieveValidActions(const QMatrix& r, size_t state);
 
     size_t rand_of(const valid_actions_t& va)
@@ -96,8 +93,8 @@ class QLGraph
     QMatrix _rewardMtx;
     QMatrix _q_mtx;
 
-    double _learningRate = 0.8;
-    double _discountRate = 0.8;
+    double _learningRate { 0.8 };
+    double _discountRate  { 0.8 };
 };
 
 }

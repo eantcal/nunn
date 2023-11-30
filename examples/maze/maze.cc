@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -27,10 +27,8 @@
 #include <thread>
 #include <vector>
 
-struct Envirnoment
-{
-    enum
-    {
+struct Envirnoment {
+    enum {
         _X = 46,
         _Y = 31
     };
@@ -78,11 +76,9 @@ struct Envirnoment
 };
 
 
-struct Action
-{
+struct Action {
     // Enum representing possible movements
-    enum class move_t : int
-    {
+    enum class move_t : int {
         Left,
         Right,
         Up,
@@ -94,7 +90,7 @@ struct Action
 
     // Explicit constructor to prevent implicit conversions
     explicit Action(move_t m) noexcept
-      : _move(m)
+        : _move(m)
     {
     }
 
@@ -116,25 +112,24 @@ struct Action
     static list_t make_complete_list() noexcept
     {
         return { { Action(move_t::Left),
-                   Action(move_t::Right),
-                   Action(move_t::Up),
-                   Action(move_t::Down) } };
+            Action(move_t::Right),
+            Action(move_t::Up),
+            Action(move_t::Down) } };
     }
 
-  private:
+private:
     move_t _move;
 };
 
 
-struct State
-{
-  public:
+struct State {
+public:
     State() = default;
 
     // Constructor using structured binding for clarity
     State(int x, int y) noexcept
-      : _x(x)
-      , _y(y)
+        : _x(x)
+        , _y(y)
     {
     }
 
@@ -152,18 +147,18 @@ struct State
     void apply(const Action& action) noexcept
     {
         switch (action.get()) {
-            case Action::move_t::Left:
-                --_x;
-                break;
-            case Action::move_t::Right:
-                ++_x;
-                break;
-            case Action::move_t::Up:
-                --_y;
-                break;
-            case Action::move_t::Down:
-                ++_y;
-                break;
+        case Action::move_t::Left:
+            --_x;
+            break;
+        case Action::move_t::Right:
+            ++_x;
+            break;
+        case Action::move_t::Up:
+            --_y;
+            break;
+        case Action::move_t::Down:
+            ++_y;
+            break;
         }
     }
 
@@ -173,18 +168,17 @@ struct State
         return _x == other._x && _y == other._y;
     }
 
-  private:
-    int _x{ 0 };
-    int _y{ 0 };
+private:
+    int _x { 0 };
+    int _y { 0 };
 };
 
-class Agent
-{
-  public:
+class Agent {
+public:
     Agent(const Envirnoment& env, const State& init, const State& goal) noexcept
-      : _env(env)
-      , _state(init)
-      , _goalState(goal)
+        : _env(env)
+        , _state(init)
+        , _goalState(goal)
     {
     }
 
@@ -194,16 +188,16 @@ class Agent
         const auto y = _state.get_y();
 
         switch (action.get()) {
-            case Action::move_t::Left:
-                return (x > 0 && !_env.map[y][x - 1]);
-            case Action::move_t::Right:
-                return (x < (_env.max_x() - 1) && !_env.map[y][x + 1]);
-            case Action::move_t::Up:
-                return (y > 0 && !_env.map[y - 1][x]);
-            case Action::move_t::Down:
-                return (y < (_env.max_y() - 1) && !_env.map[y + 1][x]);
-            default:
-                return false;
+        case Action::move_t::Left:
+            return (x > 0 && !_env.map[y][x - 1]);
+        case Action::move_t::Right:
+            return (x < (_env.max_x() - 1) && !_env.map[y][x + 1]);
+        case Action::move_t::Up:
+            return (y > 0 && !_env.map[y - 1][x]);
+        case Action::move_t::Down:
+            return (y < (_env.max_y() - 1) && !_env.map[y + 1][x]);
+        default:
+            return false;
         }
     }
 
@@ -212,9 +206,9 @@ class Agent
         auto all_actions = Action::make_complete_list();
         Action::list_t valid_actions;
         std::ranges::copy_if(
-          all_actions,
-          std::back_inserter(valid_actions),
-          [this](const auto& action) { return isValid(action); });
+            all_actions,
+            std::back_inserter(valid_actions),
+            [this](const auto& action) { return isValid(action); });
         return valid_actions;
     }
 
@@ -244,14 +238,13 @@ class Agent
     [[nodiscard]] bool goal() const noexcept { return _state == _goalState; }
     [[nodiscard]] double reward() const noexcept { return goal() ? 100.0 : 0; }
 
-  private:
+private:
     const Envirnoment& _env;
     State _state;
     State _goalState;
 };
 
-struct Render
-{
+struct Render {
     static constexpr char AGENT_CHAR = 'A';
     static constexpr char GOAL_CHAR = 'G';
     static constexpr char PATH_CHAR = ' ';
@@ -266,22 +259,21 @@ struct Render
 
         for (int row = 0; row < env.max_y(); ++row) {
             for (int col = 0; col < env.max_x(); ++col) {
-                char displayChar =
-                  getDisplayChar(row, col, agentX, agentY, goalX, goalY, env);
+                char displayChar = getDisplayChar(row, col, agentX, agentY, goalX, goalY, env);
                 os << displayChar;
             }
             os << std::endl;
         }
     }
 
-  private:
+private:
     char getDisplayChar(int row,
-                        int col,
-                        int agentX,
-                        int agentY,
-                        int goalX,
-                        int goalY,
-                        const Envirnoment& env) const
+        int col,
+        int agentX,
+        int agentY,
+        int goalX,
+        int goalY,
+        const Envirnoment& env) const
     {
         if (row == agentY && col == agentX) {
             return (agentX == goalX && agentY == goalY) ? AGENT_AT_GOAL_CHAR
@@ -296,25 +288,23 @@ struct Render
 
 namespace std {
 
-template<>
-struct hash<State>
-{
+template <>
+struct hash<State> {
     size_t operator()(const State& k) const
     {
         // A better hash combination technique using a prime number
-        size_t h1 = std::hash<int>{}(k.get_x());
-        size_t h2 = std::hash<int>{}(k.get_y());
+        size_t h1 = std::hash<int> {}(k.get_x());
+        size_t h2 = std::hash<int> {}(k.get_y());
         return h1 ^ (h2 << 1);
     }
 };
 
-template<>
-struct hash<Action>
-{
+template <>
+struct hash<Action> {
     size_t operator()(const Action& k) const
     {
         // Hashing the underlying integer value of the enum
-        return std::hash<size_t>{}(static_cast<size_t>(k.get()));
+        return std::hash<size_t> {}(static_cast<size_t>(k.get()));
     }
 };
 
@@ -342,7 +332,7 @@ void cls()
         COORD homeCoords = { 0, 0 };
         FillConsoleOutputCharacter(hStdOut, ' ', cellCount, homeCoords, &count);
         FillConsoleOutputAttribute(
-          hStdOut, csbi.wAttributes, cellCount, homeCoords, &count);
+            hStdOut, csbi.wAttributes, cellCount, homeCoords, &count);
         SetConsoleCursorPosition(hStdOut, homeCoords);
     }
 #else
@@ -352,24 +342,22 @@ void cls()
 
 constexpr bool useEGreedyPolicy = true;
 using Policy = std::conditional<useEGreedyPolicy,
-                                nu::EGreedyPolicy<Action, Agent>,
-                                nu::SoftmaxPolicy<Action, Agent>>::type;
+    nu::EGreedyPolicy<Action, Agent>,
+    nu::SoftmaxPolicy<Action, Agent>>::type;
 
 constexpr bool useSarsa = true;
-using Learner =
-  std::conditional<useSarsa,
-                   nu::Sarsa<Action, State, Agent, Policy>,
-                   nu::QLearn<Action, State, Agent, Policy>>::type;
+using Learner = std::conditional<useSarsa,
+    nu::Sarsa<Action, State, Agent, Policy>,
+    nu::QLearn<Action, State, Agent, Policy>>::type;
 
-struct Simulator
-{
-    template<class Render>
+struct Simulator {
+    template <class Render>
     size_t play(int episode,
-                const Render& r,
-                const Envirnoment& env,
-                const State& goal,
-                Learner& ql,
-                int timeout)
+        const Render& r,
+        const Envirnoment& env,
+        const State& goal,
+        Learner& ql,
+        int timeout)
     {
         size_t moveCnt = 0;
 
@@ -416,18 +404,17 @@ struct Simulator
     }
 };
 
-struct App
-{
+struct App {
     // envirnoment
     Envirnoment env;
-    State goal{ 44, 29 };
+    State goal { 44, 29 };
     Render render;
     Learner learner;
     Simulator simulator;
 
-    static constexpr int episodies{ 100000 };
-    static constexpr int timeout{ 3000 };
-    static constexpr double greward{ 1000 };
+    static constexpr int episodies { 100000 };
+    static constexpr int timeout { 3000 };
+    static constexpr double greward { 1000 };
 
     int learn()
     {
@@ -461,7 +448,7 @@ struct App
     {
         while (true) {
             simulator.play<Render>(
-              episode, render, env, goal, learner, timeout);
+                episode, render, env, goal, learner, timeout);
         }
     }
 };
@@ -469,7 +456,7 @@ struct App
 int main()
 {
     App app;
-    const auto episode{ app.learn() };
+    const auto episode { app.learn() };
     app.play(episode);
     return 0;
 }

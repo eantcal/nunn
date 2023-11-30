@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -12,9 +12,9 @@
 namespace nu {
 
 MlpNN::MlpNN(const Topology& topology, double learningRate, double momentum)
-  : _topology(topology)
-  , _learningRate(learningRate)
-  , _momentum(momentum)
+    : _topology(topology)
+    , _learningRate(learningRate)
+    , _momentum(momentum)
 {
     _build(_topology, _neuronLayers, _inputVector);
     reshuffleWeights();
@@ -60,14 +60,13 @@ void MlpNN::setInputVector(const FpVector& inputs)
 
 void MlpNN::_updateNeuronWeights(Neuron& neuron, size_t layerIdx)
 {
-    const auto lr_err{ neuron.error * _learningRate };
-    const auto m_err{ neuron.error * _momentum };
+    const auto lr_err { neuron.error * _learningRate };
+    const auto m_err { neuron.error * _momentum };
 
     for (size_t inIdx = 0; inIdx < neuron.weights.size(); ++inIdx) {
         const auto dw_prev_step = neuron.deltaW[inIdx];
 
-        neuron.deltaW[inIdx] =
-          _getInput(layerIdx - 1, inIdx) * lr_err + m_err * dw_prev_step;
+        neuron.deltaW[inIdx] = _getInput(layerIdx - 1, inIdx) * lr_err + m_err * dw_prev_step;
 
         neuron.weights[inIdx] += neuron.deltaW[inIdx];
     }
@@ -78,18 +77,14 @@ void MlpNN::_updateNeuronWeights(Neuron& neuron, size_t layerIdx)
 void MlpNN::reshuffleWeights() noexcept
 {
     auto weights_cnt = std::accumulate(
-      _neuronLayers.begin(),
-      _neuronLayers.end(),
-      0.0,
-      [](auto acc, const auto& nl) {
-          return acc + std::transform_reduce(nl.begin(),
-                                             nl.end(),
-                                             0.0,
-                                             std::plus<>(),
-                                             [](const auto& neuron) {
-                                                 return neuron.weights.size();
-                                             });
-      });
+        _neuronLayers.begin(),
+        _neuronLayers.end(),
+        0.0,
+        [](auto acc, const auto& nl) {
+            return acc + std::transform_reduce(nl.begin(), nl.end(), 0.0, std::plus<>(), [](const auto& neuron) {
+                return neuron.weights.size();
+            });
+        });
 
     weights_cnt = std::sqrt(weights_cnt);
 
@@ -100,10 +95,10 @@ void MlpNN::reshuffleWeights() noexcept
     for (auto& nl : _neuronLayers) {
         for (auto& neuron : nl) {
             std::transform(
-              neuron.weights.begin(),
-              neuron.weights.end(),
-              neuron.weights.begin(),
-              [&](auto&) { return (-1.0 + 2 * rndgen()) / weights_cnt; });
+                neuron.weights.begin(),
+                neuron.weights.end(),
+                neuron.weights.begin(),
+                [&](auto&) { return (-1.0 + 2 * rndgen()) / weights_cnt; });
 
             std::fill(neuron.deltaW.begin(), neuron.deltaW.end(), 0.0);
             neuron.bias = rndgen();
@@ -329,12 +324,12 @@ double MlpNN::calcCrossEntropy(const FpVector& targetVector)
 }
 
 void MlpNN::_fireNeuron(NeuronLayer& nlayer,
-                        size_t layerIdx,
-                        size_t outIdx) noexcept
+    size_t layerIdx,
+    size_t outIdx) noexcept
 {
     auto& neuron = nlayer[outIdx];
 
-    double sum{ .0 };
+    double sum { .0 };
 
     // Sum of all the weights * input value
     for (size_t idx = 0; const auto& wi : neuron.weights) {
@@ -347,14 +342,13 @@ void MlpNN::_fireNeuron(NeuronLayer& nlayer,
 }
 
 void MlpNN::_backPropagate(const FpVector& targetVector,
-                           const FpVector& outputVector)
+    const FpVector& outputVector)
 {
     if (targetVector.size() != outputVector.size()) {
         throw Exception::size_mismatch;
     }
 
     // -------- Calculate error for output neurons
-    // --------------------------
 
     // res_v = target - output
     FpVector error_v;
@@ -367,7 +361,6 @@ void MlpNN::_backPropagate(const FpVector& targetVector,
 
 
     // -------- Change output layer weights
-    // ---------------------------------
 
     auto layerIdx = _topology.size() - 1;
     auto& layer = _neuronLayers[layerIdx - 1];
@@ -379,7 +372,6 @@ void MlpNN::_backPropagate(const FpVector& targetVector,
 
 
     // ------- Calculate hidden-layer errors and weights
-    // --------------------
     //
     // Each hidden neuron error is given from its (output*(1-output))*s,
     // where s is the sum of next layer neurons error*weight of the
@@ -418,7 +410,7 @@ void MlpNN::_backPropagate(const FpVector& targetVector,
             neuron.error = neuron.output * (1 - neuron.output);
 
             // where s = sum of w[nidx]*error of next layer neurons
-            double sum = 0.0;
+            double sum { .0 };
 
             const auto& nlsize = _neuronLayers[layerIdx].size();
 
@@ -434,8 +426,9 @@ void MlpNN::_backPropagate(const FpVector& targetVector,
                 sum += nextLayerNeuron.error * nextLayerNeuron.weights[nidx];
 
                 // Add also bias-error rate
-                if (nnidx == (nlsize - 1))
+                if (nnidx == (nlsize - 1)) {
                     sum += nextLayerNeuron.error * nextLayerNeuron.bias;
+                }
             }
 
             neuron.error *= sum;
@@ -446,8 +439,8 @@ void MlpNN::_backPropagate(const FpVector& targetVector,
 }
 
 void MlpNN::_build(const Topology& topology,
-                   std::vector<NeuronLayer>& neuronLayers,
-                   FpVector& inputs)
+    std::vector<NeuronLayer>& neuronLayers,
+    FpVector& inputs)
 {
     if (topology.size() < 3) {
         throw(Exception::size_mismatch);
@@ -478,8 +471,8 @@ void MlpNN::_build(const Topology& topology,
 }
 
 void MlpNN::_calcMSE(const FpVector& targetVector,
-                     const FpVector& outputVector,
-                     FpVector& res_v) noexcept
+    const FpVector& outputVector,
+    FpVector& res_v) noexcept
 {
     // res = (1 - out) * out
     res_v.resize(outputVector.size(), 1.0);

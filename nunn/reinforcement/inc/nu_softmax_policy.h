@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -14,10 +14,9 @@
 
 namespace nu {
 
-template<class Action, class Agent, class RndGen = RandomGenerator<>>
-class SoftmaxPolicy
-{
-  public:
+template <class Action, class Agent, class RndGen = RandomGenerator<>>
+class SoftmaxPolicy {
+public:
     void setTemperature(const double& temperature) noexcept
     {
         _temperature = temperature;
@@ -25,7 +24,7 @@ class SoftmaxPolicy
 
     double getTemperature() const noexcept { return _temperature; }
 
-    template<class QMap>
+    template <class QMap>
     Action selectAction(const Agent& agent, QMap& qMap) const
     {
         // Get agent to reward map
@@ -65,7 +64,7 @@ class SoftmaxPolicy
         return it->first;
     }
 
-    template<class QMap>
+    template <class QMap>
     Action getLearnedAction(const Agent& agent, QMap& qMap) const
     {
         auto validActions = agent.getValidActions();
@@ -95,7 +94,7 @@ class SoftmaxPolicy
         return action;
     }
 
-  private:
+private:
     double _temperature = 1.0;
     mutable RandomGenerator<> _rndGen;
 };

@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -55,13 +55,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     NeuralNet::Topology topology = {
         2, // input layer takes a two dimensional vector as input
         2, // hidden layer size
-        1  // output
+        1 // output
     };
 
     try {
 
         // Construct the network using topology, learning rate and momentum
-        NeuralNet nn{
+        NeuralNet nn {
             topology,
             0.4, // learning rate
             0.9, // momentum
@@ -74,9 +74,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         using TrainingSet = std::map<std::vector<double>, std::vector<double>>;
 
         TrainingSet traing_set = { { { 0, 0 }, { 0 } },
-                                   { { 0, 1 }, { 1 } },
-                                   { { 1, 0 }, { 1 } },
-                                   { { 1, 1 }, { 0 } } };
+            { { 0, 1 }, { 1 } },
+            { { 1, 0 }, { 1 } },
+            { { 1, 1 }, { 0 } } };
 
 
         nn.formatJson(std::cout) << std::endl;
@@ -89,8 +89,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         // Create a trainer object
         Trainer trainer(nn,
-                        EPOCHS, // Max number of epochs
-                        MIN_ERR // Min error
+            EPOCHS, // Max number of epochs
+            MIN_ERR // Min error
         );
 
         std::cout << "XOR training start ( Max epochs count="
@@ -129,13 +129,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
          */
 
         // Step function
-        auto step_f =
-          nu::StepFunction(0.5 /*threshold*/, 0 /* LO */, 1 /* HI */);
+        auto step_f = nu::StepFunction(0.5 /*threshold*/, 0 /* LO */, 1 /* HI */);
 
-        std::cout << std::endl << "XOR Test " << std::endl;
+        std::cout << std::endl
+                  << "XOR Test " << std::endl;
 
         for (const auto& sample : traing_set) {
-            vect_t output_vec{ 0.0 };
+            vect_t output_vec { 0.0 };
 
             nn.setInputVector(sample.first);
             nn.feedForward();

@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -22,67 +22,55 @@ namespace nu {
 //! math operations used by learning algorithms
 
 // Define a concept for number-like data types
-template<typename T>
+template <typename T>
 concept Number = std::is_arithmetic_v<T>;
 
-template<Number T = double>
-class Vector
-{
-  public:
+template <Number T = double>
+class Vector {
+public:
     using DataType = T;
     using VectorData = std::vector<DataType>;
 
     using iterator = typename VectorData::iterator;
     using const_iterator = typename VectorData::const_iterator;
 
-    enum class Exception
-    {
+    enum class Exception {
         size_mismatch
     };
-
 
     //! Construct an empty vector, with no elements.
     Vector() = default;
 
-
     //! Copy constructor
     Vector(const Vector&) = default;
 
-
     //! Constructor to use std::span for safer array handling
     Vector(const std::span<T> v) noexcept
-      : _v(v.begin(), v.end())
+        : _v(v.begin(), v.end())
     {
     }
 
     //! Construct a vector coping elements of a given c-style vector
     Vector(const double* v, size_t v_len) noexcept
-      : _v(v_len)
+        : _v(v_len)
     {
         memcpy(_v.data(), v, v_len);
     }
 
-
     //! Initializer list constructor
     Vector(const std::initializer_list<T> l) noexcept
-      : _v(l)
+        : _v(l)
     {
     }
-
 
     //! Move constructor
-    Vector(Vector&& other) noexcept
-      : _v(std::move(other._v))
-    {
-    }
-
+    Vector(Vector&& other) = default;
 
     //! Fill constructor
     Vector(const size_t& size, DataType v = 0.0) noexcept
-      : _v(size, v)
+        : _v(size, v)
     {
     }
-
 
     //! std::vector constructor
     Vector(const VectorData& v) noexcept
@@ -90,16 +78,15 @@ class Vector
     {
     }
 
-
     //! Copy assignment operator
     Vector& operator=(const Vector&) = default;
-
 
     //! Fill assignment operator
     Vector& operator=(const T& value) noexcept
     {
-        if (!_v.empty())
+        if (!_v.empty()) {
             std::fill(_v.begin(), _v.end(), value);
+        }
 
         return *this;
     }
@@ -113,14 +100,11 @@ class Vector
         return *this;
     }
 
-
     //! Return size
     size_t size() const noexcept { return _v.size(); }
 
-
     //! Return whether the vector is empty
     bool empty() const noexcept { return _v.empty(); }
-
 
     //! Change size
     void resize(const size_t& size, DataType v = 0.0) noexcept
@@ -128,30 +112,23 @@ class Vector
         _v.resize(size, v);
     }
 
-
     //! Return iterator to beginning
     iterator begin() noexcept { return _v.begin(); }
-
 
     //! Return const_iterator to beginning
     const_iterator cbegin() const noexcept { return _v.cbegin(); }
 
-
     //! Return iterator to end
     iterator end() noexcept { return _v.end(); }
-
 
     //! Return const_iterator to end
     const_iterator cend() const noexcept { return _v.cend(); }
 
-
     //! Access element
     DataType operator[](size_t idx) const noexcept { return _v[idx]; }
 
-
     //! Access element
     DataType& operator[](size_t idx) noexcept { return _v[idx]; }
-
 
     //! Add element at the end
     void push_back(const DataType& item) { _v.push_back(item); }
@@ -159,8 +136,9 @@ class Vector
     // Using ranges for operations like maxarg
     size_t maxarg() noexcept
     {
-        if (empty())
+        if (empty()) {
             return size_t(-1);
+        }
 
         return std::distance(_v.begin(), std::ranges::max_element(_v));
     }
@@ -171,14 +149,16 @@ class Vector
     //! Return dot product
     DataType dot(const Vector& other)
     {
-        if (other.size() != size())
+        if (other.size() != size()) {
             throw Exception::size_mismatch;
+        }
 
         DataType sum = 0;
         size_t idx = 0;
 
-        for (auto& i : _v)
+        for (auto& i : _v) {
             sum += i * other[idx++];
+        }
 
         return sum;
     }
@@ -187,8 +167,9 @@ class Vector
     //! For each element x in vector, x=f(x)
     const Vector& apply(const std::function<T(T)>& f)
     {
-        for (auto& i : _v)
+        for (auto& i : _v) {
             i = f(i);
+        }
 
         return *this;
     }
@@ -224,17 +205,14 @@ class Vector
         return (this == &other) || _v == other._v;
     }
 
-
     //! Relational operator !=
     bool operator!=(const Vector& other) const noexcept
     {
         return (this != &other) && _v != other._v;
     }
 
-
     //! Relational operator <
     bool operator<(const Vector& other) const noexcept { return _v < other._v; }
-
 
     //! Relational operator <=
     bool operator<=(const Vector& other) const noexcept
@@ -305,27 +283,29 @@ class Vector
 
     //! Writes the vector v status into the give string stream ss
     friend std::stringstream& operator<<(std::stringstream& ss,
-                                         const Vector& v) noexcept
+        const Vector& v) noexcept
     {
         ss << v.size() << std::endl;
 
-        for (auto i = v.cbegin(); i != v.cend(); ++i)
+        for (auto i = v.cbegin(); i != v.cend(); ++i) {
             ss << *i << std::endl;
+        }
 
         return ss;
     }
 
     //! Copies the vector status from the stream ss into vector v
     friend std::stringstream& operator>>(std::stringstream& ss,
-                                         Vector& v) noexcept
+        Vector& v) noexcept
     {
         size_t size = 0;
         ss >> size;
 
         v.resize(size);
 
-        for (size_t i = 0; i < size; ++i)
+        for (size_t i = 0; i < size; ++i) {
             ss >> v[i];
+        }
 
         return ss;
     }
@@ -335,8 +315,9 @@ class Vector
     {
         os << "[ ";
 
-        for (auto i = v.cbegin(); i != v.cend(); ++i)
+        for (auto i = v.cbegin(); i != v.cend(); ++i) {
             os << *i << " ";
+        }
 
         os << " ]";
 
@@ -378,10 +359,11 @@ class Vector
     //! Return the square euclidean norm of vector
     DataType euclideanNorm2() const noexcept
     {
-        DataType res = 0.0;
+        DataType res { .0 };
 
-        for (size_t i = 0; i < _v.size(); ++i)
+        for (size_t i = 0; i < _v.size(); ++i) {
             res += _v[i] * _v[i];
+        }
 
         return res;
     }
@@ -395,22 +377,22 @@ class Vector
     //! Return a const reference to standard vector
     const std::vector<T>& to_stdvec() const noexcept { return _v; }
 
-
     //! Return a reference to standard vector
     std::vector<T>& to_stdvec() noexcept { return _v; }
 
-  private:
+private:
     VectorData _v;
 
     Vector& _op(const Vector& other,
-                std::function<void(DataType&, const DataType&)> f)
+        std::function<void(DataType&, const DataType&)> f)
     {
-        if (other.size() != size())
+        if (other.size() != size()) {
             throw Exception::size_mismatch;
+        }
 
-        size_t idx = 0;
-        for (auto& i : _v)
+        for (size_t idx = 0; auto& i : _v) {
             f(i, other[idx++]);
+        }
 
         return *this;
     }

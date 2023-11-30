@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -15,27 +15,25 @@
 
 namespace nu {
 
-//! This class represents a neuron of a neural net neuron layer
-struct Neuron
-{
-    //! neuron weights
+//! Represents a single neuron within a neural network layer.
+struct Neuron {
+    //! Vector of synaptic weights. Each weight corresponds to the connection strength with an input.
     Vector<double> weights;
 
-    //! amount by which weights will change
+    //! Adjustment vector for weights used during the training process (backpropagation).
     Vector<double> deltaW;
 
-    //! neuron bias
-    double bias = 0.0;
+    //! Bias term for the neuron, contributing to the net input signal beyond weighted inputs.
+    double bias { .0 };
 
-    //! neuron output
-    double output = 0.0;
+    //! Output value of the neuron after applying the activation function.
+    double output { .0 };
 
-    //! error field used by learning algorithm
-    double error = 0.0;
+    //! Error gradient value for the neuron, used in training to update weights and bias.
+    double error { .0 };
 
-    //! Save neuron status into a given string stream
-    friend std::stringstream& operator<<(std::stringstream& ss,
-                                         const Neuron& n) noexcept
+    //! Serializes the neuron's state (bias, weights, delta weights) into a stringstream for saving.
+    friend std::stringstream& operator<<(std::stringstream& ss, const Neuron& n) noexcept
     {
         ss << n.bias << std::endl;
         ss << n.weights << std::endl;
@@ -44,9 +42,8 @@ struct Neuron
         return ss;
     }
 
-    //! Load neuron status from a given string stream
-    friend std::stringstream& operator>>(std::stringstream& ss,
-                                         Neuron& n) noexcept
+    //! Loads the neuron's state (bias, weights, delta weights) from a stringstream.
+    friend std::stringstream& operator>>(std::stringstream& ss, Neuron& n) noexcept
     {
         ss >> n.bias;
         ss >> n.weights;
@@ -55,7 +52,7 @@ struct Neuron
         return ss;
     }
 
-    //! Save JSON formatted neuron status into a given string stream
+    //! Outputs the neuron's state in JSON format, useful for data interchange or human-readable saves.
     std::ostream& formatJson(std::ostream& ss) noexcept
     {
         ss << "{\"bias\":" << bias << ",";
@@ -67,7 +64,7 @@ struct Neuron
         return ss;
     }
 
-    //! Resize both the weights and deltaW vectors
+    //! Resizes the weight and delta weight vectors to a new specified size. Used when initializing or modifying the neuron.
     void resize(size_t size) noexcept
     {
         weights.resize(size);

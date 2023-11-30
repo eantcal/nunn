@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -83,9 +83,9 @@ void DigitData::paint(int xoff, int yoff, HWND hwnd) const noexcept
             int c = dataBits[idx++];
 
             SetPixel(hdc,
-                     int(x) + xoff,
-                     int(y) + yoff,
-                     RGB(255 - c, 255 - c, 255 - c));
+                int(x) + xoff,
+                int(y) + yoff,
+                RGB(255 - c, 255 - c, 255 - c));
         }
     }
 
@@ -106,8 +106,7 @@ int TrainingData::load()
     auto to_int32 = [&](const std::vector<char>& buf) {
         assert(buf.size() >= 4);
 
-        return ((buf[0] << 24) & 0xff000000) | ((buf[1] << 16) & 0x00ff0000) |
-               ((buf[2] << 8) & 0x0000ff00) | ((buf[3] << 0) & 0x000000ff);
+        return ((buf[0] << 24) & 0xff000000) | ((buf[1] << 16) & 0x00ff0000) | ((buf[2] << 8) & 0x0000ff00) | ((buf[3] << 0) & 0x000000ff);
     };
 
     try {
@@ -126,16 +125,14 @@ int TrainingData::load()
         if (fread(buf.data(), 1, 4, flbls) != 4)
             throw Exception::lbls_file_read_error;
 
-        if (buf[0] != magicLbls[0] || buf[1] != magicLbls[1] ||
-            buf[2] != magicLbls[2] || buf[3] != magicLbls[3])
+        if (buf[0] != magicLbls[0] || buf[1] != magicLbls[1] || buf[2] != magicLbls[2] || buf[3] != magicLbls[3])
             throw Exception::lbls_file_wrong_magic;
 
         if (fread(buf.data(), 1, 4, fimgs) != 4)
             throw Exception::imgs_file_read_error;
 
 
-        if (buf[0] != magicImgs[0] || buf[1] != magicImgs[1] ||
-            buf[2] != magicImgs[2] || buf[3] != magicImgs[3])
+        if (buf[0] != magicImgs[0] || buf[1] != magicImgs[1] || buf[2] != magicImgs[2] || buf[3] != magicImgs[3])
             throw Exception::imgs_file_wrong_magic;
 
 
@@ -178,7 +175,7 @@ int TrainingData::load()
                 break;
 
             std::unique_ptr<DigitData> digit_info(
-              new DigitData(size_t(n_cols), size_t(n_rows), label, data));
+                new DigitData(size_t(n_cols), size_t(n_rows), label, data));
 
             _data.push_back(std::move(digit_info));
         }

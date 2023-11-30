@@ -1,5 +1,5 @@
 //
-// This file is part of nunn Library
+// This file is part of the nunn Library
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
@@ -47,17 +47,15 @@ namespace nu {
 
 //! @class MlpNN
 //! @brief Represents a Multi-Layer Perceptron (MLP) neural network.
-class MlpNN
-{
-  public:
+class MlpNN {
+public:
     using FpVector = Vector<double>;
     using costFunction_t = std::function<cf::costfunc_t>;
     using NeuronLayer = std::vector<Neuron>;
     using Topology = Vector<size_t>;
 
     //! Enum class for exception errors.
-    enum class Exception
-    {
+    enum class Exception {
         size_mismatch,
         invalid_sstream_format,
         userdef_costf_not_defined
@@ -69,8 +67,8 @@ class MlpNN
     //! Constructor to initialize the neural network with topology, learning
     //! rate, and momentum.
     MlpNN(const Topology& topology,
-          double learningRate = 0.1,
-          double momentum = 0.5);
+        double learningRate = 0.1,
+        double momentum = 0.5);
 
     // Default copy and move constructors.
     MlpNN(const MlpNN& nn) = default;
@@ -187,7 +185,7 @@ class MlpNN
         return ID_INPUTS;
     }
 
-  private:
+private:
     // Updates the weights of a given neuron based on the Back Propagation
     // algorithm.
     void _updateNeuronWeights(Neuron& neuron, size_t layerIdx);
@@ -197,44 +195,43 @@ class MlpNN
 
     // Activates all neurons in a specified layer.
     void _fireNeuron(NeuronLayer& nlayer,
-                     size_t layerIdx,
-                     size_t outIdx) noexcept;
+        size_t layerIdx,
+        size_t outIdx) noexcept;
 
     // Implements the Back Propagation algorithm.
     void _backPropagate(const FpVector& targetVector,
-                        const FpVector& outputVector);
+        const FpVector& outputVector);
 
     // Initializes the neural network using a specified topology.
     static void _build(const Topology& topology,
-                       std::vector<NeuronLayer>& neuronLayers,
-                       FpVector& inputs);
+        std::vector<NeuronLayer>& neuronLayers,
+        FpVector& inputs);
 
     // Calculates the error vector using the Mean Squared Error function.
     static void _calcMSE(const FpVector& targetVector,
-                         const FpVector& outputVector,
-                         FpVector& res_v) noexcept;
+        const FpVector& outputVector,
+        FpVector& res_v) noexcept;
 
     costFunction_t _userdef_costf = nullptr; // User-defined cost function
-    Topology _topology;                      // Network topology
-    double _learningRate{ 0.1 };             // Learning rate
-    double _momentum{ 0.1 };                 // Momentum
-    FpVector _inputVector;                   // Input vector
-    std::vector<NeuronLayer> _neuronLayers;  // Layers of neurons
+    Topology _topology; // Network topology
+    double _learningRate { 0.1 }; // Learning rate
+    double _momentum { 0.1 }; // Momentum
+    FpVector _inputVector; // Input vector
+    std::vector<NeuronLayer> _neuronLayers; // Layers of neurons
 
     // Serialization identifiers
-    constexpr static std::string_view ID_ANN{ "ann" };
-    constexpr static std::string_view ID_NEURON{ "neuron" };
-    constexpr static std::string_view ID_NEURON_LAYER{ "layer" };
-    constexpr static std::string_view ID_TOPOLOGY{ "topology" };
-    constexpr static std::string_view ID_INPUTS{ "inputs" };
+    constexpr static std::string_view ID_ANN { "ann" };
+    constexpr static std::string_view ID_NEURON { "neuron" };
+    constexpr static std::string_view ID_NEURON_LAYER { "layer" };
+    constexpr static std::string_view ID_TOPOLOGY { "topology" };
+    constexpr static std::string_view ID_INPUTS { "inputs" };
 };
 
 //! The trainer class is a helper class for MLP network training
-struct MlpNNTrainer : public NNTrainer<MlpNN, MlpNN::FpVector, MlpNN::FpVector>
-{
+struct MlpNNTrainer : public NNTrainer<MlpNN, MlpNN::FpVector, MlpNN::FpVector> {
 
     MlpNNTrainer(MlpNN& nn, size_t epochs, double minErr = -1) noexcept
-      : NNTrainer<MlpNN, MlpNN::FpVector, MlpNN::FpVector>(nn, epochs, minErr)
+        : NNTrainer<MlpNN, MlpNN::FpVector, MlpNN::FpVector>(nn, epochs, minErr)
     {
     }
 };
