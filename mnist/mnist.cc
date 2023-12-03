@@ -6,9 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
-
 /*
-
 FILE FORMATS FOR THE MNIST DATABASE
 
 All the integers in the files are stored in the MSB first (high endian).
@@ -38,12 +36,12 @@ xxxx     unsigned byte   ??               pixel
 Pixels are organized row-wise.
 Pixel values are 0 to 255. 0 means background (white), 255 means foreground
 (black).
-
 */
-
 
 #include "mnist.h"
 
+#include <fstream>
+#include <vector>
 
 void DigitData::toVect(nu::Vector<double>& v) const noexcept
 {
@@ -54,14 +52,12 @@ void DigitData::toVect(nu::Vector<double>& v) const noexcept
         v[i] = double((unsigned char)data()[i]) / 255.0;
 }
 
-
 void DigitData::labelToTarget(nu::Vector<double>& v) const noexcept
 {
     v.resize(10);
     std::fill(v.begin(), v.end(), 0.0);
     v[getLabel() % 10] = 1.0;
 }
-
 
 #ifdef _WIN32
 void DigitData::paint(int xoff, int yoff, HWND hwnd) const noexcept
@@ -93,7 +89,6 @@ void DigitData::paint(int xoff, int yoff, HWND hwnd) const noexcept
 }
 #endif
 
-
 int TrainingData::load()
 {
     const std::vector<char> magicLbls = { 0, 0, 8, 1 };
@@ -101,97 +96,88 @@ int TrainingData::load()
 
     int ret = -1;
 
-    FILE *flbls = nullptr, *fimgs = nullptr;
-
     auto to_int32 = [&](const std::vector<char>& buf) {
         assert(buf.size() >= 4);
-
-        return ((buf[0] << 24) & 0xff000000) | ((buf[1] << 16) & 0x00ff0000) | ((buf[2] << 8) & 0x0000ff00) | ((buf[3] << 0) & 0x000000ff);
+        return ((buf[0] << 24) & 0xff000000) | ((buf[1] << 16) & 0x00ff0000) | ((buf[2] << 8) & 0x0000ff00) | (buf[3] & 0x000000ff);
     };
 
-    try {
-        flbls = fopen(_lblsFile.c_str(), "rb");
+    std::ifstream flbls(_lblsFile, std::ios::binary);
+    std::ifstream fimgs(_imgsFile, std::ios::binary);
 
-        if (!flbls)
-            throw Exception::lbls_file_not_found;
-
-        fimgs = fopen(_imgsFile.c_str(), "rb");
-
-        if (!fimgs)
-            throw Exception::imgs_file_not_found;
-
-        std::vector<char> buf(4);
-
-        if (fread(buf.data(), 1, 4, flbls) != 4)
-            throw Exception::lbls_file_read_error;
-
-        if (buf[0] != magicLbls[0] || buf[1] != magicLbls[1] || buf[2] != magicLbls[2] || buf[3] != magicLbls[3])
-            throw Exception::lbls_file_wrong_magic;
-
-        if (fread(buf.data(), 1, 4, fimgs) != 4)
-            throw Exception::imgs_file_read_error;
-
-
-        if (buf[0] != magicImgs[0] || buf[1] != magicImgs[1] || buf[2] != magicImgs[2] || buf[3] != magicImgs[3])
-            throw Exception::imgs_file_wrong_magic;
-
-
-        if (fread(buf.data(), 1, 4, flbls) != 4)
-            throw Exception::lbls_file_read_error;
-
-        const int32_t n_of_lbls = to_int32(buf);
-
-        if (fread(buf.data(), 1, 4, fimgs) != 4)
-            throw Exception::imgs_file_read_error;
-
-        const int32_t n_of_imgs = to_int32(buf);
-
-        if (n_of_lbls != n_of_imgs)
-            throw Exception::n_of_items_mismatch;
-
-        ret = int(n_of_imgs);
-
-        if (fread(buf.data(), 1, 4, fimgs) != 4)
-            throw Exception::imgs_file_read_error;
-
-        const int32_t n_rows = to_int32(buf);
-
-        if (fread(buf.data(), 1, 4, fimgs) != 4)
-            throw Exception::imgs_file_read_error;
-
-        const int32_t n_cols = to_int32(buf);
-
-        const size_t imgSize = size_t(n_rows * n_cols);
-
-        for (int32_t i = 0; i < n_of_lbls; ++i) {
-            if (fread(buf.data(), 1, 1, flbls) != 1)
-                break;
-
-            DigitData::data_t data(imgSize);
-
-            const int label = int(buf[0]) & 0xff;
-
-            if (fread(data.data(), 1, data.size(), fimgs) != data.size())
-                break;
-
-            std::unique_ptr<DigitData> digit_info(
-                new DigitData(size_t(n_cols), size_t(n_rows), label, data));
-
-            _data.push_back(std::move(digit_info));
-        }
-
-    } catch (Exception) {
-        if (flbls)
-            fclose(flbls);
-
-        if (fimgs)
-            fclose(fimgs);
-
-        throw;
+    if (!flbls) {
+        throw Exception::lbls_file_not_found;
     }
 
-    fclose(flbls);
-    fclose(fimgs);
+    if (!fimgs) {
+        throw Exception::imgs_file_not_found;
+    }
+
+    std::vector<char> buf(4);
+
+    if (!flbls.read(buf.data(), 4)) {
+        throw Exception::lbls_file_read_error;
+    }
+
+    if (buf != magicLbls) {
+        throw Exception::lbls_file_wrong_magic;
+    }
+
+    if (!fimgs.read(buf.data(), 4)) {
+        throw Exception::imgs_file_read_error;
+    }
+
+    if (buf != magicImgs) {
+        throw Exception::imgs_file_wrong_magic;
+    }
+
+    if (!flbls.read(buf.data(), 4)) {
+        throw Exception::lbls_file_read_error;
+    }
+
+    const int32_t n_of_lbls = to_int32(buf);
+
+    if (!fimgs.read(buf.data(), 4)) {
+        throw Exception::imgs_file_read_error;
+    }
+
+    const int32_t n_of_imgs = to_int32(buf);
+
+    if (n_of_lbls != n_of_imgs) {
+        throw Exception::n_of_items_mismatch;
+    }
+
+    ret = n_of_imgs;
+
+    if (!fimgs.read(buf.data(), 4)) {
+        throw Exception::imgs_file_read_error;
+    }
+
+    const int32_t n_rows = to_int32(buf);
+
+    if (!fimgs.read(buf.data(), 4)) {
+        throw Exception::imgs_file_read_error;
+    }
+
+    const int32_t n_cols = to_int32(buf);
+
+    const size_t imgSize = size_t(n_rows * n_cols);
+
+    for (int32_t i = 0; i < n_of_lbls; ++i) {
+        if (!flbls.read(buf.data(), 1)) {
+            break;
+        }
+
+        DigitData::data_t data(imgSize);
+
+        const int label = int(buf[0]) & 0xff;
+
+        if (!fimgs.read(reinterpret_cast<char*>(data.data()), data.size())) {
+            break;
+        }
+
+        std::unique_ptr<DigitData> digit_info(new DigitData(size_t(n_cols), size_t(n_rows), label, data));
+        _data.push_back(std::move(digit_info));
+    }
 
     return ret;
 }
