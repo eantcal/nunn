@@ -6,7 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
-#include "nu_qmtx.h"
+#include "nu_qmatrix.h"
 
 #include <cassert>
 #include <exception>

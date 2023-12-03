@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "nu_qmtx.h"
+#include "nu_qmatrix.h"
 #include "nu_random_gen.h"
 
 #include <cassert>

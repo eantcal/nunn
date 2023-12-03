@@ -48,7 +48,7 @@
     <ClInclude Include="reinforcement/inc/nu_qlgraph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="reinforcement/inc/nu_qmtx.h">
+    <ClInclude Include="reinforcement/inc/nu_qmatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="reinforcement/inc/nu_sarsa.h">
@@ -80,7 +80,7 @@
     <ClCompile Include="reinforcement/src/nu_qlgraph.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="reinforcement/src/nu_qmtx.cc">
+    <ClCompile Include="reinforcement/src/nu_qmatrix.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

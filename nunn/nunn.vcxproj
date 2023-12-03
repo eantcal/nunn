@@ -239,7 +239,7 @@
     <ClCompile Include="neural_networks/src/nu_mlpnn.cc" />
     <ClCompile Include="neural_networks/src/nu_perceptron.cc" />
     <ClCompile Include="reinforcement/src/nu_qlgraph.cc" />
-    <ClCompile Include="reinforcement/src/nu_qmtx.cc" />
+    <ClCompile Include="reinforcement/src/nu_qmatrix.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common/inc/nu_costfuncs.h" />
@@ -253,7 +253,7 @@
     <ClInclude Include="neural_networks/inc/nu_mlpnn.h" />
     <ClInclude Include="neural_networks/inc/nu_perceptron.h" />
     <ClInclude Include="reinforcement/inc/nu_qlgraph.h" />
-    <ClInclude Include="reinforcement/inc/nu_qmtx.h" />
+    <ClInclude Include="reinforcement/inc/nu_qmatrix.h" />
     <ClInclude Include="reinforcement/inc/nu_sarsa.h" />
     <ClInclude Include="reinforcement/inc/nu_softmax_policy.h" />
     <ClInclude Include="reinforcement/inc/nu_qlearn.h" />
