@@ -36,3 +36,9 @@ set_target_properties(mnist_test PROPERTIES
     CXX_EXTENSIONS OFF
 )
 
+# Copy *ubyte files from source directory to binary directory
+file(GLOB UBITE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*ubyte")
+foreach(file ${UBITE_FILES})
+    get_filename_component(filename ${file} NAME)
+    configure_file(${file} "${CMAKE_CURRENT_BINARY_DIR}/${filename}" COPYONLY)
+endforeach()

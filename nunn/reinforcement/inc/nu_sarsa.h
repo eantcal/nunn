@@ -8,6 +8,7 @@
 
 #include "nu_learner_listener.h"
 #include <unordered_map>
+#include <memory>
 
 namespace nu {
 
@@ -23,7 +24,7 @@ public:
     using Listener = LearnerListener;
 
     // Constructor, optionally accepting a listener for tracking learning events.
-    explicit Sarsa(Listener* listener = nullptr) noexcept
+    explicit Sarsa(std::shared_ptr<Listener> listener = nullptr) noexcept
         : _listener(listener)
     {
     }
@@ -58,7 +59,7 @@ public:
         double reward = 0;
 
         while (!agent.goal()) {
-            if (_listener && !_listener->notify(reward, moveCnt++)) {
+            if (auto listener = _listener.lock(); listener && !listener->notify(reward, moveCnt++)) {
                 break;
             }
             reward += updateQ(agent, policy, state, action);
@@ -98,7 +99,7 @@ private:
     QMap _qMap; // Map storing the state-action values
     Policy _policy; // Policy used in SARSA learning
 
-    Listener* _listener = nullptr; // Optional listener for learning events
+    std::weak_ptr<Listener> _listener;
 };
 
 }

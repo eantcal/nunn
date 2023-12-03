@@ -45,7 +45,6 @@ public:
     {
     }
 
-
     //! copy ctor
     DigitData(const DigitData&) = default;
 
@@ -54,55 +53,31 @@ public:
 
 
     //! move ctor
-    DigitData(DigitData&& other) noexcept
-        : _dx(std::move(other._dx))
-        , _dy(std::move(other._dy))
-        , _label(std::move(other._label))
-        , _data(std::move(other._data))
-    {
-    }
-
+    DigitData(DigitData&& other) noexcept = default;
 
     //! move assign operator
-    DigitData& operator=(DigitData&& other) noexcept
-    {
-        if (this != &other) {
-            _dx = std::move(other._dx);
-            _dy = std::move(other._dy);
-            _label = std::move(other._label);
-            _data = std::move(other._data);
-        }
-
-        return *this;
-    }
-
+    DigitData& operator=(DigitData&& other) noexcept = default;
 
     //! Returns the digit width in pixels
     size_t get_dx() const noexcept { return _dx; }
 
-
     //! Returns the digit height in pixels
     size_t get_dy() const noexcept { return _dy; }
-
 
     //! Returns the digit classification
     int getLabel() const noexcept { return _label; }
 
-
     //! Returns a reference to internal data
     const data_t& data() const noexcept { return _data; }
-
 
     //! Converts the image data into a vector normalizing each item
     //! within the range [0.0, 1.0]
     void toVect(nu::Vector<double>& v) const noexcept;
 
-
     //! Converts a label into a vector where the items are all zeros
     //! except for the item with index corrisponding to the label value
     //! its self (which is within range [0, 9]
     void labelToTarget(nu::Vector<double>& v) const noexcept;
-
 
 #ifdef _WIN32
     //! Draw the digit image on the window
@@ -119,20 +94,18 @@ public:
     //! Return a reference to a list of DigitData objects
     const data_t& data() const noexcept { return _data; }
 
-
     //! reshuffle objects
     void reshuffle()
     {
         std::vector<std::unique_ptr<DigitData>> data;
 
-        for (auto& e : _data)
-            data.push_back(std::move(e));
+        for (auto& e : _data) {
+            data.emplace_back(std::move(e));
+        }
 
         std::random_device rng;
         std::mt19937 urng(rng());
         std::shuffle(data.begin(), data.end(), urng);
-
-        // std::random_shuffle(data.begin(), data.end()); // deprecated in C++14
 
         _data.clear();
 
@@ -159,11 +132,9 @@ public:
     {
     }
 
-
     //! Load data.
     //! @return number of loaded items or -1 in case of error
     int load();
-
 
 private:
     std::string _lblsFile;

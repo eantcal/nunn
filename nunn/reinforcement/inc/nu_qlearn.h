@@ -11,6 +11,7 @@
 #include "nu_learner_listener.h"
 
 #include <unordered_map>
+#include <memory>
 
 namespace nu {
 
@@ -25,7 +26,7 @@ public:
     using reward_t = double; // the reward
     using Listener = LearnerListener;
 
-    QLearn(Listener* listener = nullptr) noexcept
+    QLearn(std::shared_ptr<Listener> listener = nullptr) noexcept
         : _listener(listener)
     {
     }
@@ -59,7 +60,7 @@ public:
         double reward = 0;
 
         while (!agent.goal()) {
-            if (_listener && !_listener->notify(reward, moveCnt++)) {
+            if (auto listener=_listener.lock(); listener && !listener->notify(reward, moveCnt++)) {
                 break;
             }
 
@@ -113,7 +114,7 @@ private:
     QMap _qMap;
     Policy _policy;
 
-    Listener* _listener  { nullptr };
+    std::weak_ptr<Listener> _listener;
 };
 
 }

@@ -225,6 +225,7 @@ public:
     {
         return _state;
     }
+
     [[nodiscard]] const State& getGoalState() const noexcept
     {
         return _goalState;
