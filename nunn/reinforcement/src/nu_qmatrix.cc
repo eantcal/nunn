@@ -8,6 +8,7 @@
 
 #include "nu_qmatrix.h"
 
+#include <algorithm>
 #include <cassert>
 #include <exception>
 #include <vector>
@@ -25,9 +26,7 @@ QMatrix::QMatrix(size_t n_of_states)
 void QMatrix::fill(const double& value) noexcept
 {
     for (auto& row : data()) {
-        for (auto& v : row) {
-            v = value;
-        }
+        std::fill(row.begin(), row.end(), value);
     }
 }
 
@@ -47,29 +46,23 @@ size_t QMatrix::maxarg(size_t rowidx) const
     return maxidx;
 }
 
-void QMatrix::normalize()
-{
-    bool ft = true;
-    double max = 0;
+void QMatrix::normalize() {
+    double globalMax = std::numeric_limits<double>::lowest();
 
-    for (auto& row : data()) {
-        for (auto& v : row) {
-            if (ft) {
-                max = v;
-                ft = false;
-            } else if (v > max) {
-                max = v;
-            }
-        }
+    for (const auto& row : _data) {
+        auto rowMax = *std::max_element(row.cbegin(), row.cend());
+        globalMax = std::max(globalMax, rowMax);
     }
 
-    if (max != 0)
-        for (auto& row : data()) {
-            for (auto& v : row) {
-                v /= (max / 100.0);
-            }
+    if (globalMax != 0) {
+        double scaleFactor = 100.0 / globalMax;
+        for (auto& row : _data) {
+            std::transform(row.begin(), row.end(), row.begin(), 
+                           [scaleFactor](double val) { return val * scaleFactor; });
         }
+    }
 }
+
 
 QMatrix::vect_t& QMatrix::operator[](const size_t& rowidx)
 {
@@ -105,28 +98,16 @@ void QMatrix::show(std::ostream& os, size_t width) const
     }
 }
 
-void QMatrix::_max(size_t rowidx, size_t& idx, double& max) const
-{
+void QMatrix::_max(size_t rowidx, size_t& maxIdx, double& maxValue) const {
     if (rowidx >= size()) {
-        assert(0);
         throw Exception::invalid_index;
     }
 
-    const auto& row_vector = data()[rowidx];
-    idx = 0;
-    max = row_vector[idx++];
-    auto max_idx = idx;
+    const auto& row = _data[rowidx];
+    auto maxElementIter = std::max_element(row.cbegin(), row.cend());
 
-    for (; idx < size(); ++idx) {
-        const auto e = row_vector[idx];
-
-        if (e > max) {
-            max = e;
-            max_idx = idx;
-        }
-    }
-
-    idx = max_idx;
+    maxValue = *maxElementIter;
+    maxIdx = static_cast<size_t>(std::distance(row.cbegin(), maxElementIter));
 }
 
 }

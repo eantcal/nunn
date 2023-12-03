@@ -6,9 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
-
 /*
-
 This test is performed by using the MNIST data set, which contains 60K+10K
 scanned images of handwritten digits with their correct classifications
 The images are greyscale and 28 by 28 pixels in size.
@@ -25,7 +23,6 @@ image.
 The corresponding desired output is a 10-dimensional vector.
 
 See also http://yann.lecun.com/exdb/mnist/
-
 */
 
 
@@ -188,7 +185,6 @@ static bool process_cl(int argc,
     return true;
 }
 
-
 static int get_y_pos()
 {
 #ifdef _WIN32
@@ -200,7 +196,6 @@ static int get_y_pos()
     return 0;
 #endif
 }
-
 
 static void locate(int x, int y = 0)
 {
@@ -215,7 +210,6 @@ static void locate(int x, int y = 0)
     printf("%c[%d;%df", 0x1B, y, x);
 #endif
 }
-
 
 static void usage(const char* appname)
 {
@@ -327,7 +321,6 @@ static double test_net(std::unique_ptr<NeuralNet>& net,
     return err_rate;
 }
 
-
 bool save_the_net(const std::string& filename, NeuralNet& net)
 {
     // Save the net status if needed
@@ -347,7 +340,6 @@ bool save_the_net(const std::string& filename, NeuralNet& net)
 
     return true;
 }
-
 
 int main(int argc, char* argv[])
 {

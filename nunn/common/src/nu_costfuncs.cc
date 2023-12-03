@@ -9,19 +9,21 @@
 #include "nu_costfuncs.h"
 #include <limits>
 
-namespace nu {
-
-namespace cf {
+namespace nu::cf {
 
 double calcCrossEntropy(Vector<double> output, const Vector<double>& target)
 {
     auto log_output = output;
 
-    for (auto& i : log_output) {
-        if (i == 0.0) {
-            i = std::numeric_limits<double>::min();
+    auto ensureNonZeros = [](auto&& v) {
+        for (auto& i : v) {
+            if (i == .0) {
+                i = std::numeric_limits<double>::min();
+            }
         }
-    }
+    };
+
+    ensureNonZeros(log_output);
 
     log_output.log();
 
@@ -31,23 +33,18 @@ double calcCrossEntropy(Vector<double> output, const Vector<double>& target)
     Vector<double> log_inv_output(output.size(), 1.0);
     log_inv_output -= output;
 
-    for (auto& i : log_inv_output) {
-        if (i == 0.0) {
-            i = std::numeric_limits<double>::min();
-        }
-    }
+    ensureNonZeros(log_inv_output);
 
     log_inv_output.log();
 
-    auto res { target};
+    auto res { target };
     res *= log_output;
 
     inv_target *= log_inv_output;
     res += inv_target;
 
-    return -res.sum() / double(res.size());
+    // Calculate the mean of the cross entropy values
+    return -res.mean();
 }
 
-} // namespace cf
-
-} // namespace nu
+} // namespace nu::cf

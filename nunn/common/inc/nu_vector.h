@@ -92,13 +92,7 @@ public:
     }
 
     //! Move assignment operator
-    Vector& operator=(Vector&& other) noexcept
-    {
-        if (this != &other)
-            _v = std::move(other._v);
-
-        return *this;
-    }
+    Vector& operator=(Vector&& other) = default;
 
     //! Return size
     size_t size() const noexcept { return _v.size(); }
@@ -197,6 +191,12 @@ public:
             res += i;
 
         return res;
+    }
+
+    //! Returns the sum of all vector items divided by size()
+    T mean() const noexcept
+    {
+        return empty() ? 0 : sum() / T(size());
     }
 
     //! Relational operator ==
@@ -379,6 +379,13 @@ public:
 
     //! Return a reference to standard vector
     std::vector<T>& to_stdvec() noexcept { return _v; }
+
+    // Static method to create a Vector with all elements set to 1.0
+    static Vector ones(size_t size) {
+        Vector vec(size);
+        std::fill(vec._v.begin(), vec._v.end(), 1.0);
+        return vec;
+    }
 
 private:
     VectorData _v;

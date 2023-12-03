@@ -30,9 +30,9 @@ public:
     using data_t = std::vector<char>;
 
 private:
-    size_t _dx;
-    size_t _dy;
-    int _label;
+    size_t _dx{};
+    size_t _dy{};
+    int _label{};
     data_t _data;
 
 public:
@@ -50,7 +50,6 @@ public:
 
     //! copy assign operator
     DigitData& operator=(const DigitData& other) = default;
-
 
     //! move ctor
     DigitData(DigitData&& other) noexcept = default;
@@ -109,8 +108,9 @@ public:
 
         _data.clear();
 
-        for (auto& e : data)
+        for (auto& e : data) {
             _data.push_back(std::move(e));
+        }
     }
 
     enum class Exception {
