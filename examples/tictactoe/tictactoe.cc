@@ -21,9 +21,9 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <string_view>
 #include <time.h>
 #include <vector>
-#include <string_view>
 
 #include "nu_mlpnn.h"
 
@@ -68,8 +68,7 @@ public:
         for (size_t i = 0; i < size(); ++i) {
             if (at(int(i)) == O) {
                 ++o_cnt;
-            }
-            else if (at(int(i)) == X) {
+            } else if (at(int(i)) == X) {
                 ++x_cnt;
             }
         }
@@ -270,7 +269,7 @@ class nn_io_converter_t {
 public:
     static void getInputVector(const grid_t& grid,
         grid_t::symbol_t turn_of_symb,
-        nu::Vector<double>& inputs)
+        nu::Vector& inputs)
     {
         inputs.resize(10, 0.0);
 
@@ -284,7 +283,7 @@ public:
 
     static void copyOutputVector(const grid_t& grid,
         const grid_t& new_grid,
-        nu::Vector<double>& outputs)
+        nu::Vector& outputs)
     {
         outputs.resize(grid.size(), 0.0);
 
@@ -293,8 +292,7 @@ public:
         for (size_t i = 0; i < res.size(); ++i) {
             if (res[i] != grid_t::EMPTY) {
                 outputs[i] = 1.0;
-            }
-            else {
+            } else {
                 outputs[i] = 0.0;
             }
         }
@@ -304,8 +302,8 @@ public:
 class NNTrainer {
 public:
     struct sample_t {
-        nu::Vector<double> inputs;
-        nu::Vector<double> outputs;
+        nu::Vector inputs;
+        nu::Vector outputs;
 
         bool operator<(const sample_t& other) const noexcept
         {
@@ -327,8 +325,7 @@ private:
         for (int i = 0; i < TICTACTOE_CELLS; ++i) {
             if (grid[i] == grid_t::O) {
                 ++o_cnt;
-            }
-            else if (grid[i] == grid_t::X) {
+            } else if (grid[i] == grid_t::X) {
                 ++x_cnt;
             }
         }
@@ -354,8 +351,7 @@ private:
                 for (int x = 0; x < TICTACTOE_SIDE; ++x) {
                     if (new_grid.at(x, y) == symbol) {
                         ++symcnt;
-                    }
-                    else if (new_grid.at(x, y) == other_symbol) {
+                    } else if (new_grid.at(x, y) == other_symbol) {
                         ++osymcnt;
                     }
                 }
@@ -407,11 +403,9 @@ private:
             for (int x = 0; x < TICTACTOE_SIDE; ++x) {
                 if (new_grid.at(x, y) == symbol) {
                     ++symcnt;
-                }
-                else if (new_grid.at(x, y) == other_symbol) {
+                } else if (new_grid.at(x, y) == other_symbol) {
                     ++osymcnt;
-                }
-                else {
+                } else {
                     empty_pos = x;
                 }
             }
@@ -431,11 +425,9 @@ private:
             for (int y = 0; y < TICTACTOE_SIDE; ++y) {
                 if (new_grid.at(x, y) == symbol) {
                     ++symcnt;
-                }
-                else if (new_grid.at(x, y) == other_symbol) {
+                } else if (new_grid.at(x, y) == other_symbol) {
                     ++osymcnt;
-                }
-                else {
+                } else {
                     empty_pos = y;
                 }
             }
@@ -456,11 +448,9 @@ private:
         for (; d < TICTACTOE_SIDE; ++d) {
             if (new_grid.at(d, d) == symbol) {
                 ++symcnt;
-            }
-            else if (new_grid.at(d, d) == other_symbol) {
+            } else if (new_grid.at(d, d) == other_symbol) {
                 ++osymcnt;
-            }
-            else {
+            } else {
                 empty_pos = d;
             }
         }
@@ -479,11 +469,9 @@ private:
         for (; d < TICTACTOE_SIDE; ++d) {
             if (new_grid.at(2 - d, d) == symbol) {
                 ++symcnt;
-            }
-            else if (new_grid.at(2 - d, d) == other_symbol) {
+            } else if (new_grid.at(2 - d, d) == other_symbol) {
                 ++osymcnt;
-            }
-            else {
+            } else {
                 empty_pos = d;
             }
         }
@@ -503,11 +491,9 @@ private:
             for (int x = 0; x < TICTACTOE_SIDE; ++x) {
                 if (new_grid.at(x, y) == symbol) {
                     ++symcnt;
-                }
-                else if (new_grid.at(x, y) == other_symbol) {
+                } else if (new_grid.at(x, y) == other_symbol) {
                     ++osymcnt;
-                }
-                else {
+                } else {
                     empty_pos = x;
                 }
             }
@@ -527,11 +513,9 @@ private:
             for (int y = 0; y < TICTACTOE_SIDE; ++y) {
                 if (new_grid.at(x, y) == symbol) {
                     ++symcnt;
-                }
-                else if (new_grid.at(x, y) == other_symbol) {
+                } else if (new_grid.at(x, y) == other_symbol) {
                     ++osymcnt;
-                }
-                else {
+                } else {
                     empty_pos = y;
                 }
             }
@@ -551,11 +535,9 @@ private:
         for (; d < TICTACTOE_SIDE; ++d) {
             if (new_grid.at(d, d) == symbol) {
                 ++symcnt;
-            }
-            else if (new_grid.at(d, d) == other_symbol) {
+            } else if (new_grid.at(d, d) == other_symbol) {
                 ++osymcnt;
-            }
-            else {
+            } else {
                 empty_pos = d;
             }
         }
@@ -574,11 +556,9 @@ private:
         for (; d < TICTACTOE_SIDE; ++d) {
             if (new_grid.at(2 - d, d) == symbol) {
                 ++symcnt;
-            }
-            else if (new_grid.at(2 - d, d) == other_symbol) {
+            } else if (new_grid.at(2 - d, d) == other_symbol) {
                 ++osymcnt;
-            }
-            else {
+            } else {
                 empty_pos = d;
             }
         }
@@ -636,8 +616,7 @@ private:
         for (size_t i = 0; i < grid.size(); ++i) {
             if (grid[i] == grid_t::O) {
                 ++o_cnt;
-            }
-            else if (grid[i] == grid_t::X) {
+            } else if (grid[i] == grid_t::X) {
                 ++x_cnt;
             }
         }
@@ -678,8 +657,8 @@ private:
 
     void _create_sample(const grid_t& init_grid_st,
         grid_t::symbol_t symb_turn,
-        nu::Vector<double>& inputs,
-        nu::Vector<double>& outputs)
+        nu::Vector& inputs,
+        nu::Vector& outputs)
     {
         auto res = init_grid_st;
         _play(res, symb_turn);
@@ -701,7 +680,7 @@ public:
             int x_cnt = 0;
             item.get_xo_cnt(o_cnt, x_cnt);
 
-            nu::Vector<double> inputs, outputs;
+            nu::Vector inputs, outputs;
 
             if (o_cnt >= x_cnt) {
                 _create_sample(item, grid_t::X, inputs, outputs);
@@ -761,7 +740,7 @@ public:
 
     void play_computer(grid_t::symbol_t symbol)
     {
-        nu::Vector<double> inputs, outputs;
+        nu::Vector inputs, outputs;
         nn_io_converter_t::getInputVector(_grid, symbol, inputs);
 
         _nn.setInputVector(inputs);
@@ -942,8 +921,7 @@ static bool process_cl(int argc,
         }
 
         if ((arg == "--version" || arg == "-v")) {
-            std::cout << "nunnlib TicTacToe " << PROG_VERSION <<
-                         " (c) antonino.calderone@gmail.com"
+            std::cout << "nunnlib TicTacToe " << PROG_VERSION << " (c) antonino.calderone@gmail.com"
                       << std::endl;
             continue;
         }
@@ -1199,7 +1177,7 @@ int main(int argc, char* argv[])
 
             for (const auto& sample : samples) {
                 auto& target = sample.outputs;
-                nu::Vector<double> outputs;
+                nu::Vector outputs;
 
                 net->setInputVector(sample.inputs);
 

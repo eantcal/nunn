@@ -49,10 +49,10 @@ namespace nu {
 //! @brief Represents a Multi-Layer Perceptron (MLP) neural network.
 class MlpNN {
 public:
-    using FpVector = Vector<double>;
+    using FpVector = Vector;
     using costFunction_t = std::function<cf::costfunc_t>;
     using NeuronLayer = std::vector<Neuron>;
-    using Topology = Vector<size_t>;
+    using Topology = std::vector<size_t>;
 
     //! Enum class for exception errors.
     enum class Exception {
@@ -133,7 +133,7 @@ public:
     std::stringstream& save(std::stringstream& ss) noexcept;
 
     //! Formats the network's status as JSON into the given string stream.
-    std::ostream& formatJson(std::ostream& ss) noexcept;
+    std::ostream& toJson(std::ostream& ss) noexcept;
 
     //! Dumps the network's state to the given output stream.
     std::ostream& dump(std::ostream& os) noexcept;

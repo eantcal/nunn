@@ -7,8 +7,8 @@
 #pragma once
 
 #include "nu_learner_listener.h"
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 
 namespace nu {
 

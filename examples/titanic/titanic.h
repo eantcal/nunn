@@ -19,8 +19,8 @@
 // DataSet: A mapping of input vectors to output vectors used in training and testing neural networks.
 using DataSet = std::map<std::vector<double>, std::vector<double>>;
 using TrainingSet = DataSet; // Represents a set of training data.
-using TestSet = DataSet;     // Represents a set of test data.
-using NN = nu::MlpNN;        // Shorthand for a Multi-Layer Perceptron Neural Network.
+using TestSet = DataSet; // Represents a set of test data.
+using NN = nu::MlpNN; // Shorthand for a Multi-Layer Perceptron Neural Network.
 using Trainer = nu::MlpNNTrainer; // Shorthand for the MLP Neural Network Trainer.
 
 // Represents data about a passenger, for use in machine learning models.
@@ -55,7 +55,8 @@ struct Passenger {
 
     // Constructs a normalized input vector from the passenger data.
     // Normalizes each data point to be in the range [0, 1.0].
-    std::vector<double> getInputVector() const {
+    std::vector<double> getInputVector() const
+    {
         return {
             (pclass - 1) / 2.0, // Normalized ticket class
             gender, // 0 or 1

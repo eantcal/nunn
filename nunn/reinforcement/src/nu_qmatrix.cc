@@ -46,7 +46,8 @@ size_t QMatrix::maxarg(size_t rowidx) const
     return maxidx;
 }
 
-void QMatrix::normalize() {
+void QMatrix::normalize()
+{
     double globalMax = std::numeric_limits<double>::lowest();
 
     for (const auto& row : _data) {
@@ -57,8 +58,8 @@ void QMatrix::normalize() {
     if (globalMax != 0) {
         double scaleFactor = 100.0 / globalMax;
         for (auto& row : _data) {
-            std::transform(row.begin(), row.end(), row.begin(), 
-                           [scaleFactor](double val) { return val * scaleFactor; });
+            std::transform(row.begin(), row.end(), row.begin(),
+                [scaleFactor](double val) { return val * scaleFactor; });
         }
     }
 }
@@ -98,7 +99,8 @@ void QMatrix::show(std::ostream& os, size_t width) const
     }
 }
 
-void QMatrix::_max(size_t rowidx, size_t& maxIdx, double& maxValue) const {
+void QMatrix::_max(size_t rowidx, size_t& maxIdx, double& maxValue) const
+{
     if (rowidx >= size()) {
         throw Exception::invalid_index;
     }

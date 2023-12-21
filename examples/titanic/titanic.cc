@@ -257,8 +257,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         // Progress callback
         [&trainingSet]([[maybe_unused]] NN& nn,
-            [[maybe_unused]] const nu::Vector<double>& i,
-            [[maybe_unused]] const nu::Vector<double>& t,
+            [[maybe_unused]] const nu::Vector& i,
+            [[maybe_unused]] const nu::Vector& t,
             size_t epoch,
             size_t sample,
             [[maybe_unused]] double err) {

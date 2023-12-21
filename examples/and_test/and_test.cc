@@ -9,9 +9,9 @@
 /*
  * Perceptron Neural Network Implementation of the AND Function
  * ------------------------------------------------------------
- * This code implements the logical AND function using a Perceptron, 
- * a type of single-layer neural network. The AND function is a classic 
- * example of a linearly separable function, making it well-suited for 
+ * This code implements the logical AND function using a Perceptron,
+ * a type of single-layer neural network. The AND function is a classic
+ * example of a linearly separable function, making it well-suited for
  * learning with a Perceptron.
  *
  * The AND function accepts two binary inputs (0 or 1) and produces a single
@@ -25,7 +25,7 @@
  *       1      |      1      |     1
  *
  * The output is 1 only when both inputs are 1, embodying the logical AND operation.
- * This neural network model learns to replicate this behavior by adjusting its 
+ * This neural network model learns to replicate this behavior by adjusting its
  * weights based on the provided training data.
  */
 
@@ -93,7 +93,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         for (int a = 0; a < 2; ++a) {
             for (int b = 0; b < 2; ++b) {
                 double output = 0.0;
-                nu::Vector<double> input_vec { double(a), double(b) };
+                nu::Vector input_vec { double(a), double(b) };
 
                 nn.setInputVector(input_vec);
                 nn.feedForward();

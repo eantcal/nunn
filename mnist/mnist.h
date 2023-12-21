@@ -30,9 +30,9 @@ public:
     using data_t = std::vector<char>;
 
 private:
-    size_t _dx{};
-    size_t _dy{};
-    int _label{};
+    size_t _dx {};
+    size_t _dy {};
+    int _label {};
     data_t _data;
 
 public:
@@ -71,12 +71,12 @@ public:
 
     //! Converts the image data into a vector normalizing each item
     //! within the range [0.0, 1.0]
-    void toVect(nu::Vector<double>& v) const noexcept;
+    void toVect(nu::Vector& v) const noexcept;
 
     //! Converts a label into a vector where the items are all zeros
     //! except for the item with index corrisponding to the label value
     //! its self (which is within range [0, 9]
-    void labelToTarget(nu::Vector<double>& v) const noexcept;
+    void labelToTarget(nu::Vector& v) const noexcept;
 
 #ifdef _WIN32
     //! Draw the digit image on the window

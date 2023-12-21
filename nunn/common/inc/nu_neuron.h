@@ -18,10 +18,10 @@ namespace nu {
 //! Represents a single neuron within a neural network layer.
 struct Neuron {
     //! Vector of synaptic weights. Each weight corresponds to the connection strength with an input.
-    Vector<double> weights;
+    Vector weights;
 
     //! Adjustment vector for weights used during the training process (backpropagation).
-    Vector<double> deltaW;
+    Vector deltaW;
 
     //! Bias term for the neuron, contributing to the net input signal beyond weighted inputs.
     double bias { .0 };
@@ -53,13 +53,13 @@ struct Neuron {
     }
 
     //! Outputs the neuron's state in JSON format, useful for data interchange or human-readable saves.
-    std::ostream& formatJson(std::ostream& ss) noexcept
+    std::ostream& toJson(std::ostream& ss) noexcept
     {
         ss << "{\"bias\":" << bias << ",";
         ss << "\"weights\":";
-        weights.formatJson(ss) << ",";
+        weights.toJson(ss) << ",";
         ss << "\"deltaW\":";
-        deltaW.formatJson(ss) << "}";
+        deltaW.toJson(ss) << "}";
 
         return ss;
     }

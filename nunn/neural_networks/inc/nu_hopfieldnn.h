@@ -40,7 +40,7 @@ namespace nu {
  */
 class HopfieldNN {
 public:
-    using FpVector = Vector<double>;
+    using FpVector = Vector;
 
     enum class Exception {
         size_mismatch,

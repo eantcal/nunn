@@ -285,16 +285,16 @@ static double test_net(std::unique_ptr<NeuralNet>& net,
     entropy_cost = 0.0;
 
     for (auto i = test_data.begin(); i != test_data.end(); ++i) {
-        nu::Vector<double> inputs;
+        nu::Vector inputs;
         (*i)->toVect(inputs);
 
-        nu::Vector<double> target;
+        nu::Vector target;
         (*i)->labelToTarget(target);
 
         net->setInputVector(inputs);
         net->feedForward();
 
-        nu::Vector<double> outputs;
+        nu::Vector outputs;
         net->copyOutputVector(outputs);
 
         mean_square_error += nu::cf::calcMSE(outputs, target);
@@ -511,11 +511,11 @@ int main(int argc, char* argv[])
                 const auto& data { trainingSet.data() };
 
                 for (auto i = data.begin(); i != data.end(); ++i) {
-                    nu::Vector<double> inputs;
+                    nu::Vector inputs;
 
                     (*i)->toVect(inputs);
 
-                    nu::Vector<double> target;
+                    nu::Vector target;
                     (*i)->labelToTarget(target);
 
                     net->setInputVector(inputs);

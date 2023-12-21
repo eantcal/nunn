@@ -19,9 +19,6 @@
 *
 */
 
-
-
-
 #include "stdafx.h"
 #include "ocr_test.h"
 
@@ -33,9 +30,6 @@
 #include <sstream>
 #include <memory>
 #include <string>
-
-
-
 
 #define PROG_VERSION "1.56"
 #define ABOUT_TEXT "OCR Test by A. Calderone (c) - 2015"
@@ -110,7 +104,7 @@ static HFONT g_hfFont = nullptr;
 std::unique_ptr<nu::MlpNN> neuralNet;
 std::string currentFileName;
 std::string netDescription = "Load a net description file (File->Load)";
-nu::Vector<double> g_hwdigit;
+nu::Vector g_hwdigit;
 
 
 
@@ -433,8 +427,8 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
     SendMessage(hwndPB, PBM_SETSTEP, (WPARAM)1, 0);
 
     for (int i = 0; i < TRAINING_NET_EPOCHS; ++i) {
-        nu::Vector<double> target(10, 0.0);
-        nu::Vector<double> output(10, 0.0);
+        nu::Vector target(10, 0.0);
+        nu::Vector output(10, 0.0);
         target[digit] = 1.0;
 
         neuralNet->setInputVector(g_hwdigit);
@@ -676,7 +670,7 @@ void PrintGrayscaleDigit(
     int xo,
     int yo,
     HDC hdc,
-    const nu::Vector<double>& hwdigit)
+    const nu::Vector& hwdigit)
 {
     size_t idx = 0;
     const int zoom = 3;
@@ -707,7 +701,7 @@ void PrintGrayscaleDigit(
 
 
 
-bool GetDigitInfo(HDC hdc, nu::Vector<double>& hwdigit, const RECT & r, bmpImage& image)
+bool GetDigitInfo(HDC hdc, nu::Vector& hwdigit, const RECT & r, bmpImage& image)
 {
     size_t vec_idx = 0;
     double sum = 0.0;
@@ -732,7 +726,7 @@ bool GetDigitInfo(HDC hdc, nu::Vector<double>& hwdigit, const RECT & r, bmpImage
 
 
 
-void WriteBars(int xo, int yo, HDC hdc, nu::Vector<double>& results)
+void WriteBars(int xo, int yo, HDC hdc, nu::Vector& results)
 {
     int digit = 0;
 
@@ -774,7 +768,7 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
     InvalidateRect(hWnd, &ri, TRUE);
     UpdateWindow(hWnd);
 
-    nu::Vector<double> hwdigit(neuralNet->getInputSize());
+    nu::Vector hwdigit(neuralNet->getInputSize());
 
     HDC hdc = GetDC(hWnd);
 
@@ -793,7 +787,7 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
         neuralNet->setInputVector(hwdigit);
         neuralNet->feedForward();
 
-        nu::Vector<double> outputs;
+        nu::Vector outputs;
         neuralNet->copyOutputVector(outputs);
 
         WriteBars(530, 90, hdc, outputs);

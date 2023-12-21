@@ -9,16 +9,15 @@
 /*
  * Tic-Tac-Toe Interactive Demo for Windows (winttt)
  * -------------------------------------------------
- * This application provides an interactive Tic-Tac-Toe game experience on Windows. 
- * It leverages a Multi-Layer Perceptron (MLP) neural network that has been trained 
- * to play Tic-Tac-Toe effectively. The neural network was developed and trained using 
+ * This application provides an interactive Tic-Tac-Toe game experience on Windows.
+ * It leverages a Multi-Layer Perceptron (MLP) neural network that has been trained
+ * to play Tic-Tac-Toe effectively. The neural network was developed and trained using
  * the 'tictactoe' demo program.
  *
  * Key Features:
  * - Interactive gameplay against a neural network-based AI.
  * - Demonstrates the application of machine learning in game strategy development.
  */
-
 
 
 #include "winttt.h"
@@ -96,8 +95,8 @@ public:
 
 
 struct sample_t {
-    nu::Vector<double> inputs;
-    nu::Vector<double> outputs;
+    nu::Vector inputs;
+    nu::Vector outputs;
 
     bool operator<(const sample_t& other) const noexcept
     {
@@ -422,7 +421,7 @@ void TrainingThread()
         }
 
         double err = 0;
-        nu::Vector<double> outputs;
+        nu::Vector outputs;
 
         for (int i = 0; i < TRAINING_EPERT; ++i) {
             for (const auto& sample : samples) {
@@ -808,7 +807,7 @@ class nn_io_converter_t {
 public:
     static void getInputVector(const grid_t& grid,
         grid_t::symbol_t turn_of_symb,
-        nu::Vector<double>& inputs)
+        nu::Vector& inputs)
     {
         inputs.resize(10, 0.0);
         size_t i = 0;
@@ -823,7 +822,7 @@ public:
 
     static void copyOutputVector(const grid_t& grid,
         const grid_t& new_grid,
-        nu::Vector<double>& outputs)
+        nu::Vector& outputs)
     {
         outputs.resize(grid.size(), 0.0);
 
@@ -1106,7 +1105,7 @@ static void ExpertAlgo(grid_t& new_grid, grid_t::symbol_t symbol)
 static void NetAnswer(nu::MlpNN& nn, grid_t& grid, grid_t::symbol_t symbol)
 {
     try {
-        nu::Vector<double> inputs, outputs;
+        nu::Vector inputs, outputs;
         nn_io_converter_t::getInputVector(grid, symbol, inputs);
 
         nn.setInputVector(inputs);
@@ -1158,7 +1157,7 @@ static void ComputerPlay(HWND hWnd,
     // In case net answer with no expected move
     // train it with the expert algo answer
     if (grid != grid_expert_move) {
-        nu::Vector<double> inputs, target;
+        nu::Vector inputs, target;
 
         // From each example you have 4 different training samples,
         // one for each board's orientation

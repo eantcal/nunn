@@ -79,7 +79,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             { { 1, 1 }, { 0 } } };
 
 
-        nn.formatJson(std::cout) << std::endl;
+        nn.toJson(std::cout) << std::endl;
 
         /*------------- Perform net training  ---------------------------------
          */
@@ -100,8 +100,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         // Called to print out training progress
         auto progressCbk = [=]([[maybe_unused]] NeuralNet& n,
-                               [[maybe_unused]] const nu::Vector<double>& i,
-                               [[maybe_unused]] const nu::Vector<double>& t,
+                               [[maybe_unused]] const nu::Vector& i,
+                               [[maybe_unused]] const nu::Vector& t,
                                size_t epoch,
                                size_t sample,
                                double err) {

@@ -43,7 +43,7 @@ Pixel values are 0 to 255. 0 means background (white), 255 means foreground
 #include <fstream>
 #include <vector>
 
-void DigitData::toVect(nu::Vector<double>& v) const noexcept
+void DigitData::toVect(nu::Vector& v) const noexcept
 {
     size_t vsize = data().size();
     v.resize(vsize);
@@ -52,7 +52,7 @@ void DigitData::toVect(nu::Vector<double>& v) const noexcept
         v[i] = double((unsigned char)data()[i]) / 255.0;
 }
 
-void DigitData::labelToTarget(nu::Vector<double>& v) const noexcept
+void DigitData::labelToTarget(nu::Vector& v) const noexcept
 {
     v.resize(10);
     std::fill(v.begin(), v.end(), 0.0);

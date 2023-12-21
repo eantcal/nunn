@@ -38,7 +38,7 @@ namespace nu {
  * performing operations like feedforward and backpropagation.
  */
 struct Perceptron {
-    using FpVector = Vector<double>;
+    using FpVector = Vector;
 
     enum class Exception {
         size_mismatch,
@@ -156,9 +156,9 @@ private:
  * Facilitates the training of a perceptron by providing methods to run training
  * sessions over multiple epochs and evaluate the perceptron's performance.
  */
-struct PerceptronTrainer : public NNTrainer<Perceptron, Vector<double>, double> {
+struct PerceptronTrainer : public NNTrainer<Perceptron, Vector, double> {
     PerceptronTrainer(Perceptron& nn, size_t epochs, double minErr)
-        : NNTrainer<Perceptron, Vector<double>, double>(nn, epochs, minErr)
+        : NNTrainer<Perceptron, Vector, double>(nn, epochs, minErr)
     {
     }
 };

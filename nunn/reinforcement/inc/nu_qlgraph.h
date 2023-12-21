@@ -58,7 +58,7 @@ public:
             : _rndGen(new RandomGenerator<>())
         {
         }
-        
+
         virtual ~Helper() {};
 
         // Callbacks for the beginning and end of each episode.
@@ -72,7 +72,7 @@ public:
         virtual double rnd() const noexcept { return (*_rndGen)(); }
 
     private:
-        std::unique_ptr<RandomGenerator<>> _rndGen{};
+        std::unique_ptr<RandomGenerator<>> _rndGen {};
     };
 
     // Function to start the learning process over a specified number of episodes.

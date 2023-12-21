@@ -219,7 +219,7 @@ std::stringstream& MlpNN::save(std::stringstream& ss) noexcept
     return ss;
 }
 
-std::ostream& MlpNN::formatJson(std::ostream& ss) noexcept
+std::ostream& MlpNN::toJson(std::ostream& ss) noexcept
 {
     ss.clear();
 
@@ -229,10 +229,11 @@ std::ostream& MlpNN::formatJson(std::ostream& ss) noexcept
     ss << "\"momentum\":" << _momentum << ",";
 
     ss << "\"" << getInputVectorId() << "\":";
-    _inputVector.formatJson(ss) << ",";
+    _inputVector.toJson(ss) << ",";
 
     ss << "\"" << getTopologyId() << "\":";
-    _topology.formatJson(ss) << ",";
+    nu::toJson(ss, _topology);
+    ss << ",";
     ss << "\"layers\":{" << std::endl;
 
     for (size_t nlIdx = 0; auto& nl : _neuronLayers) {
@@ -241,7 +242,7 @@ std::ostream& MlpNN::formatJson(std::ostream& ss) noexcept
         for (size_t neuronIdx = 0; auto& neuron : nl) {
             ss << "\"" << getNeuronId() << neuronIdx << "\":";
 
-            neuron.formatJson(ss);
+            neuron.toJson(ss);
 
             if (++neuronIdx < nl.size()) {
                 ss << ",";
@@ -450,7 +451,7 @@ void MlpNN::_build(const Topology& topology,
 
     neuronLayers.resize(size);
 
-    for (size_t idx = 0; const auto& neuronsCount : topology.to_stdvec()) {
+    for (size_t idx = 0; const auto& neuronsCount : topology) {
         if (idx < 1) {
             inputs.resize(neuronsCount);
         } else {

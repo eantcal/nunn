@@ -11,7 +11,7 @@
 
 namespace nu::cf {
 
-double calcCrossEntropy(Vector<double> output, const Vector<double>& target)
+double calcCrossEntropy(Vector output, const Vector& target)
 {
     auto log_output = output;
 
@@ -27,10 +27,10 @@ double calcCrossEntropy(Vector<double> output, const Vector<double>& target)
 
     log_output.log();
 
-    Vector<double> inv_target(target.size(), 1.0);
+    Vector inv_target(target.size(), 1.0);
     inv_target -= target;
 
-    Vector<double> log_inv_output(output.size(), 1.0);
+    Vector log_inv_output(output.size(), 1.0);
     log_inv_output -= output;
 
     ensureNonZeros(log_inv_output);

@@ -10,8 +10,8 @@
 
 #include "nu_learner_listener.h"
 
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 
 namespace nu {
 
@@ -60,7 +60,7 @@ public:
         double reward = 0;
 
         while (!agent.goal()) {
-            if (auto listener=_listener.lock(); listener && !listener->notify(reward, moveCnt++)) {
+            if (auto listener = _listener.lock(); listener && !listener->notify(reward, moveCnt++)) {
                 break;
             }
 

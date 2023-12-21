@@ -48,7 +48,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // - 3 in the first position: the input layer has 3 neurons (suitable for a 3-dimensional input vector).
     // - 20 in the second position: the hidden layer has 20 neurons.
     // - 3 in the third position: the output layer has 3 neurons.
-    NeuralNet::Topology topology = {3, 20, 3};
+    NeuralNet::Topology topology = { 3, 20, 3 };
 
     try {
 
@@ -78,7 +78,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         // ------------ Perform Neural Network Training ------------
         // This section is responsible for training the neural network.
-        // It involves feeding the network with training data, adjusting weights 
+        // It involves feeding the network with training data, adjusting weights
         // based on error rates, and iterating this process over several epochs.
         // The goal is to minimize the error rate.
 
@@ -98,8 +98,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         // Called to print out training progress
         auto progressCbk = []([[maybe_unused]] NeuralNet& n,
-                               [[maybe_unused]] const nu::Vector<double>& i,
-                               [[maybe_unused]] const nu::Vector<double>& t,
+                               [[maybe_unused]] const nu::Vector& i,
+                               [[maybe_unused]] const nu::Vector& t,
                                size_t epoch,
                                size_t sample,
                                double err) {
@@ -136,13 +136,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
             // Dump the network status
 
-            std::cout << "  Input  : " << nu::Vector<>(input_vec) << std::endl;
-            std::cout << "  Output : " << nu::Vector<>(output_vec) << std::endl;
+            std::cout << "  Input  : " << nu::Vector(input_vec) << std::endl;
+            std::cout << "  Output : " << nu::Vector(output_vec) << std::endl;
             for (auto& item : output_vec) {
                 item = item > 0.5 ? 1.0 : 0.0;
             }
             input_vec = output_vec;
-            std::cout << "E|Output|: " << nu::Vector<>(output_vec) << std::endl;
+            std::cout << "E|Output|: " << nu::Vector(output_vec) << std::endl;
 
             std::cout << "-------------------------------" << std::endl
                       << std::endl;
