@@ -171,12 +171,6 @@ auto step_f = [](double x) { return x < 0.5 ? 0 : 1; };
      } 
       std::cout << "Test completed successfully" << std::endl;
    }
-   catch (nu::MlpNN::Exception & e)
-   {
-      std::cerr << "nu::mlp_neural_net_t::exception_t n# " << int(e) << std::endl;
-      std::cerr << "Check for configuration parameters and retry" << std::endl; 
-      return 1;
-   }
    catch (...)
    {
       std::cerr

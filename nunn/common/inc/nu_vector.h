@@ -8,12 +8,14 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <ostream>
 #include <ranges>
 #include <span>
 #include <sstream>
+#include <stdexcept>
 #include <vector>
 
 template <typename T>
@@ -84,8 +86,12 @@ public:
     using iterator = typename VectorData::iterator;
     using const_iterator = typename VectorData::const_iterator;
 
-    enum class Exception {
-        size_mismatch
+    class SizeMismatchException : public std::runtime_error {
+    public:
+        SizeMismatchException()
+            : std::runtime_error("Size mismatch")
+        {
+        }
     };
 
     //! Construct an empty vector, with no elements.

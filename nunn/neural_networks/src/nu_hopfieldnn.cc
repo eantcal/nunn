@@ -24,8 +24,9 @@ void HopfieldNN::addPattern(const FpVector& input_pattern)
 {
     const auto size = getInputSize();
 
-    if (size != input_pattern.size())
-        throw Exception::size_mismatch;
+    if (size != input_pattern.size()) {
+        throw SizeMismatchException();
+    }
 
     for (size_t i = 0; i < size; ++i) {
         for (size_t j = 0; j < size; ++j) {
@@ -39,8 +40,9 @@ void HopfieldNN::addPattern(const FpVector& input_pattern)
 
 void HopfieldNN::recall(const FpVector& input_pattern, FpVector& output_pattern)
 {
-    if (getInputSize() != input_pattern.size())
-        throw Exception::size_mismatch;
+    if (getInputSize() != input_pattern.size()) {
+        throw SizeMismatchException();
+    }
 
     _s = input_pattern;
     _propagate();
@@ -59,8 +61,9 @@ void HopfieldNN::_propagate() noexcept
         ++it;
         size_t rnd_idx = dist(_rndgen); // Generate a random index
 
-        if (_propagateNeuron(rnd_idx))
+        if (_propagateNeuron(rnd_idx)) {
             last_it = it;
+        }
 
     } while (it - last_it < 10 * size);
 }
@@ -85,20 +88,23 @@ std::stringstream& HopfieldNN::load(std::stringstream& ss)
 {
     std::string s;
     ss >> s;
-    if (s != ID_ANN)
-        throw Exception::invalid_sstream_format;
+    if (s != ID_ANN) {
+        throw InvalidSStreamFormatException();
+    }
 
     ss >> _patternSize;
 
     ss >> s;
-    if (s != ID_NEURON_ST)
-        throw Exception::invalid_sstream_format;
+    if (s != ID_NEURON_ST) {
+        throw InvalidSStreamFormatException();
+    }
 
     ss >> _s;
 
     ss >> s;
-    if (s != ID_WEIGHTS)
-        throw Exception::invalid_sstream_format;
+    if (s != ID_WEIGHTS) {
+        throw InvalidSStreamFormatException();
+    }
 
     ss >> _w;
 

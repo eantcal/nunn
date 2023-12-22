@@ -52,7 +52,7 @@ double MlpNN::_getInput(size_t layer, size_t idx) noexcept
 void MlpNN::setInputVector(const FpVector& inputs)
 {
     if (inputs.size() != _inputVector.size()) {
-        throw Exception::size_mismatch;
+        throw SizeMismatchException();
     }
 
     _inputVector = inputs;
@@ -151,7 +151,7 @@ std::stringstream& MlpNN::load(std::stringstream& ss)
     std::string s;
     ss >> s;
     if (s != getNetId()) {
-        throw Exception::invalid_sstream_format;
+        throw InvalidSStreamFormatException();
     }
 
     ss >> _learningRate;
@@ -159,14 +159,14 @@ std::stringstream& MlpNN::load(std::stringstream& ss)
 
     ss >> s;
     if (s != getInputVectorId()) {
-        throw Exception::invalid_sstream_format;
+        throw InvalidSStreamFormatException();
     }
 
     ss >> _inputVector;
 
     ss >> s;
     if (s != getTopologyId()) {
-        throw Exception::invalid_sstream_format;
+        throw InvalidSStreamFormatException();
     }
 
     ss >> _topology;
@@ -176,13 +176,13 @@ std::stringstream& MlpNN::load(std::stringstream& ss)
     for (auto& nl : _neuronLayers) {
         ss >> s;
         if (s != getNeuronLayerId()) {
-            throw Exception::invalid_sstream_format;
+            throw InvalidSStreamFormatException();
         }
 
         for (auto& neuron : nl) {
             ss >> s;
             if (s != getNeuronId()) {
-                throw Exception::invalid_sstream_format;
+                throw InvalidSStreamFormatException();
             }
 
             ss >> neuron;
@@ -306,7 +306,7 @@ double MlpNN::calcMSE(const FpVector& targetVector)
     copyOutputVector(outputVector);
 
     if (targetVector.size() != outputVector.size()) {
-        throw Exception::size_mismatch;
+        throw SizeMismatchException();
     }
 
     return cf::calcMSE(outputVector, targetVector);
@@ -318,7 +318,7 @@ double MlpNN::calcCrossEntropy(const FpVector& targetVector)
     copyOutputVector(outputVector);
 
     if (targetVector.size() != outputVector.size()) {
-        throw Exception::size_mismatch;
+        throw SizeMismatchException();
     }
 
     return cf::calcCrossEntropy(outputVector, targetVector);
@@ -346,7 +346,7 @@ void MlpNN::_backPropagate(const FpVector& targetVector,
     const FpVector& outputVector)
 {
     if (targetVector.size() != outputVector.size()) {
-        throw Exception::size_mismatch;
+        throw SizeMismatchException();
     }
 
     // -------- Calculate error for output neurons
@@ -444,7 +444,7 @@ void MlpNN::_build(const Topology& topology,
     FpVector& inputs)
 {
     if (topology.size() < 3) {
-        throw(Exception::size_mismatch);
+        throw SizeMismatchException();
     }
 
     const size_t size = topology.size() - 1;

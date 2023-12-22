@@ -151,12 +151,17 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         }
 
         std::cout << "Test completed successfully" << std::endl;
-    } catch (NeuralNet::Exception& e) {
-        std::cerr << "nu::MlpNN::Exception n# " << int(e) << std::endl;
-
-        std::cerr << "Check for configuration parameters and retry"
-                  << std::endl;
-
+    } catch (const NeuralNet::SizeMismatchException& e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << "Check for configuration parameters and retry" << std::endl;
+        return 1;
+    } catch (const NeuralNet::InvalidSStreamFormatException& e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << "Check for configuration parameters and retry" << std::endl;
+        return 1;
+    } catch (const NeuralNet::UserdefCostfNotDefinedException& e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << "Check for configuration parameters and retry" << std::endl;
         return 1;
     } catch (...) {
         std::cerr << "Fatal error. Check for configuration parameters and retry"

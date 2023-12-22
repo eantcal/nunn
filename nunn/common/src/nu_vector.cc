@@ -25,13 +25,13 @@ size_t Vector::maxarg() noexcept
         return size_t(-1);
     }
 
-    return std::distance(_vectorData.begin(), std::ranges::max_element(_vectorData));
+    return std::ranges::distance(_vectorData.begin(), std::ranges::max_element(_vectorData));
 }
 
 double Vector::dot(const Vector& other)
 {
     if (other.size() != size()) {
-        throw Exception::size_mismatch;
+        throw SizeMismatchException();
     }
 
     double sum = 0;
@@ -129,7 +129,7 @@ Vector& Vector::_op(const Vector& other,
     std::function<void(double&, const double&)> func)
 {
     if (other.size() != size()) {
-        throw Exception::size_mismatch;
+        throw SizeMismatchException();
     }
 
     for (size_t idx = 0; auto& data : _vectorData) {

@@ -39,6 +39,7 @@
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -54,11 +55,28 @@ public:
     using NeuronLayer = std::vector<Neuron>;
     using Topology = std::vector<size_t>;
 
-    //! Enum class for exception errors.
-    enum class Exception {
-        size_mismatch,
-        invalid_sstream_format,
-        userdef_costf_not_defined
+    class SizeMismatchException : public std::runtime_error {
+    public:
+        SizeMismatchException()
+            : std::runtime_error("Size mismatch")
+        {
+        }
+    };
+
+    class InvalidSStreamFormatException : public std::runtime_error {
+    public:
+        InvalidSStreamFormatException()
+            : std::runtime_error("Invalid stringstream format")
+        {
+        }
+    };
+
+    class UserdefCostfNotDefinedException : public std::runtime_error {
+    public:
+        UserdefCostfNotDefinedException()
+            : std::runtime_error("User-defined cost function not defined")
+        {
+        }
     };
 
     //! Default constructor.

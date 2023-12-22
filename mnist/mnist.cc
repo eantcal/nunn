@@ -48,8 +48,9 @@ void DigitData::toVect(nu::Vector& v) const noexcept
     size_t vsize = data().size();
     v.resize(vsize);
 
-    for (size_t i = 0; i < vsize; ++i)
+    for (size_t i = 0; i < vsize; ++i) {
         v[i] = double((unsigned char)data()[i]) / 255.0;
+    }
 }
 
 void DigitData::labelToTarget(nu::Vector& v) const noexcept
@@ -105,57 +106,57 @@ int TrainingData::load()
     std::ifstream fimgs(_imgsFile, std::ios::binary);
 
     if (!flbls) {
-        throw Exception::lbls_file_not_found;
+        throw LabelsFileNotFoundException();
     }
 
     if (!fimgs) {
-        throw Exception::imgs_file_not_found;
+        throw ImagesFileNotFoundException();
     }
 
     std::vector<char> buf(4);
 
     if (!flbls.read(buf.data(), 4)) {
-        throw Exception::lbls_file_read_error;
+        throw LabelsFileReadErrorException();
     }
 
     if (buf != magicLbls) {
-        throw Exception::lbls_file_wrong_magic;
+        throw LabelsFileWrongMagicException();
     }
 
     if (!fimgs.read(buf.data(), 4)) {
-        throw Exception::imgs_file_read_error;
+        throw ImagesFileReadErrorException();
     }
 
     if (buf != magicImgs) {
-        throw Exception::imgs_file_wrong_magic;
+        throw ImagesFileWrongMagicException();
     }
 
     if (!flbls.read(buf.data(), 4)) {
-        throw Exception::lbls_file_read_error;
+        throw LabelsFileReadErrorException();
     }
 
     const int32_t n_of_lbls = to_int32(buf);
 
     if (!fimgs.read(buf.data(), 4)) {
-        throw Exception::imgs_file_read_error;
+        throw ImagesFileReadErrorException();
     }
 
     const int32_t n_of_imgs = to_int32(buf);
 
     if (n_of_lbls != n_of_imgs) {
-        throw Exception::n_of_items_mismatch;
+        throw NumberOfItemsMismatchException();
     }
 
     ret = n_of_imgs;
 
     if (!fimgs.read(buf.data(), 4)) {
-        throw Exception::imgs_file_read_error;
+        throw ImagesFileReadErrorException();
     }
 
     const int32_t n_rows = to_int32(buf);
 
     if (!fimgs.read(buf.data(), 4)) {
-        throw Exception::imgs_file_read_error;
+        throw ImagesFileReadErrorException();
     }
 
     const int32_t n_cols = to_int32(buf);

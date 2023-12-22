@@ -25,7 +25,9 @@
 #include <list>
 #include <random>
 #include <ranges>
+#include <stdexcept>
 #include <string_view>
+
 
 namespace nu {
 
@@ -42,9 +44,20 @@ class HopfieldNN {
 public:
     using FpVector = Vector;
 
-    enum class Exception {
-        size_mismatch,
-        invalid_sstream_format
+    class SizeMismatchException : public std::runtime_error {
+    public:
+        SizeMismatchException()
+            : std::runtime_error("Size mismatch")
+        {
+        }
+    };
+
+    class InvalidSStreamFormatException : public std::runtime_error {
+    public:
+        InvalidSStreamFormatException()
+            : std::runtime_error("Invalid stringstream format")
+        {
+        }
     };
 
     //! Constructs a Hopfield Neural Network.

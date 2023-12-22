@@ -69,7 +69,7 @@ QMatrix::vect_t& QMatrix::operator[](const size_t& rowidx)
 {
     if (rowidx >= size()) {
         assert(0);
-        throw Exception::invalid_index;
+        throw InvalidIndexException();
     }
 
     return data()[rowidx];
@@ -79,7 +79,7 @@ const QMatrix::vect_t& QMatrix::operator[](const size_t& rowidx) const
 {
     if (rowidx >= size()) {
         assert(0);
-        throw Exception::invalid_index;
+        throw InvalidIndexException();
     }
 
     return data()[rowidx];
@@ -102,7 +102,7 @@ void QMatrix::show(std::ostream& os, size_t width) const
 void QMatrix::_max(size_t rowidx, size_t& maxIdx, double& maxValue) const
 {
     if (rowidx >= size()) {
-        throw Exception::invalid_index;
+        throw InvalidIndexException();
     }
 
     const auto& row = _data[rowidx];

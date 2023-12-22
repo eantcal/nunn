@@ -101,7 +101,7 @@ public:
         //! Equal-To operator
         bool operator==(iterator& other) const noexcept
         {
-            return (_trainer == other._trainer && _epoch == other._epoch);
+            return _trainer == other._trainer && _epoch == other._epoch;
         }
 
         //! Not-Equal-To operator
@@ -168,15 +168,17 @@ public:
             size_t sampleIdx = 0;
 
             for (const auto& [input, target] : trainingSet) {
-                if (progressCbk)
-                    bContinue = !progressCbk(
-                        _nn, input, target, epoch, sampleIdx++, _err);
+                if (progressCbk) {
+                    bContinue = !progressCbk(_nn, input, target, epoch, sampleIdx++, _err);
+                }
 
-                if (train(input, target, errCost) == true)
+                if (train(input, target, errCost) == true) {
                     return epoch;
+                }
 
-                if (!bContinue || (p2use < 1.0 && sampleIdx >= end_idx))
+                if (!bContinue || (p2use < 1.0 && sampleIdx >= end_idx)) {
                     return epoch;
+                }
             }
         }
 

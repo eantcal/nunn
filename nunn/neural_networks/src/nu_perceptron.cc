@@ -14,7 +14,7 @@ Perceptron::Perceptron(size_t inputSize,
     , _learningRate(learningRate)
 {
     if (inputSize < 1) {
-        throw Exception::size_mismatch;
+        throw SizeMismatchException();
     }
 
     _inputVector.resize(inputSize, 0.0);
@@ -27,7 +27,7 @@ Perceptron::Perceptron(size_t inputSize,
 void Perceptron::setInputVector(const FpVector& inputs)
 {
     if (inputs.size() != _inputVector.size()) {
-        throw Exception::size_mismatch;
+        throw SizeMismatchException();
     }
 
     _inputVector = inputs;
@@ -76,20 +76,23 @@ std::stringstream& Perceptron::load(std::stringstream& ss)
 {
     std::string s;
     ss >> s;
-    if (s != Perceptron::ID_ANN)
-        throw Exception::invalid_sstream_format;
+    if (s != Perceptron::ID_ANN) {
+        throw InvalidSStreamFormatException();
+    }
 
     ss >> _learningRate;
 
     ss >> s;
-    if (s != Perceptron::ID_INPUTS)
-        throw Exception::invalid_sstream_format;
+    if (s != Perceptron::ID_INPUTS) {
+        throw InvalidSStreamFormatException();
+    }
 
     ss >> _inputVector;
 
     ss >> s;
-    if (s != Perceptron::ID_NEURON)
-        throw Exception::invalid_sstream_format;
+    if (s != Perceptron::ID_NEURON) {
+        throw InvalidSStreamFormatException();
+    }
 
     ss >> _neuron;
 

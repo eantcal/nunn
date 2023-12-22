@@ -9,7 +9,9 @@
 #pragma once
 
 #include "nu_vector.h"
+
 #include <iostream>
+#include <stdexcept>
 
 namespace nu {
 
@@ -18,8 +20,12 @@ public:
     using vect_t = Vector;
     using data_t = std::vector<vect_t>;
 
-    enum class Exception {
-        invalid_index
+    class InvalidIndexException : public std::runtime_error {
+    public:
+        InvalidIndexException()
+            : std::runtime_error("Invalid index")
+        {
+        }
     };
 
     explicit QMatrix(const data_t& m)

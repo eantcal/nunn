@@ -16,6 +16,7 @@
 #include <list>
 #include <memory>
 #include <random>
+#include <stdexcept>
 #include <vector>
 
 #ifdef _WIN32
@@ -113,14 +114,60 @@ public:
         }
     }
 
-    enum class Exception {
-        lbls_file_not_found,
-        imgs_file_not_found,
-        lbls_file_read_error,
-        imgs_file_read_error,
-        lbls_file_wrong_magic,
-        imgs_file_wrong_magic,
-        n_of_items_mismatch,
+    class LabelsFileNotFoundException : public std::runtime_error {
+    public:
+        LabelsFileNotFoundException()
+            : std::runtime_error("Labels file not found")
+        {
+        }
+    };
+
+    class ImagesFileNotFoundException : public std::runtime_error {
+    public:
+        ImagesFileNotFoundException()
+            : std::runtime_error("Images file not found")
+        {
+        }
+    };
+
+    class LabelsFileReadErrorException : public std::runtime_error {
+    public:
+        LabelsFileReadErrorException()
+            : std::runtime_error("Error reading labels file")
+        {
+        }
+    };
+
+    class ImagesFileReadErrorException : public std::runtime_error {
+    public:
+        ImagesFileReadErrorException()
+            : std::runtime_error("Error reading images file")
+        {
+        }
+    };
+
+    class LabelsFileWrongMagicException : public std::runtime_error {
+    public:
+        LabelsFileWrongMagicException()
+            : std::runtime_error("Wrong magic number in labels file")
+        {
+        }
+    };
+
+    class ImagesFileWrongMagicException : public std::runtime_error {
+    public:
+        ImagesFileWrongMagicException()
+            : std::runtime_error("Wrong magic number in images file")
+        {
+        }
+    };
+
+    class NumberOfItemsMismatchException : public std::runtime_error {
+    public:
+        NumberOfItemsMismatchException()
+            : std::runtime_error("Number of items mismatch")
+        {
+        }
     };
 
     TrainingData() = delete;

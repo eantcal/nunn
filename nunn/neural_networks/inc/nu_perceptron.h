@@ -25,6 +25,8 @@
 #include "nu_trainer.h"
 #include "nu_vector.h"
 
+#include <sstream>
+#include <stdexcept>
 #include <string_view>
 
 namespace nu {
@@ -40,9 +42,20 @@ namespace nu {
 struct Perceptron {
     using FpVector = Vector;
 
-    enum class Exception {
-        size_mismatch,
-        invalid_sstream_format
+    class SizeMismatchException : public std::runtime_error {
+    public:
+        SizeMismatchException()
+            : std::runtime_error("Size mismatch")
+        {
+        }
+    };
+
+    class InvalidSStreamFormatException : public std::runtime_error {
+    public:
+        InvalidSStreamFormatException()
+            : std::runtime_error("Invalid stringstream format")
+        {
+        }
     };
 
     //! Default constructor.

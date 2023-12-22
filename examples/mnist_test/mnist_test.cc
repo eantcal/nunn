@@ -565,33 +565,26 @@ int main(int argc, char* argv[])
                           << std::endl;
             }
         }
-    } catch (TrainingData::Exception e) {
-        switch (e) {
-        case TrainingData::Exception::imgs_file_not_found:
-            std::cerr << "Images file not found";
-            break;
-        case TrainingData::Exception::imgs_file_read_error:
-            std::cerr << "Error reading images file";
-            break;
-        case TrainingData::Exception::lbls_file_not_found:
-            std::cerr << "Labels file not found";
-            break;
-        case TrainingData::Exception::lbls_file_read_error:
-            std::cerr << "Error reading labels file";
-            break;
-        case TrainingData::Exception::imgs_file_wrong_magic:
-            std::cerr << "Cannot recognize images file";
-            break;
-        case TrainingData::Exception::lbls_file_wrong_magic:
-            std::cerr << "Cannot recognize labels file";
-            break;
-        case TrainingData::Exception::n_of_items_mismatch:
-            std::cerr << "Images and labels count mismatch";
-            break;
-        }
-
-        std::cerr << std::endl
-                  << "Error Code " << int(e) << std::endl;
+    } catch (const TrainingData::LabelsFileNotFoundException& e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    } catch (const TrainingData::ImagesFileNotFoundException& e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    } catch (const TrainingData::LabelsFileReadErrorException& e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    } catch (const TrainingData::ImagesFileReadErrorException& e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    } catch (const TrainingData::LabelsFileWrongMagicException& e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    } catch (const TrainingData::ImagesFileWrongMagicException& e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    } catch (const TrainingData::NumberOfItemsMismatchException& e) {
+        std::cerr << e.what() << std::endl;
         return 1;
     }
 
