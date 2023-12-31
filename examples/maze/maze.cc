@@ -23,9 +23,9 @@
 #include <iomanip>
 #include <iostream>
 #include <list>
-#include <ranges>
 #include <thread>
 #include <vector>
+#include <algorithm>
 
 struct Envirnoment {
     enum {
@@ -205,8 +205,9 @@ public:
     {
         auto all_actions = Action::make_complete_list();
         Action::list_t valid_actions;
-        std::ranges::copy_if(
-            all_actions,
+        std::copy_if(
+            all_actions.cbegin(),
+            all_actions.cend(),
             std::back_inserter(valid_actions),
             [this](const auto& action) { return isValid(action); });
         return valid_actions;

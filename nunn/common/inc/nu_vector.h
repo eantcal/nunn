@@ -12,7 +12,6 @@
 #include <cmath>
 #include <functional>
 #include <ostream>
-#include <ranges>
 #include <span>
 #include <sstream>
 #include <stdexcept>

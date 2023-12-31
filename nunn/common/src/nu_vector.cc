@@ -7,6 +7,7 @@
 //
 
 #include "nu_vector.h"
+#include <algorithm>
 
 namespace nu {
 
@@ -25,7 +26,7 @@ size_t Vector::maxarg() noexcept
         return size_t(-1);
     }
 
-    return std::ranges::distance(_vectorData.begin(), std::ranges::max_element(_vectorData));
+    return std::distance(_vectorData.begin(), std::max_element(_vectorData.begin(), _vectorData.end()));
 }
 
 double Vector::dot(const Vector& other)
