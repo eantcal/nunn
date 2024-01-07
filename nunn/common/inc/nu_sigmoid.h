@@ -6,7 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
-
+// nu_sigmoid.h
 #pragma once
 
 #include "nu_vector.h"
