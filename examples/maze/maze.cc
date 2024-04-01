@@ -18,12 +18,12 @@
 #include <windows.h>
 #endif
 
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <list>
 #include <thread>
 #include <vector>
-#include <algorithm>
 
 struct Envirnoment {
     enum {
@@ -67,15 +67,17 @@ private:
         "**********************************************";
     // clang-format on
 
-public:    
+public:
     Envirnoment() = default;
 
-    bool getMapVal(int y, int x) const {
-        return map_[x+y*_X] != ' ';
+    bool getMapVal(int y, int x) const
+    {
+        return map_[x + y * _X] != ' ';
     }
 
-    char getMapChar(int y, int x) const {
-        return map_[x+y*_X];
+    char getMapChar(int y, int x) const
+    {
+        return map_[x + y * _X];
     }
 
     constexpr int max_x() const { return _X; }
