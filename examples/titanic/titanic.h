@@ -57,13 +57,18 @@ struct Passenger {
     // Normalizes each data point to be in the range [0, 1.0].
     std::vector<double> getInputVector() const
     {
+        constexpr double maxAge = 80.0;
+        constexpr double maxSibSp = 10.0;
+        constexpr double maxParch = 10.0;
+        constexpr double maxFare = 512.3292;
+
         return {
             (pclass - 1) / 2.0, // Normalized ticket class
-            gender, // 0 or 1
-            age / 80.0, // Normalized age, assuming 80 as the maximum age in the dataset
-            sibsp / 10.0, // Normalized siblings/spouses count
-            parch / 10.0, // Normalized parents/children count
-            fare / 512.3292 // Normalized fare, assuming 512.3292 as the highest fare
+            gender, // 0 or 1, already normalized
+            std::min(age / maxAge, 1.0), // Normalized and capped age
+            std::min(sibsp / maxSibSp, 1.0), // Normalized and capped siblings/spouses count
+            std::min(parch / maxParch, 1.0), // Normalized and capped parents/children count
+            std::min(fare / maxFare, 1.0) // Normalized and capped fare
         };
     }
 

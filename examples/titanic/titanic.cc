@@ -6,290 +6,239 @@
 // See COPYING file in the project root for full license information.
 //
 
-
 #include "titanic.h"
 
+#include <algorithm>
+#include <iostream>
+#include <limits> // For std::numeric_limits
+#include <random>
+#include <set>
+#include <string>
+#include <vector>
 
-void Passenger ::processNew(NN& nn)
+void Passenger::processNew(NN& nn)
 {
-    std::cout << "Your age        : ";
-    std::cin >> age;
+    auto readIntWithPrompt = [](const std::string& prompt, int min, int max) -> int {
+        int value;
+        do {
+            std::cout << prompt;
+            if (!(std::cin >> value) || value < min || value > max) {
+                std::cout << "Invalid input. Please try again.\n";
+                std::cin.clear(); // Clear error flags
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard the line
+            } else {
+                break; // Valid input
+            }
+        } while (true);
+        return value;
+    };
 
-    if (age < 0)
-        age = 0;
-    if (age > 80)
-        age = 80;
-
-    do {
-        std::cout << "Class 1,2,3     : ";
-        std::cin >> pclass;
-    } while (!(pclass == 1 || pclass == 2 || pclass == 3));
-
-    do {
-        std::cout << "Gender 0-M 1-F  : ";
-        std::cin >> gender;
-    } while (!(gender == 0 || gender == 1));
-
-    std::cout << "Sblings/Spouse  : ";
-    std::cin >> sibsp;
-
-    if (sibsp < 0)
-        sibsp = 0;
-    if (sibsp > 10)
-        sibsp = 10;
-
-    std::cout << "Parents/Children: ";
-    std::cin >> parch;
-
-    if (parch < 0)
-        parch = 0;
-    if (parch > 10)
-        parch = 10;
+    age = std::clamp(readIntWithPrompt("Your age        : ", 0, 80), 0, 80);
+    pclass = readIntWithPrompt("Class (1, 2, 3)  : ", 1, 3);
+    gender = readIntWithPrompt("Gender (0-M, 1-F): ", 0, 1);
+    sibsp = std::clamp(readIntWithPrompt("Siblings/Spouse : ", 0, 10), 0, 10);
+    parch = std::clamp(readIntWithPrompt("Parents/Children: ", 0, 10), 0, 10);
 
     fare = pclass == 1 ? 150 : (pclass == 2 ? 30 : 10);
 
-    NN::FpVector input { getInputVector() };
+    NN::FpVector input = getInputVector();
     NN::FpVector output { 0 };
 
     nn.setInputVector(input);
     nn.feedForward();
     nn.copyOutputVector(output);
 
-    std::cout << "Surviving chance: " << output[0] * 100 << "%" << std::endl
-              << std::endl;
+    std::cout << "Surviving chance: " << output[0] * 100 << "%\n\n";
 
-    std::cin.clear();
-    std::fflush(stdin);
-
-    std::string tmp;
-    std::getline(std::cin, tmp);
+    // Prepare for next input
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard the rest of the line
+    std::cin.clear(); // Clear error flags
 }
 
-
-void Passenger ::find(const Passenger* db, const std::string& searchFor, NN& nn)
+void Passenger::find(const Passenger* db, const std::string& searchFor, NN& nn)
 {
-    size_t i = 0;
-
-    while (db[i].valid()) {
-        const std::string name = db[i].name;
+    for (size_t i = 0; db[i].valid(); ++i) {
+        const std::string& name = db[i].name;
 
         if (name.find(searchFor) != std::string::npos) {
-            std::cout << "  " << name << std::endl;
-            std::cout << "  Age                            " << db[i].age
-                      << std::endl;
-            std::cout << "  Class                          " << db[i].pclass
-                      << std::endl;
-            std::cout << "  # of siblings / spouses aboard " << db[i].sibsp
-                      << std::endl;
-            std::cout << "  # of parents / children aboard " << db[i].parch
-                      << std::endl;
-            std::cout << "  Ticket Fare                    " << db[i].fare
-                      << std::endl;
-            std::cout << "  Survived:                      "
-                      << std::string(db[i].survived ? "Yes" : "No")
-                      << std::endl;
+            std::cout << "  " << name << std::endl
+                      << "  Age                            : " << db[i].age << std::endl
+                      << "  Class                          : " << db[i].pclass << std::endl
+                      << "  # of siblings / spouses aboard : " << db[i].sibsp << std::endl
+                      << "  # of parents / children aboard : " << db[i].parch << std::endl
+                      << "  Ticket Fare                    : " << db[i].fare << std::endl
+                      << "  Survived:                      : " << (db[i].survived ? "Yes" : "No") << std::endl;
 
-            NN::FpVector input { db[i].getInputVector() };
+            NN::FpVector input = db[i].getInputVector();
             NN::FpVector output { 0 };
 
             nn.setInputVector(input);
             nn.feedForward();
             nn.copyOutputVector(output);
 
-            std::cout << "  Survived prediction:           " << output[0] * 100
-                      << "%" << std::endl
+            std::cout << "  Survived prediction:           : " << output[0] * 100 << "%" << std::endl
                       << std::endl;
         }
-        ++i;
     }
 }
 
-
-// Function which can be used to genrate training and test sets
-// from Passenger database
-void Passenger ::populateDataSet(const Passenger* db,
-    TrainingSet& trainingSet,
-    TestSet& testSet,
-    double trainingSetRate)
+// Assuming definitions for TrainingSet and TestSet types
+// as well as a valid() method for Passenger
+void Passenger::populateDataSet(const Passenger* db, TrainingSet& trainingSet, TestSet& testSet, double trainingSetRate)
 {
-    const size_t dataSetSize = [db] {
-        size_t i = 0;
-        while (db[i++].valid()) {
-        }
-        return i;
-    }();
-    std::set<size_t> usedIndex;
-
-    const size_t trainingSetSize = size_t(double(dataSetSize) * trainingSetRate);
-
-    auto reshuffle = [&usedIndex, dataSetSize]() {
-        size_t rndIndex = 0;
-
-        do {
-            rndIndex = rand() % dataSetSize;
-        } while (usedIndex.find(rndIndex) != usedIndex.end());
-
-        usedIndex.insert(rndIndex);
-        return rndIndex;
-    };
-
-    // The data has been split into two groups: training set and test set
-    // The training set is used to train the neural network.
-    // The training set is built on “features” like passengers’ gender, age,
-    // class, etc.
-    //
-    // The test set is used to see how well a trained NN performs on unseen
-    // data. For each passenger in the test set, is used an NN trained to
-    // predict whether or not they survived the sinking of the Titanic.
-
-    for (size_t i = 0; i < trainingSetSize; ++i) {
-        const size_t rndIndex = reshuffle();
-        trainingSet[db[rndIndex].getInputVector()] = db[rndIndex].getOutputVector();
+    // Calculate total number of valid entries in the database
+    size_t dataSetSize = 0;
+    while (db[dataSetSize].valid()) {
+        ++dataSetSize;
     }
 
-    for (size_t i = trainingSetSize; i < dataSetSize; ++i) {
-        const size_t rndIndex = reshuffle();
-        testSet[db[rndIndex].getInputVector()] = db[rndIndex].getOutputVector();
+    // Create a vector of indices to represent the database entries
+    std::vector<size_t> indices(dataSetSize);
+    std::iota(indices.begin(), indices.end(), 0); // Fill with 0 to dataSetSize - 1
+
+    // Shuffle the indices to randomly order the database entries
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(indices.begin(), indices.end(), g);
+
+    // Determine the split index for training and test sets based on the provided rate
+    size_t splitIndex = static_cast<size_t>(dataSetSize * trainingSetRate);
+
+    // Populate the training set
+    for (size_t i = 0; i < splitIndex; ++i) {
+        const Passenger& passenger = db[indices[i]];
+        trainingSet[passenger.getInputVector()] = passenger.getOutputVector();
+    }
+
+    // Populate the test set
+    for (size_t i = splitIndex; i < indices.size(); ++i) {
+        const Passenger& passenger = db[indices[i]];
+        testSet[passenger.getInputVector()] = passenger.getOutputVector();
     }
 }
 
-
-// Test a NN against a given test set
-
-void test(const TestSet& testSet, NN& nn)
+void testNN(const TestSet& testSet, NN& nn)
 {
-    NN::FpVector output { 0 };
-    NN::FpVector input { 0 };
-    size_t sampleCnt = 0;
-    size_t errCnt = 0;
+    size_t sampleCount = 0;
+    size_t errorCount = 0;
 
-    for (const auto& sample : testSet) {
-        input = sample.first;
+    for (const auto& [input, expectedOutput] : testSet) {
+        NN::FpVector predictedOutput;
+
         nn.setInputVector(input);
         nn.feedForward();
-        nn.copyOutputVector(output);
+        nn.copyOutputVector(predictedOutput);
 
-        output[0] = output[0] >= 0.5 ? 1.0 : 0.0;
+        // Interpret NN output as binary classification with a threshold of 0.5
+        double prediction = predictedOutput[0] >= 0.5 ? 1.0 : 0.0;
 
-        ++sampleCnt;
-        if (sample.second[0] != output[0])
-            ++errCnt;
+        // Increment counters based on the prediction accuracy
+        ++sampleCount;
+        if (expectedOutput[0] != prediction) {
+            ++errorCount;
+        }
     }
 
-    std::cout << "Test result: (err/samples)=" << errCnt << "/" << sampleCnt
-              << " Success Rate (%)="
-              << (1.0 - double(errCnt) / double(sampleCnt)) * 100.0
-              << std::endl;
+    // Calculate success rate
+    double successRate = (1.0 - static_cast<double>(errorCount) / sampleCount) * 100.0;
+
+    // Improved output formatting
+    std::cout << "Test Results:\n"
+              << "Error Count: " << errorCount << " out of " << sampleCount << " samples.\n"
+              << "Success Rate: " << successRate << "%\n";
 }
 
-
-static void printDivider()
+static void printDivider(size_t length = 80)
 {
-    for (size_t i = 0; i < 80; ++i)
-        std::cout << "-";
-    std::cout << std::endl;
+    std::cout << std::string(length, '-') << '\n';
 }
 
-
-// Working in progress...
-int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
+void initializeNetwork(NN& nn)
 {
-    printDivider();
+    NN::Topology topology = { 6, 6, 1 }; // Example topology
+    nn = NN(topology, 0.10, 0.9); // Assuming NN constructor takes topology, learning rate, and momentum
+    std::cout << "Network initialized with learning rate = 0.10 and momentum = 0.9\n";
+}
 
-    std::cout << " RMS Titanic was a British passenger liner that sank in the "
-                 "North Atlantic "
-              << std::endl
-              << " Ocean On April 15, 1912, during her maiden voyage, "
-              << std::endl
-              << " after colliding with an iceberg, killing 1502 out of 2224 "
-                 "passengers and crew."
-              << std::endl
-              << " We created a database of 1046 passengers classified using "
-                 "“features” like"
-              << std::endl
-              << " gender, age, ticket class, fare, etc, plus a survival "
-                 "status and divieded"
-              << std::endl
-              << " such database in two groups using a pseudo random algorithm:"
-              << std::endl
-              << " - 946 passengers in a training set, used for training a "
-                 "Neural Network"
-              << std::endl
-              << " - 100 passengers in a test set used on the trained NN to "
-                 "measure accurency of NN"
-              << std::endl;
+void trainNetwork(NN& nn, const TrainingSet& trainingSet)
+{
+    Trainer trainer(nn, 5000); // Assuming a Trainer class exists
+    auto errorCostFunction = [](NN& net, const NN::FpVector& target) { return net.calcMSE(target); };
 
-    printDivider();
-
-    // Create training set and test set
-    TrainingSet trainingSet;
-    TestSet testSet;
-    Passenger::populateDataSet(titanicDB, trainingSet, testSet, 0.905);
-
-    NN::Topology topology = {
-        6, // number of inputs
-        6, // hidden layer
-        1 // output
-    };
-
-    // Construct the network using topology, learning rate and momentum
-    NN nn {
-        topology,
-        0.10, // learning rate
-        0 // momentum
-    };
-
-    printDivider();
-    std::cout << "UNTRAINED neural network ";
-    test(testSet, nn);
-    printDivider();
-
-    Trainer trainer(nn, 5000);
-
-    std::clog << "Training the NN ( Epochs =" << trainer.getEpochs() << " )";
-
-    // Train the net
-    trainer.runTraining<DataSet>(
-        trainingSet,
-
-        // Error cost function
-        [](NN& net, const NN::FpVector& target) { return net.calcMSE(target); },
-
-        // Progress callback
-        [&trainingSet]([[maybe_unused]] NN& nn,
-            [[maybe_unused]] const nu::Vector& i,
-            [[maybe_unused]] const nu::Vector& t,
-            size_t epoch,
-            size_t sample,
-            [[maybe_unused]] double err) {
-            if (sample == trainingSet.size() - 1 && epoch % 1000 == 0)
-                std::clog << ".";
-            return false;
+    trainer.runTraining(trainingSet, errorCostFunction,
+        [](NN&, const NN::FpVector&, const NN::FpVector&, size_t epoch, size_t sample, double err) {
+            if (epoch % 1000 == 0 && sample == 0) {
+                std::cout << "Training progress: epoch " << epoch << ", error = " << err << '\n';
+            }
+            return false; // Continue training
         });
 
-    std::cout << " Done." << std::endl;
+    std::cout << "Network training completed.\n";
+}
+
+void testNetwork(NN& nn, const TestSet& testSet)
+{
+    size_t totalSamples = 0, correctPredictions = 0;
+    for (const auto& [input, expectedOutput] : testSet) {
+        nn.setInputVector(input);
+        nn.feedForward();
+        NN::FpVector output;
+        nn.copyOutputVector(output);
+        bool prediction = output[0] >= 0.5;
+        if (prediction == expectedOutput[0])
+            ++correctPredictions;
+        ++totalSamples;
+    }
+    double successRate = (static_cast<double>(correctPredictions) / totalSamples) * 100.0;
+    std::cout << "Test Success Rate: " << successRate << "%\n";
+}
+
+void interactiveSession(NN& nn)
+{
+    std::string userInput;
+    while (true) {
+        std::cout << "Enter 'new' for a new prediction, 'quit' to exit: ";
+        std::getline(std::cin, userInput);
+        if (userInput == "quit")
+            break;
+        if (userInput == "new") {
+            Passenger newPassenger;
+            newPassenger.processNew(nn);
+        } else {
+            Passenger::find(titanicDB, userInput, nn);
+        }
+    }
+}
+
+int main()
+{
+    printDivider();
+
+    std::cout << "RMS Titanic, the British passenger liner that sank in the North Atlantic Ocean\n"
+                 "on April 15, 1912, during her maiden voyage, after colliding with an iceberg.\n"
+                 "Of the 2224 passengers and crew aboard, 1502 died. A database of 1046 passengers\n"
+                 "has been created, classified with features like gender, age, and survival status.\n"
+                 "This dataset is divided into a training set of 946 passengers and a test set of\n"
+                 "100 passengers to measure the accuracy of a trained Neural Network.\n";
 
     printDivider();
-    std::cout << "Trained neural network   ";
-    test(testSet, nn);
-    printDivider();
 
-    do {
-        std::string searchFor;
-        std::cout << "Search for name (or new for a new unknown prediction, "
-                     "quit -> for exiting): ";
-        std::getline(std::cin, searchFor);
-        printDivider();
+    NN nn;
+    TrainingSet trainingSet;
+    TestSet testSet;
 
-        if (searchFor == "quit")
-            return 0;
+    initializeNetwork(nn);
+    Passenger::populateDataSet(titanicDB, trainingSet, testSet, 0.905);
 
-        if (searchFor == "new") {
-            Passenger p;
-            p.processNew(nn);
-        } else
-            Passenger::find(titanicDB, searchFor, nn);
-    } while (1);
+    std::cout << "Before training: ";
+    testNetwork(nn, testSet);
+
+    trainNetwork(nn, trainingSet);
+
+    std::cout << "After training: ";
+    testNetwork(nn, testSet);
+
+    interactiveSession(nn);
 
     return 0;
 }
