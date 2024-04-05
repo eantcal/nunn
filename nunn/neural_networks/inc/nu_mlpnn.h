@@ -156,8 +156,8 @@ public:
     //! Dumps the network's state to the given output stream.
     std::ostream& dump(std::ostream& os) noexcept;
 
-    //! Calculates the error between the target and output vectors.
-    double calcError(const FpVector& targetVector);
+    //! Calculates the MSE between the target and output vectors.
+    double calcMSE(const FpVector& targetVector);
 
     //! Calculates the cross-entropy cost.
     double calcCrossEntropy(const FpVector& targetVector);
@@ -225,8 +225,8 @@ private:
         std::vector<NeuronLayer>& neuronLayers,
         FpVector& inputs);
 
-    // Calculates the error vector using the Mean Squared Error function.
-    static void _calcMSE(const FpVector& targetVector,
+    // Calculates the error vector.
+    static void _calcError(const FpVector& targetVector,
         const FpVector& outputVector,
         FpVector& res_v) noexcept;
 
