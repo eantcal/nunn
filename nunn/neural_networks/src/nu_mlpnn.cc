@@ -353,7 +353,7 @@ void MlpNN::_backPropagate(const FpVector& targetVector,
 
     // res_v = target - output
     FpVector error_v;
-    _calcMSE(targetVector, outputVector, error_v);
+    _calcError(targetVector, outputVector, error_v);
 
     // Copy error values into the output neurons
     for (size_t i = 0; auto& neuron : *_neuronLayers.rbegin()) {
@@ -471,7 +471,7 @@ void MlpNN::_build(const Topology& topology,
     }
 }
 
-void MlpNN::_calcMSE(const FpVector& targetVector,
+void MlpNN::_calcError(const FpVector& targetVector,
     const FpVector& outputVector,
     FpVector& res_v) noexcept
 {
