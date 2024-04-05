@@ -156,8 +156,8 @@ public:
     //! Dumps the network's state to the given output stream.
     std::ostream& dump(std::ostream& os) noexcept;
 
-    //! Calculates the mean squared error between the target and output vectors.
-    double calcMSE(const FpVector& targetVector);
+    //! Calculates the error between the target and output vectors.
+    double calcError(const FpVector& targetVector);
 
     //! Calculates the cross-entropy cost.
     double calcCrossEntropy(const FpVector& targetVector);
