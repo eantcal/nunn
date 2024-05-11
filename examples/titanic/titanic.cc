@@ -82,8 +82,6 @@ void Passenger::find(const Passenger* db, const std::string& searchFor, NN& nn)
     }
 }
 
-// Assuming definitions for TrainingSet and TestSet types
-// as well as a valid() method for Passenger
 void Passenger::populateDataSet(const Passenger* db, TrainingSet& trainingSet, TestSet& testSet, double trainingSetRate)
 {
     // Calculate total number of valid entries in the database
