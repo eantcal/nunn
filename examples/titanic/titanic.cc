@@ -154,13 +154,13 @@ static void printDivider(size_t length = 80)
 void initializeNetwork(NN& nn)
 {
     NN::Topology topology = { 6, 6, 1 }; // Example topology
-    nn = NN(topology, 0.10, 0.9); // Assuming NN constructor takes topology, learning rate, and momentum
+    nn = NN(topology, 0.10, 0.9); // NN constructor takes topology, learning rate, and momentum
     std::cout << "Network initialized with learning rate = 0.10 and momentum = 0.9\n";
 }
 
 void trainNetwork(NN& nn, const TrainingSet& trainingSet)
 {
-    Trainer trainer(nn, 5000); // Assuming a Trainer class exists
+    Trainer trainer(nn, 5000);
     auto errorCostFunction = [](NN& net, const NN::FpVector& target) { return net.calcMSE(target); };
 
     trainer.runTraining(trainingSet, errorCostFunction,
