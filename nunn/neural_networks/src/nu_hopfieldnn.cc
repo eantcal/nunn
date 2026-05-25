@@ -8,6 +8,7 @@
 
 #include "nu_hopfieldnn.h"
 #include <algorithm>
+#include <numeric>
 #include <random>
 #include <span>
 

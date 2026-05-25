@@ -9,6 +9,8 @@
 #include "nu_mlpnn.h"
 #include "nu_random_gen.h"
 
+#include <numeric>
+
 namespace nu {
 
 MlpNN::MlpNN(const Topology& topology, double learningRate, double momentum)
@@ -60,18 +62,23 @@ void MlpNN::setInputVector(const FpVector& inputs)
 
 void MlpNN::_updateNeuronWeights(Neuron& neuron, size_t layerIdx)
 {
+    // Standard gradient-descent with momentum:
+    //   delta_w(t) = learningRate * error * x  +  momentum * delta_w(t-1)
+    //   w(t)       = w(t-1) + delta_w(t)
+    // Same scheme for the bias (treat input as 1).
     const auto lr_err { neuron.error * _learningRate };
-    const auto m_err { neuron.error * _momentum };
 
     for (size_t inIdx = 0; inIdx < neuron.weights.size(); ++inIdx) {
         const auto dw_prev_step = neuron.deltaW[inIdx];
 
-        neuron.deltaW[inIdx] = _getInput(layerIdx - 1, inIdx) * lr_err + m_err * dw_prev_step;
+        neuron.deltaW[inIdx] = _getInput(layerIdx - 1, inIdx) * lr_err
+                             + _momentum * dw_prev_step;
 
         neuron.weights[inIdx] += neuron.deltaW[inIdx];
     }
 
-    neuron.bias = lr_err + m_err * neuron.bias;
+    neuron.deltaB = lr_err + _momentum * neuron.deltaB;
+    neuron.bias  += neuron.deltaB;
 }
 
 void MlpNN::reshuffleWeights() noexcept
@@ -101,6 +108,7 @@ void MlpNN::reshuffleWeights() noexcept
                 [&](auto&) { return (-1.0 + 2 * rndgen()) / weights_cnt; });
 
             std::fill(neuron.deltaW.begin(), neuron.deltaW.end(), 0.0);
+            neuron.deltaB = 0.0;
             neuron.bias = rndgen();
         }
     }
@@ -287,7 +295,7 @@ std::ostream& MlpNN::dump(std::ostream& os) noexcept
 
             os << "\t\tBias =       " << neuron.bias << std::endl;
 
-            os << "\t\tOuput = " << neuron.output;
+            os << "\t\tOutput = " << neuron.output;
             os << std::endl;
 
             os << "\t\tError = " << neuron.error;

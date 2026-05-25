@@ -17,7 +17,7 @@ file(GLOB SOURCES
 )
 
 # Add library
-add_library(nunn SHARED ${SOURCES})
+add_library(nunn STATIC ${SOURCES})
 
 # Set target properties
 set_target_properties(nunn PROPERTIES 

@@ -26,6 +26,9 @@ struct Neuron {
     //! Bias term for the neuron, contributing to the net input signal beyond weighted inputs.
     double bias { .0 };
 
+    //! Adjustment for bias used during the training process (mirrors deltaW for the bias).
+    double deltaB { .0 };
+
     //! Output value of the neuron after applying the activation function.
     double output { .0 };
 
