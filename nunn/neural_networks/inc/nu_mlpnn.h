@@ -101,6 +101,14 @@ public:
         {
         }
     };
+    class InvalidCostFunctionCombinationException : public std::runtime_error {
+    public:
+        InvalidCostFunctionCombinationException()
+            : std::runtime_error("CrossEntropy requires Sigmoid output activation: "
+                                 "output must produce probabilities in (0, 1)")
+        {
+        }
+    };
 
     // ── Constructors ─────────────────────────────────────────────────────────
 
@@ -143,7 +151,15 @@ public:
     void setMomentum(double m) noexcept { _momentum = m; }
 
     [[nodiscard]] CostFunction getCostFunction() const noexcept { return _costFunction; }
-    void setCostFunction(CostFunction cf) noexcept { _costFunction = cf; }
+
+    // Throws InvalidCostFunctionCombinationException if CrossEntropy is paired
+    // with a non-Sigmoid output activation.
+    void setCostFunction(CostFunction cf)
+    {
+        if (!_layerActivations.empty())
+            _validateCostFunction(cf, _layerActivations.back());
+        _costFunction = cf;
+    }
 
     void setInputVector(const FpVector& inputs);
     [[nodiscard]] const FpVector& getInputVector() const noexcept { return _inputVector; }
@@ -193,6 +209,12 @@ private:
 
     static void _build(
         const Topology& topology, std::vector<NeuronLayer>& neuronLayers, FpVector& inputs);
+
+    static void _validateCostFunction(CostFunction cf, Activation outAct)
+    {
+        if (cf == CostFunction::CrossEntropy && outAct != Activation::Sigmoid)
+            throw InvalidCostFunctionCombinationException();
+    }
 
     CostFunction _costFunction{ CostFunction::MSE };
     Topology _topology;

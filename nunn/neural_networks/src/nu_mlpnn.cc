@@ -27,6 +27,7 @@ MlpNN::MlpNN(const Topology& topology, double learningRate, double momentum, Cos
     , _learningRate(learningRate)
     , _momentum(momentum)
 {
+    // Topology constructor always assigns Sigmoid to every layer, so CE is valid.
     _layerActivations.assign(topology.size() - 1, Activation::Sigmoid);
     _build(_topology, _neuronLayers, _inputVector);
     reshuffleWeights();
@@ -46,6 +47,10 @@ MlpNN::MlpNN(
         if (i > 0)
             _layerActivations.push_back(layers[i].activation);
     }
+
+    // Validate before building: CrossEntropy requires Sigmoid output.
+    if (!_layerActivations.empty())
+        _validateCostFunction(cf, _layerActivations.back());
 
     _build(_topology, _neuronLayers, _inputVector);
     reshuffleWeights();
@@ -133,17 +138,15 @@ void MlpNN::_backPropagate(const FpVector& targetVector, const FpVector& outputV
     //   δ_i = act'(y_i) * (t_i - y_i)
     //
     // Cross-Entropy + Sigmoid (the sigmoid derivative y*(1-y) cancels with
-    // the CE gradient (y-t)/(y*(1-y)), leaving the clean form):
+    // the CE gradient (y-t)/(y*(1-y)), leaving the simplified form):
     //   δ_i = t_i - y_i
     //
-    // Cross-Entropy + non-Sigmoid output: theoretically requires a different
-    // formula; CE is only well-defined for probability outputs in (0,1), so
-    // pairing it with Tanh/ReLU/Linear output is mathematically unsound.
-    // The fallback below uses the MSE-shaped gradient as an approximation.
+    // CrossEntropy + non-Sigmoid output is rejected at construction time
+    // (InvalidCostFunctionCombinationException), so only these two cases
+    // can ever reach this point.
     //
     const Activation outAct = _layerActivations.back();
-    const bool ceSimplified
-        = (_costFunction == CostFunction::CrossEntropy && outAct == Activation::Sigmoid);
+    const bool ceSimplified = (_costFunction == CostFunction::CrossEntropy);
 
     auto& outputLayer = _neuronLayers.back();
     for (size_t i = 0; i < outputLayer.size(); ++i) {

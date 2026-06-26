@@ -275,6 +275,35 @@ TEST(MlpApiTest, LearningRateAndMomentumStoredCorrectly)
     EXPECT_DOUBLE_EQ(nn.getMomentum(), 0.82);
 }
 
+TEST(MlpApiTest, CrossEntropyWithSigmoidOutputIsValid)
+{
+    // CE + Sigmoid output must not throw — this is the only valid combination.
+    EXPECT_NO_THROW(MlpNN({ LC{ 2 }, { 4, Activation::Tanh }, { 1, Activation::Sigmoid } }, 0.1,
+        0.9, CostFunction::CrossEntropy));
+}
+
+TEST(MlpApiTest, CrossEntropyWithTanhOutputThrows)
+{
+    EXPECT_THROW((MlpNN({ LC{ 2 }, { 4, Activation::Sigmoid }, { 1, Activation::Tanh } }, 0.1, 0.9,
+                     CostFunction::CrossEntropy)),
+        MlpNN::InvalidCostFunctionCombinationException);
+}
+
+TEST(MlpApiTest, CrossEntropyWithReLUOutputThrows)
+{
+    EXPECT_THROW((MlpNN({ LC{ 2 }, { 4, Activation::Sigmoid }, { 1, Activation::ReLU } }, 0.1, 0.9,
+                     CostFunction::CrossEntropy)),
+        MlpNN::InvalidCostFunctionCombinationException);
+}
+
+TEST(MlpApiTest, SetCrossEntropyOnNonSigmoidOutputThrows)
+{
+    // A valid net that is then mutated to an invalid cost function.
+    MlpNN nn({ LC{ 2 }, { 4, Activation::Sigmoid }, { 1, Activation::Tanh } });
+    EXPECT_THROW(nn.setCostFunction(CostFunction::CrossEntropy),
+        MlpNN::InvalidCostFunctionCombinationException);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MlpRegressionTest — Sigmoid+MSE must not have regressed
 // ─────────────────────────────────────────────────────────────────────────────
