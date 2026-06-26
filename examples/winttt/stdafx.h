@@ -9,11 +9,11 @@
 #include "targetver.h"
 
 #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
-// Windows Header Files:
+// Windows Header Files (windows.h must come first):
+#include <windows.h>
 #include <Commctrl.h>
 #include <Windowsx.h>
 #include <commdlg.h>
-#include <windows.h>
 
 
 // C RunTime Header Files
