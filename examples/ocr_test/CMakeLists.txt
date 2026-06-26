@@ -27,6 +27,12 @@ target_link_libraries(ocr_test PRIVATE nunn mnist Comctl32)
 
 if(MSVC)
     target_compile_options(ocr_test PRIVATE /W3 /permissive-)
+
+    # Precompiled header — replicates the /Yc / /Yu setup from the old .vcxproj
+    target_compile_options(ocr_test PRIVATE /Yu"stdafx.h")
+    set_source_files_properties(stdafx.cpp
+        PROPERTIES COMPILE_FLAGS "/Yc\"stdafx.h\""
+    )
 endif()
 
 install(TARGETS ocr_test

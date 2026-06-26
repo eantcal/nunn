@@ -12,3 +12,6 @@ dist/
 
 # Inno Setup (legacy — replaced by CMake CPack)
 *.iss
+/build-linux/_deps/nlohmann_json-subbuild
+/build-linux
+/nunn/Debug
