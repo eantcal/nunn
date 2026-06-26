@@ -67,7 +67,7 @@ public:
         Activation activation{ Activation::Sigmoid };
 
         LayerConfig() = default;
-        LayerConfig(size_t s) noexcept
+        explicit LayerConfig(size_t s) noexcept
             : size(s)
         {
         }

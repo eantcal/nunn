@@ -275,19 +275,24 @@ std::stringstream& MlpNN::load(std::stringstream& ss)
 
 std::stringstream& MlpNN::save(std::stringstream& ss) noexcept
 {
+    ss.str({});
     ss.clear();
     ss << std::setprecision(std::numeric_limits<double>::max_digits10);
 
-    ss << getNetId() << '\n';
+    // Each statement starts from ss (stringstream&) so the stringstream-specific
+    // operator<< overloads are selected, preserving the serialisation format.
+    ss << std::string(getNetId()) << '\n';
     ss << _learningRate << '\n';
     ss << _momentum << '\n';
-    ss << getInputVectorId() << '\n' << _inputVector << '\n';
-    ss << getTopologyId() << '\n' << _topology << '\n';
+    ss << std::string(getInputVectorId()) << '\n';
+    ss << _inputVector << '\n';
+    ss << std::string(getTopologyId()) << '\n';
+    ss << _topology << '\n';
 
     for (auto& nl : _neuronLayers) {
-        ss << getNeuronLayerId() << '\n';
+        ss << std::string(getNeuronLayerId()) << '\n';
         for (auto& neuron : nl) {
-            ss << getNeuronId() << '\n';
+            ss << std::string(getNeuronId()) << '\n';
             ss << neuron << '\n';
         }
     }
