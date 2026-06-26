@@ -1010,19 +1010,14 @@ static bool process_cl(int argc,
     return true;
 }
 
-bool save_the_net(const std::string& filename, std::stringstream& ss)
+bool save_the_net(const std::string& filename, nu::MlpNN& net)
 {
-    // Save the net status if needed
-
     std::ofstream nf(filename);
-    if (nf.is_open()) {
-        nf << ss.str() << std::endl;
-        nf.close();
-    } else {
+    if (!nf.is_open()) {
         std::cerr << "Cannot open '" << filename << "'" << std::endl;
         return false;
     }
-
+    net.toJson(nf);
     return true;
 }
 
@@ -1090,20 +1085,15 @@ int main(int argc, char* argv[])
 
     if (!load_file_name.empty()) {
         std::ifstream nf(load_file_name);
-        std::stringstream ss;
 
         if (!nf.is_open()) {
             std::cerr << "Cannot open '" << load_file_name << "'" << std::endl;
             return 1;
         }
 
-        ss << nf.rdbuf();
-        nf.close();
-
-        net = std::unique_ptr<nu::MlpNN>(new nu::MlpNN);
-
+        net = std::make_unique<nu::MlpNN>();
         if (net)
-            net->load(ss);
+            net->loadJson(nf);
     }
 
     if (net == nullptr) {
@@ -1201,9 +1191,7 @@ int main(int argc, char* argv[])
 
                 if (!save_file_name.empty()) {
                     std::cout << "Saving net status" << std::endl;
-                    std::stringstream ss;
-                    net->save(ss);
-                    save_the_net(save_file_name, ss);
+                    save_the_net(save_file_name, *net);
                 }
 
                 if (mean_err < threshold) {

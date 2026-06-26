@@ -84,7 +84,7 @@ public:
         type_t* operator->() const noexcept { return _trainer; }
 
         //! Increment operator
-        iterator operator++() noexcept
+        iterator& operator++() noexcept
         {
             ++_epoch;
             return *this;
@@ -99,13 +99,13 @@ public:
         }
 
         //! Equal-To operator
-        bool operator==(iterator& other) const noexcept
+        bool operator==(const iterator& other) const noexcept
         {
             return _trainer == other._trainer && _epoch == other._epoch;
         }
 
         //! Not-Equal-To operator
-        bool operator!=(iterator& other) const noexcept
+        bool operator!=(const iterator& other) const noexcept
         {
             return !this->operator==(other);
         }
@@ -169,8 +169,13 @@ public:
 
             for (const auto& [input, target] : trainingSet) {
                 if (progressCbk) {
-                    bContinue = !progressCbk(_nn, input, target, epoch, sampleIdx++, _err);
+                    bContinue = !progressCbk(_nn, input, target, epoch, sampleIdx, _err);
                 }
+
+                // Advance the sample index regardless of whether a progress
+                // callback is supplied, otherwise the partial-set early stop
+                // below (p2use < 1.0) would never trigger.
+                ++sampleIdx;
 
                 if (train(input, target, errCost) == true) {
                     return epoch;

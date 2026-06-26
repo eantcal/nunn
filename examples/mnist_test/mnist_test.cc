@@ -323,21 +323,16 @@ static double test_net(std::unique_ptr<NeuralNet>& net,
 
 bool save_the_net(const std::string& filename, NeuralNet& net)
 {
-    // Save the net status if needed
-    if (!filename.empty()) {
-        std::stringstream ss;
-        ss << net;
+    if (filename.empty())
+        return true;
 
-        std::ofstream nf(filename);
-        if (nf.is_open()) {
-            nf << ss.str() << std::endl;
-            nf.close();
-        } else {
-            std::cerr << "Cannot open '" << filename << "'" << std::endl;
-            return false;
-        }
+    std::ofstream nf(filename);
+    if (!nf.is_open()) {
+        std::cerr << "Cannot open '" << filename << "'" << std::endl;
+        return false;
     }
 
+    net.toJson(nf);
     return true;
 }
 
@@ -454,20 +449,15 @@ int main(int argc, char* argv[])
 
         if (!load_file_name.empty()) {
             std::ifstream nf(load_file_name);
-            std::stringstream ss;
             if (!nf.is_open()) {
                 std::cerr << "Cannot open '" << load_file_name << "'"
                           << std::endl;
                 return 1;
             }
 
-            ss << nf.rdbuf();
-            nf.close();
-
-            net = std::unique_ptr<NeuralNet>(new NeuralNet);
-            if (net) {
-                net->load(ss);
-            }
+            net = std::make_unique<NeuralNet>();
+            if (net)
+                net->loadJson(nf);
         }
 
         if (net == nullptr) {

@@ -150,8 +150,11 @@ public:
     //! Saves the network's status into the given string stream.
     std::stringstream& save(std::stringstream& ss) noexcept;
 
-    //! Formats the network's status as JSON into the given string stream.
-    std::ostream& toJson(std::ostream& ss) noexcept;
+    //! Serialises the network state as JSON into the given output stream.
+    std::ostream& toJson(std::ostream& os) noexcept;
+
+    //! Deserialises the network state from a JSON input stream.
+    std::istream& loadJson(std::istream& is);
 
     //! Dumps the network's state to the given output stream.
     std::ostream& dump(std::ostream& os) noexcept;

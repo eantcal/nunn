@@ -50,7 +50,7 @@
 #define WHITEBOARD_Y 130
 #define YBMPOFF 100
 
-#define FILE_FILTER "nunnlib (.net)\0*.net;\0All Files (*.*)\0*.*\0\0";
+#define FILE_FILTER "nunn JSON (.json)\0*.json;\0All Files (*.*)\0*.*\0\0";
 
 
 
@@ -250,7 +250,6 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
     if (::GetOpenFileName(&ofn)) {
         std::ifstream nf(open_file_name.data());
-        std::stringstream ss;
 
         if (!nf.is_open()) {
             MessageBox(
@@ -262,16 +261,13 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
             return false;
         }
 
-        ss << nf.rdbuf();
-        nf.close();
-
         currentFileName = open_file_name.data();
 
         auto nn = std::make_unique< nu::MlpNN >();
 
         try {
             if (nn)
-                nn->load(ss);
+                nn->loadJson(nf);
 
             if (!nn ||
                 nn->getInputSize() != NN_INPUTS ||
@@ -351,17 +347,8 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
         return;
     }
 
-    std::stringstream ss;
-    ss << *neuralNet;
-
-    //std::cout << ss.str() << std::endl;
     std::ofstream nf(filename);
-    
-    if (nf.is_open()) {
-        nf << ss.str() << std::endl;
-        nf.close();
-    }
-    else {
+    if (!nf.is_open()) {
         MessageBox(
             hWnd,
             "Cannot save current network status",
@@ -370,6 +357,7 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
 
         return;
     }
+    neuralNet->toJson(nf);
 
     currentFileName = filename;
     SetWindowText(hWnd, filename.c_str());

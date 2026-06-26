@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <iostream>
 #include <limits> // For std::numeric_limits
+#include <numeric> // For std::iota
 #include <random>
 #include <set>
 #include <string>

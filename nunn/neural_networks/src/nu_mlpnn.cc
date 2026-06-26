@@ -9,7 +9,11 @@
 #include "nu_mlpnn.h"
 #include "nu_random_gen.h"
 
+#include <iomanip>
+#include <limits>
 #include <numeric>
+
+#include <nlohmann/json.hpp>
 
 namespace nu {
 
@@ -204,6 +208,9 @@ std::stringstream& MlpNN::save(std::stringstream& ss) noexcept
 {
     ss.clear();
 
+    // Write doubles at full round-trip precision so save()/load() is lossless.
+    ss << std::setprecision(std::numeric_limits<double>::max_digits10);
+
     ss << getNetId() << std::endl;
 
     ss << _learningRate << std::endl;
@@ -227,46 +234,68 @@ std::stringstream& MlpNN::save(std::stringstream& ss) noexcept
     return ss;
 }
 
-std::ostream& MlpNN::toJson(std::ostream& ss) noexcept
+std::ostream& MlpNN::toJson(std::ostream& os) noexcept
 {
-    ss.clear();
+    using json = nlohmann::json;
 
-    ss << "{\"" << getNetId() << "\":{" << std::endl;
+    json j;
+    j["type"]         = std::string(getNetId());
+    j["version"]      = 1;
+    j["learningRate"] = _learningRate;
+    j["momentum"]     = _momentum;
+    j["topology"]     = static_cast<const std::vector<size_t>&>(_topology);
+    j["inputs"]       = _inputVector.to_stdvec();
 
-    ss << "\"learningRate\":" << _learningRate << ",";
-    ss << "\"momentum\":" << _momentum << ",";
-
-    ss << "\"" << getInputVectorId() << "\":";
-    _inputVector.toJson(ss) << ",";
-
-    ss << "\"" << getTopologyId() << "\":";
-    nu::toJson(ss, _topology);
-    ss << ",";
-    ss << "\"layers\":{" << std::endl;
-
-    for (size_t nlIdx = 0; auto& nl : _neuronLayers) {
-        ss << "\"" << getNeuronLayerId() << nlIdx << "\":{" << std::endl;
-
-        for (size_t neuronIdx = 0; auto& neuron : nl) {
-            ss << "\"" << getNeuronId() << neuronIdx << "\":";
-
-            neuron.toJson(ss);
-
-            if (++neuronIdx < nl.size()) {
-                ss << ",";
-            }
+    json layers = json::array();
+    for (const auto& nl : _neuronLayers) {
+        json layer = json::array();
+        for (const auto& n : nl) {
+            layer.push_back({
+                {"bias",    n.bias},
+                {"weights", n.weights.to_stdvec()},
+                {"deltaW",  n.deltaW.to_stdvec()},
+            });
         }
+        layers.push_back(std::move(layer));
+    }
+    j["layers"] = std::move(layers);
 
-        ss << "}";
-        if (++nlIdx < _neuronLayers.size()) {
-            ss << ",";
-        }
-        ss << std::endl;
+    os << j.dump(2);
+    return os;
+}
+
+std::istream& MlpNN::loadJson(std::istream& is)
+{
+    using json = nlohmann::json;
+
+    const json j = json::parse(is);
+
+    if (j.value("type", "") != std::string(ID_ANN)) {
+        throw InvalidSStreamFormatException();
     }
 
-    ss << "}}}";
+    _learningRate = j.at("learningRate").get<double>();
+    _momentum     = j.at("momentum").get<double>();
+    _topology     = j.at("topology").get<std::vector<size_t>>();
 
-    return ss;
+    const auto inputs = j.at("inputs").get<std::vector<double>>();
+    _inputVector = FpVector(inputs);
+
+    _build(_topology, _neuronLayers, _inputVector);
+
+    const auto& jlayers = j.at("layers");
+    for (size_t li = 0; li < _neuronLayers.size(); ++li) {
+        const auto& jlayer = jlayers.at(li);
+        for (size_t ni = 0; ni < _neuronLayers[li].size(); ++ni) {
+            const auto& jn = jlayer.at(ni);
+            auto& neuron = _neuronLayers[li][ni];
+            neuron.bias   = jn.at("bias").get<double>();
+            neuron.weights = FpVector(jn.at("weights").get<std::vector<double>>());
+            neuron.deltaW  = FpVector(jn.at("deltaW").get<std::vector<double>>());
+        }
+    }
+
+    return is;
 }
 
 std::ostream& MlpNN::dump(std::ostream& os) noexcept
@@ -434,10 +463,6 @@ void MlpNN::_backPropagate(const FpVector& targetVector,
                 //     (they are related to hl-neuron index: nidx)
                 sum += nextLayerNeuron.error * nextLayerNeuron.weights[nidx];
 
-                // Add also bias-error rate
-                if (nnidx == (nlsize - 1)) {
-                    sum += nextLayerNeuron.error * nextLayerNeuron.bias;
-                }
             }
 
             neuron.error *= sum;

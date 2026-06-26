@@ -58,7 +58,7 @@
 #define TRAINING_TICK 1000
 #define TRAINING_EPERT 100
 
-#define FILE_FILTER "nunnlib (.net)\0*.net;\0All Files (*.*)\0*.*\0\0";
+#define FILE_FILTER "nunn JSON (.json)\0*.json;\0All Files (*.*)\0*.*\0\0";
 
 #define TICTACTOE_SIDE 3
 #define TICTACTOE_CELLS (TICTACTOE_SIDE * TICTACTOE_SIDE)
@@ -328,10 +328,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
     ofn.Flags = OFN_HIDEREADONLY;
 
     if (::GetOpenFileName(&ofn)) {
-        // open_document_file(open_file_name.data());
-
         std::ifstream nf(open_file_name.data());
-        std::stringstream ss;
 
         if (!nf.is_open()) {
             MessageBox(hWnd,
@@ -342,15 +339,12 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
             return false;
         }
 
-        ss << nf.rdbuf();
-        nf.close();
-
         g_current_file_name = open_file_name.data();
 
         try {
             g_neural_net = std::make_unique<nu::MlpNN>();
             if (g_neural_net)
-                g_neural_net->load(ss);
+                g_neural_net->loadJson(nf);
         } catch (...) {
             MessageBox(hWnd,
                 "Error loading data from file",
@@ -451,19 +445,13 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string& filename)
         return;
     }
 
-    std::stringstream ss;
-
-    ss << *g_neural_net;
-
     std::ofstream nf(filename);
-    if (nf.is_open()) {
-        nf << ss.str() << std::endl;
-        nf.close();
-    } else {
+    if (!nf.is_open()) {
         MessageBox(
             hWnd, "Cannot save current network status", "Error", MB_ICONERROR);
         return;
     }
+    g_neural_net->toJson(nf);
 
     g_current_file_name = filename;
     SetWindowText(hWnd, filename.c_str());

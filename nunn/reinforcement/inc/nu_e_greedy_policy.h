@@ -49,8 +49,18 @@ public:
             }
         }
 
+        // TODO(v3.0): the exact == 0.0 test conflates "best Q value is zero"
+        // with "state never explored"; it also doubles as the example's main
+        // exploration mechanism. Revisit with a proper exploration schedule
+        // when the policy layer is redesigned.
         if (reward == .0) {
-            action = validActions[size_t(_rndGen() * double(validActions.size()))];
+            size_t idx = size_t(_rndGen() * double(validActions.size()));
+            // _rndGen() may return its upper bound, which would index one past
+            // the end; clamp to the last valid action.
+            if (idx >= validActions.size()) {
+                idx = validActions.size() - 1;
+            }
+            action = validActions[idx];
         }
 
         return action;

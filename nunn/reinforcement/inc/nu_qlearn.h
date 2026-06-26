@@ -38,12 +38,12 @@ public:
 
     double getDiscountRate() const noexcept { return _discountRate; }
 
-    void setLearningRate(const double& lr) const noexcept
+    void setLearningRate(const double& lr) noexcept
     {
         _learningRate = lr;
     }
 
-    void setDiscountRate(const double& dr) const noexcept
+    void setDiscountRate(const double& dr) noexcept
     {
         _discountRate = dr;
     }
@@ -93,12 +93,20 @@ protected:
         // get a list of valid actions for current state
         const auto validActions = agent.getValidActions();
 
-        auto max = getQMap()[agentState][validActions[0]];
+        // A terminal/dead-end state may expose no valid actions; its
+        // estimated future value is then 0. Otherwise take the best Q over
+        // the valid actions (seeded with the first one so negative Q values
+        // are handled correctly).
+        double max = 0.0;
 
-        for (const auto& anAction : validActions) {
-            auto val = getQMap()[agentState][anAction];
-            if (val > max) {
-                max = val;
+        if (!validActions.empty()) {
+            max = getQMap()[agentState][validActions[0]];
+
+            for (const auto& anAction : validActions) {
+                auto val = getQMap()[agentState][anAction];
+                if (val > max) {
+                    max = val;
+                }
             }
         }
 
@@ -112,7 +120,6 @@ private:
     double _discountRate { 0.9 };
 
     QMap _qMap;
-    Policy _policy;
 
     std::weak_ptr<Listener> _listener;
 };

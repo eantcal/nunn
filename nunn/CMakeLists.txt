@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(nunn VERSION 2.0.0 LANGUAGES CXX)
+project(nunn VERSION 2.1.0 LANGUAGES CXX)
 
 # Include directories
 include_directories(
@@ -18,6 +18,7 @@ file(GLOB SOURCES
 
 # Add library
 add_library(nunn STATIC ${SOURCES})
+target_link_libraries(nunn PRIVATE nlohmann_json::nlohmann_json)
 
 # Set target properties
 set_target_properties(nunn PROPERTIES 

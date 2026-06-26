@@ -85,12 +85,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
          */
 
         constexpr size_t EPOCHS = 40000;
-        constexpr double MIN_ERR = 0.01;
+        constexpr double MIN_ERR = -1.0;
 
         // Create a trainer object
         Trainer trainer(nn,
             EPOCHS, // Max number of epochs
-            MIN_ERR // Min error
+            MIN_ERR // Disabled: run all epochs for stable XOR convergence
         );
 
         std::cout << "XOR training start ( Max epochs count="

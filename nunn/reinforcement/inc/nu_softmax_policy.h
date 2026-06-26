@@ -11,6 +11,7 @@
 #include "nu_random_gen.h"
 #include <cassert>
 #include <cmath>
+#include <limits>
 
 namespace nu {
 
@@ -30,38 +31,45 @@ public:
         // Get agent to reward map
         auto actionReward = qMap[agent.getCurrentState()];
         auto validActions = agent.getValidActions();
-        decltype(actionReward) quasiProbs;
 
+        assert(!validActions.empty());
+
+        // Guard against a zero/negative temperature, which would otherwise
+        // divide by zero and yield exp(+/-inf).
+        const double temperature = getTemperature() > 0.0
+            ? getTemperature()
+            : std::numeric_limits<double>::min();
+
+        decltype(actionReward) quasiProbs;
         double sumReward = 0;
 
         for (const auto& item : validActions) {
-            const auto reward = actionReward[item];
-            const auto numerator = std::exp(reward / getTemperature());
+            const auto numerator = std::exp(actionReward[item] / temperature);
             quasiProbs[item] = numerator;
             sumReward += numerator;
         }
 
         assert(sumReward != 0);
 
-        // Select an action
+        // Roulette-wheel selection. Iterate the valid actions (deterministic
+        // order) and accumulate normalized probabilities until we pass the
+        // cutoff. If floating-point rounding leaves the running sum just below
+        // the cutoff, fall back to the last valid action instead of running
+        // past the end of the container.
         const auto cutoff = _rndGen();
 
         double sum = 0;
-        auto it = quasiProbs.begin();
+        Action selected = validActions.back();
 
-        for (; it != quasiProbs.end(); ++it) {
-
-            const auto prob = it->second / sumReward;
-            sum += prob;
-
+        for (const auto& item : validActions) {
+            sum += quasiProbs[item] / sumReward;
             if (sum > cutoff) {
-                return it->first;
+                selected = item;
+                break;
             }
         }
 
-        assert(0);
-
-        return it->first;
+        return selected;
     }
 
     template <class QMap>
@@ -87,6 +95,9 @@ public:
             }
         }
 
+        // TODO(v3.0): the exact == 0.0 test conflates "best Q value is zero"
+        // with "state never explored". Revisit together with a proper
+        // exploration schedule when the policy layer is redesigned.
         if (reward == .0) {
             action = selectAction(agent, qMap);
         }
@@ -96,7 +107,7 @@ public:
 
 private:
     double _temperature = 1.0;
-    mutable RandomGenerator<> _rndGen;
+    mutable RndGen _rndGen;
 };
 
 }

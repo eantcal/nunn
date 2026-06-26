@@ -19,7 +19,7 @@
 
 template <typename T>
 std::stringstream& operator>>(std::stringstream& ss,
-    std::vector<T>& v) noexcept
+    std::vector<T>& v)
 {
     size_t size { 0 };
 
@@ -105,11 +105,10 @@ public:
     {
     }
 
-    //! Construct a vector coping elements of a given c-style vector
-    Vector(const double* v, size_t v_len) noexcept
-        : _vectorData(v_len)
+    //! Construct a vector copying elements of a given c-style array
+    Vector(const double* v, size_t v_len)
+        : _vectorData(v, v + v_len)
     {
-        memcpy(_vectorData.data(), v, v_len);
     }
 
     //! Initializer list constructor
@@ -186,19 +185,19 @@ public:
     const Vector& apply(const std::function<double(double)>& f);
 
     //! Apply the function abs to each vector item
-    const Vector& abs() noexcept
+    const Vector& abs()
     {
         return apply([](double value) { return ::fabs(value); });
     }
 
     //! Apply the function std::log to each vector item
-    const Vector& log() noexcept
+    const Vector& log()
     {
         return apply([](double x) { return std::log(x); });
     }
 
     //! Negates each vector item
-    const Vector& negate() noexcept
+    const Vector& negate()
     {
         return apply([](double x) { return -x; });
     }
@@ -284,7 +283,7 @@ public:
     }
 
     //! Copies the vector status from the stream ss into vector v
-    friend std::stringstream& operator>>(std::stringstream& ss, Vector& v) noexcept
+    friend std::stringstream& operator>>(std::stringstream& ss, Vector& v)
     {
         ss >> v._vectorData;
         return ss;

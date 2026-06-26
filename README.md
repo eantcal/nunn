@@ -1,10 +1,10 @@
-# Nunn 2.0
+# Nunn 2.1
 
 | Platform | Status |
 |---|---|
 | Linux | [![Linux Build](https://travis-ci.org/eantcal/nunn.svg?branch=master)](https://travis-ci.org/eantcal/nunn) |
 
-**Nunn** is a free and open-source machine learning library written in **C++17** and distributed under the **MIT License**.
+**Nunn** is a free and open-source machine learning library written in **C++20** and distributed under the **MIT License**.
 
 The project aims to provide a compact, understandable, and practical framework for experimenting with neural networks and other machine learning algorithms in modern C++.
 
@@ -15,6 +15,26 @@ The project aims to provide a compact, understandable, and practical framework f
 - Save and load complete model states
 - Cross-platform
 - Includes demos and sample applications
+
+## Building and testing
+
+Nunn is built with **CMake** (3.14+) and a **C++20** compiler:
+
+```sh
+cmake -S . -B build
+cmake --build build --config Release
+```
+
+The library ships with a **GoogleTest** unit-test suite (covering the math
+vector, cost functions, perceptron, MLP, Q-matrix, policies, the trainer and
+the Q-learning / SARSA learners). GoogleTest is fetched automatically at
+configure time; the tests are registered with CTest:
+
+```sh
+ctest --test-dir build -C Release
+```
+
+Tests are built by default; pass `-DNUNN_BUILD_TESTS=OFF` to disable them.
 
 ## Project contents
 

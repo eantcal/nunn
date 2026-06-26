@@ -2,8 +2,12 @@
 #include "nu_random_gen.h"
 #include "nu_sigmoid.h"
 #include <algorithm>
+#include <iomanip>
+#include <limits>
 #include <numeric>
 #include <random>
+
+#include <nlohmann/json.hpp>
 
 namespace nu {
 
@@ -103,6 +107,9 @@ std::stringstream& Perceptron::save(std::stringstream& ss) noexcept
 {
     ss.clear();
 
+    // Write doubles at full round-trip precision so save()/load() is lossless.
+    ss << std::setprecision(std::numeric_limits<double>::max_digits10);
+
     ss << Perceptron::ID_ANN << std::endl;
 
     ss << _learningRate << std::endl;
@@ -129,6 +136,46 @@ void Perceptron::reshuffleWeights() noexcept
 
     std::fill(_neuron.deltaW.begin(), _neuron.deltaW.end(), 0.0);
     _neuron.bias = randgen();
+}
+
+std::ostream& Perceptron::toJson(std::ostream& os) noexcept
+{
+    using json = nlohmann::json;
+
+    json j;
+    j["type"]         = std::string(ID_ANN);
+    j["version"]      = 1;
+    j["learningRate"] = _learningRate;
+    j["inputs"]       = _inputVector.to_stdvec();
+    j["neuron"]       = {
+        {"bias",    _neuron.bias},
+        {"weights", _neuron.weights.to_stdvec()},
+        {"deltaW",  _neuron.deltaW.to_stdvec()},
+    };
+
+    os << j.dump(2);
+    return os;
+}
+
+std::istream& Perceptron::loadJson(std::istream& is)
+{
+    using json = nlohmann::json;
+
+    const json j = json::parse(is);
+
+    if (j.value("type", "") != std::string(ID_ANN)) {
+        throw InvalidSStreamFormatException();
+    }
+
+    _learningRate  = j.at("learningRate").get<double>();
+    _inputVector   = FpVector(j.at("inputs").get<std::vector<double>>());
+
+    const auto& jn = j.at("neuron");
+    _neuron.bias    = jn.at("bias").get<double>();
+    _neuron.weights = FpVector(jn.at("weights").get<std::vector<double>>());
+    _neuron.deltaW  = FpVector(jn.at("deltaW").get<std::vector<double>>());
+
+    return is;
 }
 
 std::ostream& Perceptron::dump(std::ostream& os) noexcept

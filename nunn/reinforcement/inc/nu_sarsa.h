@@ -41,10 +41,10 @@ public:
     double getDiscountRate() const noexcept { return _discountRate; }
 
     // Sets the learning rate.
-    void setLearningRate(const double& lr) const noexcept { _learningRate = lr; }
+    void setLearningRate(const double& lr) noexcept { _learningRate = lr; }
 
     // Sets the discount rate.
-    void setDiscountRate(const double& dr) const noexcept { _discountRate = dr; }
+    void setDiscountRate(const double& dr) noexcept { _discountRate = dr; }
 
     // Selects an action based on the given policy.
     Action selectAction(const Agent& agent, const Policy& policy = Policy())
@@ -65,7 +65,6 @@ public:
                 break;
             }
             reward += updateQ(agent, policy, state, action);
-            ++moveCnt;
         }
 
         return reward;
@@ -99,7 +98,6 @@ private:
     double _discountRate { 0.9 }; // Default discount rate
 
     QMap _qMap; // Map storing the state-action values
-    Policy _policy; // Policy used in SARSA learning
 
     std::weak_ptr<Listener> _listener;
 };

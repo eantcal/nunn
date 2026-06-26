@@ -12,6 +12,8 @@
 #include <random>
 #include <span>
 
+#include <nlohmann/json.hpp>
+
 namespace nu {
 
 void HopfieldNN::clear() noexcept
@@ -124,6 +126,41 @@ std::stringstream& HopfieldNN::save(std::stringstream& ss) noexcept
        << _w;
 
     return ss;
+}
+
+std::ostream& HopfieldNN::toJson(std::ostream& os) noexcept
+{
+    using json = nlohmann::json;
+
+    json j;
+    j["type"]         = std::string(ID_ANN);
+    j["version"]      = 1;
+    j["patternSize"]  = _patternSize;
+    j["neuronStates"] = _s.to_stdvec();
+    j["weights"]      = _w.to_stdvec();
+
+    os << j.dump(2);
+    return os;
+}
+
+std::istream& HopfieldNN::loadJson(std::istream& is)
+{
+    using json = nlohmann::json;
+
+    const json j = json::parse(is);
+
+    if (j.value("type", "") != std::string(ID_ANN)) {
+        throw InvalidSStreamFormatException();
+    }
+
+    _patternSize = j.at("patternSize").get<size_t>();
+    _s = FpVector(j.at("neuronStates").get<std::vector<double>>());
+    _w = FpVector(j.at("weights").get<std::vector<double>>());
+
+    std::random_device rd;
+    _rndgen.seed(rd());
+
+    return is;
 }
 
 std::ostream& HopfieldNN::dump(std::ostream& os) noexcept

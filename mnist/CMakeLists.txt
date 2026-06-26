@@ -23,6 +23,10 @@ set_target_properties(mnist PROPERTIES
     CXX_EXTENSIONS OFF
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    # On Windows a SHARED library only produces an import .lib if it exports
+    # symbols; this example library uses no __declspec(dllexport), so export
+    # everything automatically and let mnist_test link against it.
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
 
 # Link libraries

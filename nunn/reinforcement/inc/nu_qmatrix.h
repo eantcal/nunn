@@ -35,12 +35,11 @@ public:
 
     QMatrix() = delete;
     QMatrix(size_t size);
-    QMatrix(const QMatrix& other)
-        : _data(other._data)
-    {
-    }
+    QMatrix(const QMatrix& other) = default;
+    QMatrix(QMatrix&& other) = default;
 
     QMatrix& operator=(const QMatrix& other) = default;
+    QMatrix& operator=(QMatrix&& other) = default;
 
     void fill(const double& value) noexcept;
 
