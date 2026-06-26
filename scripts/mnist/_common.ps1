@@ -8,9 +8,14 @@ $DataPath   = "$RepoRoot\build\examples\mnist_test\"
 $ModelsDir  = "$RepoRoot\scripts\mnist\models"
 
 # Prefer Release for speed; fall back to Debug.
-if (Test-Path $ExeRelease) { $Exe = $ExeRelease }
-elseif (Test-Path $ExeDebug) { $Exe = $ExeDebug }
-else {
+if (Test-Path $ExeRelease) {
+    $Exe = $ExeRelease
+    # Add DLL directories to PATH so Windows can locate mnist.dll and nunn.dll.
+    $env:PATH = "$RepoRoot\build\mnist\Release;$RepoRoot\build\nunn\Release;$env:PATH"
+} elseif (Test-Path $ExeDebug) {
+    $Exe = $ExeDebug
+    $env:PATH = "$RepoRoot\build\mnist\Debug;$RepoRoot\build\nunn\Debug;$env:PATH"
+} else {
     Write-Error "mnist_test.exe not found. Build the project first."
     exit 1
 }
