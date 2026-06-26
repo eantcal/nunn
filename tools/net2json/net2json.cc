@@ -59,13 +59,12 @@ static int convert(const fs::path& inPath, const fs::path& outPath)
             net.load(ss);
             net.toJson(ofs);
         } else {
-            std::cerr << "error: unknown network type '" << typeToken
-                      << "' in '" << inPath.string() << "'\n";
+            std::cerr << "error: unknown network type '" << typeToken << "' in '" << inPath.string()
+                      << "'\n";
             return 1;
         }
     } catch (const std::exception& e) {
-        std::cerr << "error: " << e.what()
-                  << " (file: " << inPath.string() << ")\n";
+        std::cerr << "error: " << e.what() << " (file: " << inPath.string() << ")\n";
         return 1;
     }
 
@@ -80,9 +79,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    fs::path inPath  = argv[1];
-    fs::path outPath = (argc >= 3) ? fs::path(argv[2])
-                                   : inPath.replace_extension(".json");
+    fs::path inPath = argv[1];
+    fs::path outPath = (argc >= 3) ? fs::path(argv[2]) : inPath.replace_extension(".json");
 
     return convert(inPath, outPath);
 }

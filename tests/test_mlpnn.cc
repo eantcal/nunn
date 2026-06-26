@@ -23,10 +23,10 @@ using XorSet = std::array<std::pair<Vector, Vector>, 4>;
 const XorSet& xorSamples()
 {
     static const XorSet samples = { {
-        { Vector { 0.0, 0.0 }, Vector { 0.0 } },
-        { Vector { 0.0, 1.0 }, Vector { 1.0 } },
-        { Vector { 1.0, 0.0 }, Vector { 1.0 } },
-        { Vector { 1.0, 1.0 }, Vector { 0.0 } },
+        { Vector{ 0.0, 0.0 }, Vector{ 0.0 } },
+        { Vector{ 0.0, 1.0 }, Vector{ 1.0 } },
+        { Vector{ 1.0, 0.0 }, Vector{ 1.0 } },
+        { Vector{ 1.0, 1.0 }, Vector{ 0.0 } },
     } };
     return samples;
 }
@@ -70,14 +70,13 @@ TEST(MlpNNTest, InputAndOutputSizeFromTopology)
 TEST(MlpNNTest, SetInputVectorSizeMismatchThrows)
 {
     MlpNN nn({ 2, 2, 1 });
-    EXPECT_THROW(nn.setInputVector(Vector { 1.0, 2.0, 3.0 }),
-        MlpNN::SizeMismatchException);
+    EXPECT_THROW(nn.setInputVector(Vector{ 1.0, 2.0, 3.0 }), MlpNN::SizeMismatchException);
 }
 
 TEST(MlpNNTest, FeedForwardOutputsInUnitInterval)
 {
     MlpNN nn({ 2, 3, 2 });
-    nn.setInputVector(Vector { 0.5, -0.5 });
+    nn.setInputVector(Vector{ 0.5, -0.5 });
     nn.feedForward();
 
     Vector out;
@@ -102,7 +101,7 @@ TEST(MlpNNTest, LearnsXor)
 TEST(MlpNNTest, SaveLoadRoundTripPreservesOutput)
 {
     MlpNN nn({ 2, 3, 1 }, 0.25, 0.6);
-    nn.setInputVector(Vector { 1.0, 0.0 });
+    nn.setInputVector(Vector{ 1.0, 0.0 });
     nn.feedForward();
     Vector before;
     nn.copyOutputVector(before);
@@ -112,7 +111,7 @@ TEST(MlpNNTest, SaveLoadRoundTripPreservesOutput)
 
     MlpNN loaded;
     loaded.load(ss);
-    loaded.setInputVector(Vector { 1.0, 0.0 });
+    loaded.setInputVector(Vector{ 1.0, 0.0 });
     loaded.feedForward();
     Vector after;
     loaded.copyOutputVector(after);

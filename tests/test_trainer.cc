@@ -19,10 +19,10 @@ using TrainingSet = std::vector<std::pair<Vector, double>>;
 const TrainingSet& andSet()
 {
     static const TrainingSet s = {
-        { Vector { 0.0, 0.0 }, 0.0 },
-        { Vector { 0.0, 1.0 }, 0.0 },
-        { Vector { 1.0, 0.0 }, 0.0 },
-        { Vector { 1.0, 1.0 }, 1.0 },
+        { Vector{ 0.0, 0.0 }, 0.0 },
+        { Vector{ 0.0, 1.0 }, 0.0 },
+        { Vector{ 1.0, 0.0 }, 0.0 },
+        { Vector{ 1.0, 1.0 }, 1.0 },
     };
     return s;
 }
@@ -41,8 +41,9 @@ int countTrainedSamples(bool withProgressCallback, double p2use)
     };
 
     if (withProgressCallback) {
-        auto noop = [](Perceptron&, const Vector&, const double&,
-                        size_t, size_t, double) { return false; };
+        auto noop = [](Perceptron&, const Vector&, const double&, size_t, size_t, double) {
+            return false;
+        };
         trainer.runTraining(andSet(), cost, noop, p2use);
     } else {
         trainer.runTraining(andSet(), cost, nullptr, p2use);

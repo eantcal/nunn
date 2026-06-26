@@ -17,11 +17,9 @@
 #include <stdexcept>
 #include <vector>
 
-template <typename T>
-std::stringstream& operator>>(std::stringstream& ss,
-    std::vector<T>& v)
+template <typename T> std::stringstream& operator>>(std::stringstream& ss, std::vector<T>& v)
 {
-    size_t size { 0 };
+    size_t size{ 0 };
 
     ss >> size;
     v.resize(size);
@@ -33,8 +31,7 @@ std::stringstream& operator>>(std::stringstream& ss,
     return ss;
 }
 
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) noexcept
+template <typename T> std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) noexcept
 {
     os << "[ ";
 
@@ -48,8 +45,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) noexcept
 }
 
 template <typename T>
-std::stringstream& operator<<(std::stringstream& ss,
-    const std::vector<T>& v) noexcept
+std::stringstream& operator<<(std::stringstream& ss, const std::vector<T>& v) noexcept
 {
     ss << v.size() << std::endl;
 
@@ -62,8 +58,7 @@ std::stringstream& operator<<(std::stringstream& ss,
 
 namespace nu {
 
-template <typename T>
-void toJson(std::ostream& os, const std::vector<T>& v) noexcept
+template <typename T> void toJson(std::ostream& os, const std::vector<T>& v) noexcept
 {
     os << "[";
 
@@ -224,16 +219,10 @@ public:
     bool operator<(const Vector& other) const noexcept { return _vectorData < other._vectorData; }
 
     //! Relational operator <=
-    bool operator<=(const Vector& other) const noexcept
-    {
-        return _vectorData <= other._vectorData;
-    }
+    bool operator<=(const Vector& other) const noexcept { return _vectorData <= other._vectorData; }
 
     //! Relational operator >=
-    bool operator>=(const Vector& other) const noexcept
-    {
-        return _vectorData >= other._vectorData;
-    }
+    bool operator>=(const Vector& other) const noexcept { return _vectorData >= other._vectorData; }
 
     //! Relational operator >
     bool operator>(const Vector& other) const noexcept { return _vectorData > other._vectorData; }

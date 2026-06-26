@@ -65,15 +65,8 @@ private:
     HWND _hparent;
 
 public:
-    toolbar_t(
-        HWND hParentWnd,
-        HINSTANCE hInstance,
-        UINT idi_toolbar,
-        UINT_PTR res_id,
-        int n_of_bitmaps,
-        TBBUTTON buttons[],
-        int n_of_buttons,
-        int bmwidth = 28, int bmheight = 32,
+    toolbar_t(HWND hParentWnd, HINSTANCE hInstance, UINT idi_toolbar, UINT_PTR res_id,
+        int n_of_bitmaps, TBBUTTON buttons[], int n_of_buttons, int bmwidth = 28, int bmheight = 32,
         int btwidth = 28, int btheight = 32);
 
     virtual void on_resize();
@@ -132,10 +125,8 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
 
 
-int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
-    _In_opt_ HINSTANCE hPrevInstance,
-    _In_ LPTSTR lpCmdLine,
-    _In_ int nCmdShow)
+int APIENTRY _tWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPTSTR lpCmdLine, _In_ int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
@@ -195,8 +186,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
     hInst = hInstance; // Store instance handle in our global variable
 
-    hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
+    hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0,
+        CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
 
     if (!hWnd)
         return FALSE;
@@ -231,11 +222,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
         std::ifstream nf(open_file_name.data());
 
         if (!nf.is_open()) {
-            MessageBox(
-                hWnd,
-                "Cannot open the file",
-                open_file_name.data(),
-                MB_ICONERROR);
+            MessageBox(hWnd, "Cannot open the file", open_file_name.data(), MB_ICONERROR);
 
             return false;
         }
@@ -249,23 +236,17 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
                 nn->loadJson(nf);
 
             if (!nn || nn->getInputSize() != NN_INPUTS || nn->getOutputSize() != NN_OUTPUTS) {
-                MessageBox(
-                    hWnd,
+                MessageBox(hWnd,
                     "Invalid network topology detected. "
                     "It might be an invalid net status file for this application",
-                    open_file_name.data(),
-                    MB_ICONERROR);
+                    open_file_name.data(), MB_ICONERROR);
 
                 return false;
             }
 
 
         } catch (...) {
-            MessageBox(
-                hWnd,
-                "Error loading data from file",
-                open_file_name.data(),
-                MB_ICONERROR);
+            MessageBox(hWnd, "Error loading data from file", open_file_name.data(), MB_ICONERROR);
 
             return false;
         }
@@ -307,22 +288,14 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string& filename)
 {
     if (!neuralNet) {
-        MessageBox(
-            hWnd,
-            "No neural network loaded",
-            "Error",
-            MB_ICONERROR);
+        MessageBox(hWnd, "No neural network loaded", "Error", MB_ICONERROR);
 
         return;
     }
 
     std::ofstream nf(filename);
     if (!nf.is_open()) {
-        MessageBox(
-            hWnd,
-            "Cannot save current network status",
-            "Error",
-            MB_ICONERROR);
+        MessageBox(hWnd, "Cannot save current network status", "Error", MB_ICONERROR);
 
         return;
     }
@@ -366,11 +339,9 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 
     int cyVScroll = GetSystemMetrics(SM_CYVSCROLL);
 
-    HWND hwndPB = CreateWindowEx(0, PROGRESS_CLASS, (LPTSTR)NULL,
-        WS_CHILD | WS_VISIBLE, rcClient.left,
-        rcClient.bottom - cyVScroll,
-        rcClient.right, cyVScroll,
-        hWnd, (HMENU)0, hinstance, NULL);
+    HWND hwndPB = CreateWindowEx(0, PROGRESS_CLASS, (LPTSTR)NULL, WS_CHILD | WS_VISIBLE,
+        rcClient.left, rcClient.bottom - cyVScroll, rcClient.right, cyVScroll, hWnd, (HMENU)0,
+        hinstance, NULL);
 
 
     const int cb = TRAINING_NET_EPOCHS;
@@ -408,15 +379,9 @@ private:
     int _dy = 0;
 
 public:
-    int getdx() const noexcept
-    {
-        return _dx;
-    }
+    int getdx() const noexcept { return _dx; }
 
-    int getdy() const noexcept
-    {
-        return _dy;
-    }
+    int getdy() const noexcept { return _dy; }
 
     bool capture(HDC hdcWindow, HWND hWnd)
     {
@@ -488,9 +453,7 @@ public:
 
         // Gets the "bits" from the bitmap and copies them into a buffer
         // which is pointed to by _data.data().
-        GetDIBits(hdcWindow, resource.hbmScreen, 0,
-            (UINT)bmpScreen.bmHeight,
-            _data.data(),
+        GetDIBits(hdcWindow, resource.hbmScreen, 0, (UINT)bmpScreen.bmHeight, _data.data(),
             (BITMAPINFO*)&bi, DIB_RGB_COLORS);
 
         return true;
@@ -563,13 +526,7 @@ void GetDigitBox(int xo, int yo, HDC hdc, RECT& r, HWND hwnd, const bmpImage& im
 
 
 int ReadCellValue(
-    HDC hdc,
-    int xo,
-    int yo,
-    int cell_col,
-    int cell_row,
-    const RECT& r,
-    bmpImage& image)
+    HDC hdc, int xo, int yo, int cell_col, int cell_row, const RECT& r, bmpImage& image)
 {
     int xoff = cell_col * CELLSIZE;
     int yoff = cell_row * CELLSIZE;
@@ -583,7 +540,8 @@ int ReadCellValue(
 
     DWORD res = 0;
 
-    if (xoff < FRAME_SIZE || xoff > (GRIDSIZE - FRAME_SIZE) || yoff < FRAME_SIZE || yoff > (GRIDSIZE - FRAME_SIZE))
+    if (xoff < FRAME_SIZE || xoff > (GRIDSIZE - FRAME_SIZE) || yoff < FRAME_SIZE
+        || yoff > (GRIDSIZE - FRAME_SIZE))
         return 0;
 
     for (int x = 0; x < CELLSIZE; ++x) {
@@ -610,20 +568,12 @@ int ReadCellValue(
 }
 
 
-void PrintGrayscaleDigit(
-    int xo,
-    int yo,
-    HDC hdc,
-    const nu::Vector& hwdigit)
+void PrintGrayscaleDigit(int xo, int yo, HDC hdc, const nu::Vector& hwdigit)
 {
     size_t idx = 0;
     const int zoom = 3;
 
-    Rectangle(hdc,
-        xo - 1,
-        yo - 1,
-        xo + DIGIT_SIDE_LEN * zoom + 1,
-        yo + DIGIT_SIDE_LEN * zoom + 1);
+    Rectangle(hdc, xo - 1, yo - 1, xo + DIGIT_SIDE_LEN * zoom + 1, yo + DIGIT_SIDE_LEN * zoom + 1);
 
     for (size_t y = 0; y < DIGIT_SIDE_LEN; ++y) {
         for (size_t x = 0; x < DIGIT_SIDE_LEN; ++x) {
@@ -650,7 +600,8 @@ bool GetDigitInfo(HDC hdc, nu::Vector& hwdigit, const RECT& r, bmpImage& image)
 
     for (int y = 0; y < GRIDSIZE / CELLSIZE; ++y)
         for (int x = 0; x < GRIDSIZE / CELLSIZE; ++x) {
-            const double value = f(double(ReadCellValue(hdc, WHITEBOARD_X, WHITEBOARD_Y, x, y, r, image)));
+            const double value
+                = f(double(ReadCellValue(hdc, WHITEBOARD_X, WHITEBOARD_Y, x, y, r, image)));
 
             sum += value;
 
@@ -675,12 +626,7 @@ void WriteBars(int xo, int yo, HDC hdc, nu::Vector& results)
 
         const int step = 19;
 
-        Rectangle(
-            hdc,
-            xo,
-            digit * step + yo,
-            xo + percent * 2,
-            digit * step + yo + 10);
+        Rectangle(hdc, xo, digit * step + yo, xo + percent * 2, digit * step + yo + 10);
     }
 }
 
@@ -688,10 +634,7 @@ void WriteBars(int xo, int yo, HDC hdc, nu::Vector& results)
 void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
 {
     if (!neuralNet) {
-        MessageBox(
-            hWnd,
-            "You need to configure the neural net to complete this job",
-            "Error",
+        MessageBox(hWnd, "You need to configure the neural net to complete this job", "Error",
             MB_ICONERROR);
 
         return;
@@ -738,23 +681,14 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
 
             xo1 += 420;
 
-            TextOut(
-                hdc,
-                xo1 + 40,
-                yo1 - 40,
-                net_answer.c_str(),
-                int(net_answer.size() + 1));
+            TextOut(hdc, xo1 + 40, yo1 - 40, net_answer.c_str(), int(net_answer.size() + 1));
 
             SelectObject(hdc, hfont_old);
 
             g_hwdigit = hwdigit;
         }
     } else
-        MessageBox(
-            hWnd,
-            "Write a digit into the box",
-            "No digit found",
-            MB_ICONWARNING);
+        MessageBox(hWnd, "Write a digit into the box", "No digit found", MB_ICONWARNING);
 
     ReleaseDC(hWnd, hdc);
 }
@@ -766,8 +700,7 @@ void DoSelectFont(HWND hwnd)
     LONG lfHeight = -96;
     ReleaseDC(NULL, hdc);
 
-    HFONT hf = CreateFont(
-        lfHeight, 0, 0, 0, 0, TRUE, 0, 0, 0, 0, 0, 0, 0, "Verdana");
+    HFONT hf = CreateFont(lfHeight, 0, 0, 0, 0, TRUE, 0, 0, 0, 0, 0, 0, 0, "Verdana");
 
     if (hf) {
         if (g_hfFont)
@@ -800,8 +733,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         GetCursorPos(&pt);
         ScreenToClient(hWnd, &pt);
 
-        return (
-            (pt.x > WHITEBOARD_X + FRAME_SIZE && pt.x <= WHITEBOARD_X + GRIDSIZE - FRAME_SIZE) && (pt.y >= WHITEBOARD_Y + FRAME_SIZE && pt.y <= WHITEBOARD_Y + GRIDSIZE - FRAME_SIZE));
+        return ((pt.x > WHITEBOARD_X + FRAME_SIZE && pt.x <= WHITEBOARD_X + GRIDSIZE - FRAME_SIZE)
+            && (pt.y >= WHITEBOARD_Y + FRAME_SIZE && pt.y <= WHITEBOARD_Y + GRIDSIZE - FRAME_SIZE));
     };
 
     switch (message) {
@@ -813,8 +746,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         {
             LONG lStyle = GetWindowLong(hWnd, GWL_STYLE);
-            lStyle &= ~(
-                WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+            lStyle
+                &= ~(WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
             SetWindowLong(hWnd, GWL_STYLE, lStyle);
 
             SetWindowPos(hWnd, NULL, 0, 0, 0, 0,
@@ -824,13 +757,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         MoveWindow(hWnd, 0, 0, PROG_WINXRES, PROG_WINYRES, TRUE);
 
         gtb = new toolbar_t(
-            hWnd,
-            hInst,
-            IDI_TOOLBAR,
-            IDI_TOOLBAR,
-            gtb_n_of_bmps,
-            gtb_buttons,
-            gtb_n_of_buttons);
+            hWnd, hInst, IDI_TOOLBAR, IDI_TOOLBAR, gtb_n_of_bmps, gtb_buttons, gtb_n_of_buttons);
         break;
 
     case WM_COMMAND:
@@ -870,26 +797,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case IDM_8:
         case IDM_9:
             if (!TrainNet(hWnd, hInst, wmId - IDM_0)) {
-                MessageBox(
-                    hWnd,
-                    "Cannot perform this operation",
-                    "Error",
-                    MB_ICONASTERISK);
+                MessageBox(hWnd, "Cannot perform this operation", "Error", MB_ICONASTERISK);
             } else {
-                MessageBox(
-                    hWnd,
+                MessageBox(hWnd,
                     "Save your net status if you want "
                     "to persist this training",
-                    "Thank you",
-                    MB_ICONINFORMATION);
+                    "Thank you", MB_ICONINFORMATION);
             }
             break;
 
         case IDM_ABOUT: {
-            MessageBox(hWnd,
-                ABOUT_TEXT,
-                ABOUT_INFO,
-                MB_ICONINFORMATION | MB_OK);
+            MessageBox(hWnd, ABOUT_TEXT, ABOUT_INFO, MB_ICONINFORMATION | MB_OK);
         }
 
         default:
@@ -972,9 +890,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_PAINT: {
-        static HANDLE image = ::LoadBitmap(
-            GetModuleHandle(NULL),
-            MAKEINTRESOURCE(IDI_BG));
+        static HANDLE image = ::LoadBitmap(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_BG));
 
         hdc = BeginPaint(hWnd, &ps);
 
@@ -987,30 +903,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
             auto ret = ::BitBlt(
-                hdc,
-                0,
-                0,
-                bm.bmWidth,
-                bm.bmHeight + YBMPOFF,
-                hdcMem, 0, -YBMPOFF,
-                SRCCOPY);
+                hdc, 0, 0, bm.bmWidth, bm.bmHeight + YBMPOFF, hdcMem, 0, -YBMPOFF, SRCCOPY);
 
             ::SelectObject(hdcMem, hbmOld);
             ::DeleteDC(hdcMem);
         }
 
-        TextOut(
-            hdc,
-            220,
-            500,
-            netDescription.c_str(),
-            int(netDescription.size()));
+        TextOut(hdc, 220, 500, netDescription.c_str(), int(netDescription.size()));
 
-        Rectangle(hdc,
-            WHITEBOARD_X + FRAME_SIZE,
-            WHITEBOARD_Y + FRAME_SIZE,
-            WHITEBOARD_X + GRIDSIZE - FRAME_SIZE / 2,
-            WHITEBOARD_Y + GRIDSIZE - FRAME_SIZE / 2);
+        Rectangle(hdc, WHITEBOARD_X + FRAME_SIZE, WHITEBOARD_Y + FRAME_SIZE,
+            WHITEBOARD_X + GRIDSIZE - FRAME_SIZE / 2, WHITEBOARD_Y + GRIDSIZE - FRAME_SIZE / 2);
 
         EndPaint(hWnd, &ps);
     } break;
@@ -1063,37 +965,26 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-toolbar_t::toolbar_t(
-    HWND hWnd,
-    HINSTANCE hInstance,
-    UINT idi_toolbar,
-    UINT_PTR res_id,
-    int n_of_bitmaps,
-    TBBUTTON buttons[],
-    int n_of_buttons,
-    int bmwidth, int bmheight,
-    int btwidth, int btheight)
+toolbar_t::toolbar_t(HWND hWnd, HINSTANCE hInstance, UINT idi_toolbar, UINT_PTR res_id,
+    int n_of_bitmaps, TBBUTTON buttons[], int n_of_buttons, int bmwidth, int bmheight, int btwidth,
+    int btheight)
     : _hinstance(hInstance)
 {
     _hparent = hWnd;
 
-    _toolbar = CreateToolbarEx(
-        hWnd, // parent
+    _toolbar = CreateToolbarEx(hWnd, // parent
         WS_CHILD | WS_BORDER | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_ADJUSTABLE | TBSTYLE_FLAT,
         idi_toolbar, // toolbar id
         n_of_bitmaps, // number of bitmaps
         hInstance, // mod instance
         res_id, // resource ID for bitmap
-        0, 0,
-        btwidth, btheight, // width & height of buttons
+        0, 0, btwidth, btheight, // width & height of buttons
         bmwidth, bmheight, // width & height of bitmaps
         sizeof(TBBUTTON)); // structure size
 
     assert(_toolbar);
 
-    SendMessage(
-        _toolbar,
-        TB_ADDBUTTONS,
+    SendMessage(_toolbar, TB_ADDBUTTONS,
         (WPARAM)n_of_buttons, // number of buttons
         (LPARAM)buttons);
 }
@@ -1159,15 +1050,13 @@ BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
 
 void toolbar_t::enable(DWORD id)
 {
-    SendMessage(_toolbar, TB_ENABLEBUTTON,
-        id, (LPARAM)MAKELONG(TRUE, 0));
+    SendMessage(_toolbar, TB_ENABLEBUTTON, id, (LPARAM)MAKELONG(TRUE, 0));
 }
 
 
 void toolbar_t::disable(DWORD id)
 {
-    SendMessage(_toolbar, TB_ENABLEBUTTON,
-        id, (LPARAM)MAKELONG(FALSE, 0));
+    SendMessage(_toolbar, TB_ENABLEBUTTON, id, (LPARAM)MAKELONG(FALSE, 0));
 }
 
 

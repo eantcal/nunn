@@ -146,8 +146,7 @@ inline std::stringstream& operator>>(std::stringstream& ss, HopfieldNN& net)
     return net.load(ss);
 }
 
-inline std::stringstream& operator<<(std::stringstream& ss,
-    HopfieldNN& net) noexcept
+inline std::stringstream& operator<<(std::stringstream& ss, HopfieldNN& net) noexcept
 {
     return net.save(ss);
 }

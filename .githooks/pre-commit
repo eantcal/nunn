@@ -1,0 +1,32 @@
+#!/bin/sh
+# Pre-commit hook: run clang-format on all staged C/C++ files.
+#
+# Install once per clone:
+#   git config core.hooksPath .githooks
+
+CLANG_FORMAT=""
+
+# Locate clang-format: PATH first, then the VS bundled copy (Windows/Git-Bash).
+if command -v clang-format >/dev/null 2>&1; then
+    CLANG_FORMAT="clang-format"
+elif [ -f "/c/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/Llvm/x64/bin/clang-format.exe" ]; then
+    CLANG_FORMAT="/c/Program Files/Microsoft Visual Studio/18/Professional/VC/Tools/Llvm/x64/bin/clang-format.exe"
+fi
+
+if [ -z "$CLANG_FORMAT" ]; then
+    echo "pre-commit: clang-format not found, skipping."
+    exit 0
+fi
+
+FILES=$(git diff --cached --name-only --diff-filter=d | grep -E '\.(cpp|cc|c|h|hpp)$')
+
+if [ -z "$FILES" ]; then
+    exit 0
+fi
+
+for FILE in $FILES; do
+    "$CLANG_FORMAT" -i "$FILE"
+    git add "$FILE"
+done
+
+exit 0

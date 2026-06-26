@@ -26,7 +26,8 @@ size_t Vector::maxarg() noexcept
         return size_t(-1);
     }
 
-    return std::distance(_vectorData.begin(), std::max_element(_vectorData.begin(), _vectorData.end()));
+    return std::distance(
+        _vectorData.begin(), std::max_element(_vectorData.begin(), _vectorData.end()));
 }
 
 double Vector::dot(const Vector& other)
@@ -56,7 +57,7 @@ const Vector& Vector::apply(const std::function<double(double)>& f)
 
 double Vector::sum() const noexcept
 {
-    double res { .0 };
+    double res{ .0 };
     for (auto& data : _vectorData) {
         res += data;
     }
@@ -110,7 +111,7 @@ Vector operator-(const Vector& v1, const Vector& v2)
 
 double Vector::euclideanNorm2() const noexcept
 {
-    double res { .0 };
+    double res{ .0 };
 
     for (size_t i = 0; i < _vectorData.size(); ++i) {
         res += _vectorData[i] * _vectorData[i];
@@ -126,8 +127,7 @@ Vector Vector::ones(size_t size)
     return vec;
 }
 
-Vector& Vector::_op(const Vector& other,
-    std::function<void(double&, const double&)> func)
+Vector& Vector::_op(const Vector& other, std::function<void(double&, const double&)> func)
 {
     if (other.size() != size()) {
         throw SizeMismatchException();

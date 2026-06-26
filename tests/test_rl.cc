@@ -38,7 +38,7 @@ struct LineAgent {
 // A fixed-state agent, useful to probe policy selection in isolation.
 struct FixedAgent {
     int state = 0;
-    std::vector<int> actions { 0, 1, 2 };
+    std::vector<int> actions{ 0, 1, 2 };
 
     bool goal() const { return false; }
     int getCurrentState() const { return state; }
@@ -122,7 +122,7 @@ TEST(QLearnTest, ReportsConsecutiveMoveCounts)
     q.learn(agent);
 
     // 3 steps to the goal, counter reported once per step: 0, 1, 2.
-    const std::vector<size_t> expected { 0, 1, 2 };
+    const std::vector<size_t> expected{ 0, 1, 2 };
     EXPECT_EQ(listener->moves, expected);
 }
 
@@ -147,6 +147,6 @@ TEST(SarsaTest, ReportsConsecutiveMoveCounts)
     LineAgent agent;
     sarsa.learn(agent);
 
-    const std::vector<size_t> expected { 0, 1, 2 };
+    const std::vector<size_t> expected{ 0, 1, 2 };
     EXPECT_EQ(listener->moves, expected);
 }

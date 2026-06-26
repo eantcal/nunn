@@ -67,9 +67,7 @@ struct Perceptron {
      * @param learningRate The learning rate of the perceptron.
      * @param step_f The step function used for neuron activation.
      */
-    Perceptron(size_t inputSize,
-        double learningRate = 0.1,
-        StepFunction step_f = StepFunction());
+    Perceptron(size_t inputSize, double learningRate = 0.1, StepFunction step_f = StepFunction());
 
     //! Constructs a perceptron from serialized data in a stream.
     Perceptron(std::stringstream& ss) { load(ss); }
@@ -95,10 +93,7 @@ struct Perceptron {
     void setInputVector(const FpVector& inputs);
 
     //! Retrieves the input vector of the perceptron.
-    void getInputVector(FpVector& inputs) const noexcept
-    {
-        inputs = _inputVector;
-    }
+    void getInputVector(FpVector& inputs) const noexcept { inputs = _inputVector; }
 
     //! Returns the output of the perceptron.
     double getOutput() const noexcept { return _neuron.output; }
@@ -145,8 +140,7 @@ struct Perceptron {
     }
 
     //! Save net status into the given string stream
-    friend std::stringstream& operator<<(std::stringstream& ss,
-        Perceptron& net) noexcept
+    friend std::stringstream& operator<<(std::stringstream& ss, Perceptron& net) noexcept
     {
         return net.save(ss);
     }
@@ -163,7 +157,7 @@ private:
     constexpr static std::string_view ID_INPUTS = "inputs";
 
     StepFunction _step_f;
-    double _learningRate { 0.1 };
+    double _learningRate{ 0.1 };
     FpVector _inputVector;
     Neuron _neuron;
 };

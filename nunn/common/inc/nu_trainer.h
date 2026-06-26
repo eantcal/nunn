@@ -10,8 +10,7 @@
 namespace nu {
 
 //! The trainer class is a helper class for neural networks training
-template <class Net, class Input, class Target>
-class NNTrainer {
+template <class Net, class Input, class Target> class NNTrainer {
     friend class iterator;
 
 public:
@@ -25,12 +24,8 @@ public:
 
     //! Progress call back function prototype
     //! It can break training session returning true
-    using progressCallbackPrototype_t = bool(Net&,
-        const Input&,
-        const Target&,
-        size_t /*epoch*/,
-        size_t /* sampleIdx */,
-        double /* err */);
+    using progressCallbackPrototype_t = bool(Net&, const Input&, const Target&, size_t /*epoch*/,
+        size_t /* sampleIdx */, double /* err */);
 
     //! Progress call back function object wrapper
     using progressCallback_t = std::function<progressCallbackPrototype_t>;
@@ -105,10 +100,7 @@ public:
         }
 
         //! Not-Equal-To operator
-        bool operator!=(const iterator& other) const noexcept
-        {
-            return !this->operator==(other);
-        }
+        bool operator!=(const iterator& other) const noexcept { return !this->operator==(other); }
     };
 
 
@@ -156,10 +148,8 @@ public:
 
     //! Trains the net using a training set of samples
     template <class TSet>
-    size_t runTraining(const TSet& trainingSet,
-        costFunction_t errCost,
-        progressCallback_t progressCbk = nullptr,
-        double p2use = 1.0)
+    size_t runTraining(const TSet& trainingSet, costFunction_t errCost,
+        progressCallback_t progressCbk = nullptr, double p2use = 1.0)
     {
         size_t epoch = 0;
         size_t end_idx = size_t(double(trainingSet.size()) * p2use);
@@ -192,9 +182,9 @@ public:
 
 protected:
     Net& _nn;
-    size_t _epochs { 0 };
-    double _minError { .0 };
-    double _err { .0 };
+    size_t _epochs{ 0 };
+    double _minError{ .0 };
+    double _err{ .0 };
 };
 
 } // namespace nu

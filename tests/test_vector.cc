@@ -26,7 +26,7 @@ TEST(VectorTest, FillConstructor)
 
 TEST(VectorTest, InitializerListConstructor)
 {
-    Vector v { 1.0, 2.0, 3.0 };
+    Vector v{ 1.0, 2.0, 3.0 };
     ASSERT_EQ(v.size(), 3u);
     EXPECT_DOUBLE_EQ(v[0], 1.0);
     EXPECT_DOUBLE_EQ(v[1], 2.0);
@@ -35,7 +35,7 @@ TEST(VectorTest, InitializerListConstructor)
 
 TEST(VectorTest, StdVectorConstructor)
 {
-    std::vector<double> data { 4.0, 5.0 };
+    std::vector<double> data{ 4.0, 5.0 };
     Vector v(data);
     ASSERT_EQ(v.size(), 2u);
     EXPECT_DOUBLE_EQ(v[1], 5.0);
@@ -79,22 +79,22 @@ TEST(VectorTest, PushBackAndResize)
 
 TEST(VectorTest, DotProduct)
 {
-    Vector a { 1.0, 2.0, 3.0 };
-    Vector b { 4.0, 5.0, 6.0 };
+    Vector a{ 1.0, 2.0, 3.0 };
+    Vector b{ 4.0, 5.0, 6.0 };
     EXPECT_DOUBLE_EQ(a.dot(b), 32.0); // 4 + 10 + 18
 }
 
 TEST(VectorTest, DotProductSizeMismatchThrows)
 {
-    Vector a { 1.0, 2.0 };
-    Vector b { 1.0 };
+    Vector a{ 1.0, 2.0 };
+    Vector b{ 1.0 };
     EXPECT_THROW(a.dot(b), Vector::SizeMismatchException);
 }
 
 TEST(VectorTest, ElementwiseOperators)
 {
-    Vector a { 1.0, 2.0, 3.0 };
-    Vector b { 2.0, 2.0, 2.0 };
+    Vector a{ 1.0, 2.0, 3.0 };
+    Vector b{ 2.0, 2.0, 2.0 };
 
     Vector add = a + b;
     EXPECT_DOUBLE_EQ(add[0], 3.0);
@@ -112,14 +112,14 @@ TEST(VectorTest, ElementwiseOperators)
 
 TEST(VectorTest, ElementwiseSizeMismatchThrows)
 {
-    Vector a { 1.0, 2.0, 3.0 };
-    Vector b { 1.0, 2.0 };
+    Vector a{ 1.0, 2.0, 3.0 };
+    Vector b{ 1.0, 2.0 };
     EXPECT_THROW(a += b, Vector::SizeMismatchException);
 }
 
 TEST(VectorTest, ScalarOperators)
 {
-    Vector v { 1.0, 2.0, 3.0 };
+    Vector v{ 1.0, 2.0, 3.0 };
     v += 1.0;
     EXPECT_DOUBLE_EQ(v[0], 2.0);
 
@@ -135,7 +135,7 @@ TEST(VectorTest, ScalarOperators)
 
 TEST(VectorTest, SumAndMean)
 {
-    Vector v { 1.0, 2.0, 3.0, 4.0 };
+    Vector v{ 1.0, 2.0, 3.0, 4.0 };
     EXPECT_DOUBLE_EQ(v.sum(), 10.0);
     EXPECT_DOUBLE_EQ(v.mean(), 2.5);
 }
@@ -148,12 +148,12 @@ TEST(VectorTest, MeanOfEmptyIsZero)
 
 TEST(VectorTest, ApplyAbsLogNegate)
 {
-    Vector v { -1.0, -2.0, -3.0 };
+    Vector v{ -1.0, -2.0, -3.0 };
     v.abs();
     EXPECT_DOUBLE_EQ(v[0], 1.0);
     EXPECT_DOUBLE_EQ(v[2], 3.0);
 
-    Vector n { 1.0, 2.0 };
+    Vector n{ 1.0, 2.0 };
     n.negate();
     EXPECT_DOUBLE_EQ(n[0], -1.0);
     EXPECT_DOUBLE_EQ(n[1], -2.0);
@@ -161,7 +161,7 @@ TEST(VectorTest, ApplyAbsLogNegate)
 
 TEST(VectorTest, Maxarg)
 {
-    Vector v { 1.0, 9.0, 3.0 };
+    Vector v{ 1.0, 9.0, 3.0 };
     EXPECT_EQ(v.maxarg(), 1u);
 }
 
@@ -173,16 +173,16 @@ TEST(VectorTest, MaxargOfEmptyReturnsNpos)
 
 TEST(VectorTest, EuclideanNorm)
 {
-    Vector v { 3.0, 4.0 };
+    Vector v{ 3.0, 4.0 };
     EXPECT_DOUBLE_EQ(v.euclideanNorm2(), 25.0);
     EXPECT_DOUBLE_EQ(v.euclidean_norm(), 5.0);
 }
 
 TEST(VectorTest, RelationalOperators)
 {
-    Vector a { 1.0, 2.0 };
-    Vector b { 1.0, 2.0 };
-    Vector c { 1.0, 3.0 };
+    Vector a{ 1.0, 2.0 };
+    Vector b{ 1.0, 2.0 };
+    Vector c{ 1.0, 3.0 };
 
     EXPECT_TRUE(a == b);
     EXPECT_FALSE(a != b);
@@ -202,7 +202,7 @@ TEST(VectorTest, OnesFactory)
 
 TEST(VectorTest, ToJson)
 {
-    Vector v { 1.0, 2.0, 3.0 };
+    Vector v{ 1.0, 2.0, 3.0 };
     std::ostringstream os;
     v.toJson(os);
     EXPECT_EQ(os.str(), "[1,2,3]");
@@ -210,7 +210,7 @@ TEST(VectorTest, ToJson)
 
 TEST(VectorTest, StringStreamRoundTrip)
 {
-    Vector v { 1.5, 2.5, 3.5 };
+    Vector v{ 1.5, 2.5, 3.5 };
     std::stringstream ss;
     ss << v;
 

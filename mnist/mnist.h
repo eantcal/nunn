@@ -31,9 +31,9 @@ public:
     using data_t = std::vector<char>;
 
 private:
-    size_t _dx {};
-    size_t _dy {};
-    int _label {};
+    size_t _dx{};
+    size_t _dy{};
+    int _label{};
     data_t _data;
 
 public:
@@ -172,8 +172,7 @@ public:
 
     TrainingData() = delete;
 
-    TrainingData(const std::string& lbls_file,
-        const std::string& imgs_file) throw()
+    TrainingData(const std::string& lbls_file, const std::string& imgs_file) throw()
         : _lblsFile(lbls_file)
         , _imgsFile(imgs_file)
     {

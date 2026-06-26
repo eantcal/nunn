@@ -1,5 +1,13 @@
-BasedOnStyle: WebKit 
+BasedOnStyle: WebKit
 IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 100
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 MaxEmptyLinesToKeep: 2
+PointerAlignment: Left
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+SortIncludes: false
+SpaceBeforeCpp11BracedList: false

@@ -15,18 +15,13 @@
 
 namespace nu {
 
-template <class Action, class Agent, class RndGen = RandomGenerator<>>
-class SoftmaxPolicy {
+template <class Action, class Agent, class RndGen = RandomGenerator<>> class SoftmaxPolicy {
 public:
-    void setTemperature(const double& temperature) noexcept
-    {
-        _temperature = temperature;
-    }
+    void setTemperature(const double& temperature) noexcept { _temperature = temperature; }
 
     double getTemperature() const noexcept { return _temperature; }
 
-    template <class QMap>
-    Action selectAction(const Agent& agent, QMap& qMap) const
+    template <class QMap> Action selectAction(const Agent& agent, QMap& qMap) const
     {
         // Get agent to reward map
         auto actionReward = qMap[agent.getCurrentState()];
@@ -36,9 +31,8 @@ public:
 
         // Guard against a zero/negative temperature, which would otherwise
         // divide by zero and yield exp(+/-inf).
-        const double temperature = getTemperature() > 0.0
-            ? getTemperature()
-            : std::numeric_limits<double>::min();
+        const double temperature
+            = getTemperature() > 0.0 ? getTemperature() : std::numeric_limits<double>::min();
 
         decltype(actionReward) quasiProbs;
         double sumReward = 0;
@@ -72,8 +66,7 @@ public:
         return selected;
     }
 
-    template <class QMap>
-    Action getLearnedAction(const Agent& agent, QMap& qMap) const
+    template <class QMap> Action getLearnedAction(const Agent& agent, QMap& qMap) const
     {
         auto validActions = agent.getValidActions();
 

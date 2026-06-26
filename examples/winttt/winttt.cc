@@ -71,17 +71,9 @@ private:
     HWND _hparent;
 
 public:
-    toolbar_t(HWND hParentWnd,
-        HINSTANCE hInstance,
-        UINT idi_toolbar,
-        UINT_PTR res_id,
-        int n_of_bitmaps,
-        TBBUTTON buttons[],
-        int n_of_buttons,
-        int bmwidth = 28,
-        int bmheight = 32,
-        int btwidth = 28,
-        int btheight = 32);
+    toolbar_t(HWND hParentWnd, HINSTANCE hInstance, UINT idi_toolbar, UINT_PTR res_id,
+        int n_of_bitmaps, TBBUTTON buttons[], int n_of_buttons, int bmwidth = 28, int bmheight = 32,
+        int btwidth = 28, int btheight = 32);
 
     virtual void on_resize();
     virtual void on_customize();
@@ -136,43 +128,16 @@ const int g_toolbar_btn_style = BTNS_BUTTON /*| TBSTATE_ELLIPSES*/;
 TBBUTTON g_toolbar_buttons[] = {
     { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-    { 0,
-        IDM_NEW,
-        g_toolbar_btn_state,
-        g_toolbar_btn_style,
-        { 0 },
-        NULL,
+    { 0, IDM_NEW, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL,
         (INT_PTR) "New untrained NN" },
-    { 1,
-        IDM_LOAD,
-        g_toolbar_btn_state,
-        g_toolbar_btn_style,
-        { 0 },
-        NULL,
-        (INT_PTR) "Load NN" },
-    { 2,
-        IDM_SAVE,
-        g_toolbar_btn_state,
-        g_toolbar_btn_style,
-        { 0 },
-        NULL,
-        (INT_PTR) "Save NN" },
+    { 1, IDM_LOAD, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Load NN" },
+    { 2, IDM_SAVE, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Save NN" },
 
     { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-    { 3,
-        IDM_NEWGAME,
-        g_toolbar_btn_state,
-        g_toolbar_btn_style,
-        { 0 },
-        NULL,
+    { 3, IDM_NEWGAME, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL,
         (INT_PTR) "Restart (human)" },
-    { 4,
-        IDM_NEWGAME_SC,
-        g_toolbar_btn_state,
-        g_toolbar_btn_style,
-        { 0 },
-        NULL,
+    { 4, IDM_NEWGAME_SC, g_toolbar_btn_state, g_toolbar_btn_style, { 0 }, NULL,
         (INT_PTR) "Restart (computer)" },
 };
 
@@ -195,10 +160,8 @@ static void realignNNCopy()
     g_tsync_mtx.unlock();
 }
 
-int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
-    _In_opt_ HINSTANCE hPrevInstance,
-    _In_ LPTSTR lpCmdLine,
-    _In_ int nCmdShow)
+int APIENTRY _tWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPTSTR lpCmdLine, _In_ int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
@@ -256,17 +219,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
     hInst = hInstance; // Store instance handle in our global variable
 
-    hWnd = CreateWindow(szWindowClass,
-        szTitle,
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT,
-        0,
-        CW_USEDEFAULT,
-        0,
-        NULL,
-        NULL,
-        hInstance,
-        NULL);
+    hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0,
+        CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
 
     if (!hWnd)
         return FALSE;
@@ -299,7 +253,9 @@ void UpdateStatusBar(HWND hWnd)
     const auto tsc = g_training_samples.size();
     const auto mse = g_last_mse;
 
-    g_net_desc = "   LR: " + std::to_string(learningRate) + "   M: " + std::to_string(momentum) + "   HL(" + std::to_string(topology.size() - 2) + ") :" + hl + "   SC: " + std::to_string(tsc) + "   TL: " + std::to_string(100.00 - mse * 100.00);
+    g_net_desc = "   LR: " + std::to_string(learningRate) + "   M: " + std::to_string(momentum)
+        + "   HL(" + std::to_string(topology.size() - 2) + ") :" + hl
+        + "   SC: " + std::to_string(tsc) + "   TL: " + std::to_string(100.00 - mse * 100.00);
 
     static int cyVScroll = GetSystemMetrics(SM_CYVSCROLL);
 
@@ -331,10 +287,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
         std::ifstream nf(open_file_name.data());
 
         if (!nf.is_open()) {
-            MessageBox(hWnd,
-                "Cannot open the file",
-                open_file_name.data(),
-                MB_ICONERROR);
+            MessageBox(hWnd, "Cannot open the file", open_file_name.data(), MB_ICONERROR);
 
             return false;
         }
@@ -346,10 +299,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
             if (g_neural_net)
                 g_neural_net->loadJson(nf);
         } catch (...) {
-            MessageBox(hWnd,
-                "Error loading data from file",
-                open_file_name.data(),
-                MB_ICONERROR);
+            MessageBox(hWnd, "Error loading data from file", open_file_name.data(), MB_ICONERROR);
 
             return false;
         }
@@ -376,8 +326,7 @@ void Training(HWND hWnd, HWND hwndPB)
     KillTimer(hWnd, 0);
 
     if (hwndPB)
-        SendMessage(
-            hwndPB, PBM_SETPOS, (WPARAM)((1.0 - g_last_mse) * 100.0), 0);
+        SendMessage(hwndPB, PBM_SETPOS, (WPARAM)((1.0 - g_last_mse) * 100.0), 0);
 
     g_tsync_mtx.lock();
 
@@ -447,8 +396,7 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string& filename)
 
     std::ofstream nf(filename);
     if (!nf.is_open()) {
-        MessageBox(
-            hWnd, "Cannot save current network status", "Error", MB_ICONERROR);
+        MessageBox(hWnd, "Cannot save current network status", "Error", MB_ICONERROR);
         return;
     }
     g_neural_net->toJson(nf);
@@ -499,8 +447,7 @@ static void DrawBm(HDC hdc, HANDLE image, int x, int y)
     BITMAP bm = { 0 };
     ::GetObject(image, sizeof(bm), &bm);
 
-    auto ret = ::BitBlt(
-        hdc, 0, 0, bm.bmWidth + x, bm.bmHeight + y, hdcMem, -x, -y, SRCCOPY);
+    auto ret = ::BitBlt(hdc, 0, 0, bm.bmWidth + x, bm.bmHeight + y, hdcMem, -x, -y, SRCCOPY);
 
     ::SelectObject(hdcMem, hbmOld);
     ::DeleteDC(hdcMem);
@@ -517,11 +464,7 @@ private:
     static int _pos2x(int pos) noexcept { return pos % TICTACTOE_SIDE; }
 
 public:
-    enum symbol_t {
-        EMPTY,
-        X,
-        O
-    };
+    enum symbol_t { EMPTY, X, O };
 
     grid_t() { clear(); }
 
@@ -529,9 +472,7 @@ public:
     {
         memcpy(_tmp_grid, _grid, sizeof(_grid));
 
-        auto _tmp = [&](int indx) {
-            return _tmp_grid[_pos2x(indx)][_pos2y(indx)];
-        };
+        auto _tmp = [&](int indx) { return _tmp_grid[_pos2x(indx)][_pos2y(indx)]; };
 
         std::list<int> lidx = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
         std::list<int> rlidx = { 2, 5, 8, 1, 4, 7, 0, 3, 6 };
@@ -614,7 +555,8 @@ public:
         if (this == &other)
             return false;
 
-        return len() < other.len() || (len() == other.len() && get_unique_id() < other.get_unique_id());
+        return len() < other.len()
+            || (len() == other.len() && get_unique_id() < other.get_unique_id());
     }
 
 
@@ -679,18 +621,17 @@ public:
                 return true;
         }
 
-        return (at(0, 0) == symbol && at(1, 1) == symbol && at(2, 2) == symbol) || (at(2, 0) == symbol && at(1, 1) == symbol && at(0, 2) == symbol);
+        return (at(0, 0) == symbol && at(1, 1) == symbol && at(2, 2) == symbol)
+            || (at(2, 0) == symbol && at(1, 1) == symbol && at(0, 2) == symbol);
     }
 
     grid_t::symbol_t get_winner_symbol() const
     {
-        return is_the_winner(grid_t::O)
-            ? grid_t::O
-            : (is_the_winner(grid_t::X) ? grid_t::X : grid_t::EMPTY);
+        return is_the_winner(grid_t::O) ? grid_t::O
+                                        : (is_the_winner(grid_t::X) ? grid_t::X : grid_t::EMPTY);
     }
 
-    bool get_winner_line_points(std::pair<int, int>& start,
-        std::pair<int, int>& end) const
+    bool get_winner_line_points(std::pair<int, int>& start, std::pair<int, int>& end) const
     {
         auto symbol = get_winner_symbol();
 
@@ -775,12 +716,10 @@ public:
                 case 0:
                     break;
                 case 1:
-                    DrawBm(
-                        hdc, _ximg, BOARDOFF_X + x * DX, BOARDOFF_Y + y * DY);
+                    DrawBm(hdc, _ximg, BOARDOFF_X + x * DX, BOARDOFF_Y + y * DY);
                     break;
                 case 2:
-                    DrawBm(
-                        hdc, _oimg, BOARDOFF_X + x * DX, BOARDOFF_Y + y * DY);
+                    DrawBm(hdc, _oimg, BOARDOFF_X + x * DX, BOARDOFF_Y + y * DY);
                     break;
                 default:
                     assert(0);
@@ -793,9 +732,8 @@ public:
 
 class nn_io_converter_t {
 public:
-    static void getInputVector(const grid_t& grid,
-        grid_t::symbol_t turn_of_symb,
-        nu::Vector& inputs)
+    static void getInputVector(
+        const grid_t& grid, grid_t::symbol_t turn_of_symb, nu::Vector& inputs)
     {
         inputs.resize(10, 0.0);
         size_t i = 0;
@@ -808,9 +746,7 @@ public:
         inputs[9] = turn_of_symb == grid_t::O ? 1.0 : 0.5;
     }
 
-    static void copyOutputVector(const grid_t& grid,
-        const grid_t& new_grid,
-        nu::Vector& outputs)
+    static void copyOutputVector(const grid_t& grid, const grid_t& new_grid, nu::Vector& outputs)
     {
         outputs.resize(grid.size(), 0.0);
 
@@ -1119,16 +1055,12 @@ static void NetAnswer(nu::MlpNN& nn, grid_t& grid, grid_t::symbol_t symbol)
             }
         }
     } catch (...) {
-        MessageBox(
-            0, "Are you loaded an incompatibile net?", "Error", MB_ICONERROR);
+        MessageBox(0, "Are you loaded an incompatibile net?", "Error", MB_ICONERROR);
     }
 }
 
-static void ComputerPlay(HWND hWnd,
-    HINSTANCE hInst,
-    nu::MlpNN& nn,
-    grid_t& grid,
-    grid_t::symbol_t symbol)
+static void ComputerPlay(
+    HWND hWnd, HINSTANCE hInst, nu::MlpNN& nn, grid_t& grid, grid_t::symbol_t symbol)
 {
     auto grid_old = grid;
     auto grid_expert_move = grid;
@@ -1154,8 +1086,7 @@ static void ComputerPlay(HWND hWnd,
             grid_expert_move.rotate_cw();
 
             nn_io_converter_t::getInputVector(grid_old, symbol, inputs);
-            nn_io_converter_t::copyOutputVector(
-                grid_old, grid_expert_move, target);
+            nn_io_converter_t::copyOutputVector(grid_old, grid_expert_move, target);
 
             g_training_samples.insert({ inputs, target });
         }
@@ -1174,7 +1105,8 @@ static bool GetGridPos(HWND hWnd, std::pair<int, int>& gpt)
 
     // pt.y -= YBMPOFF;
 
-    if (pt.x > BOARDOFF_X && pt.y > BOARDOFF_Y && pt.x < (BOARDOFF_X + 3 * BOARDCELLSIZE) && pt.y < (BOARDOFF_Y + 3 * BOARDCELLSIZE)) {
+    if (pt.x > BOARDOFF_X && pt.y > BOARDOFF_Y && pt.x < (BOARDOFF_X + 3 * BOARDCELLSIZE)
+        && pt.y < (BOARDOFF_Y + 3 * BOARDCELLSIZE)) {
         gpt.first = (pt.x - BOARDOFF_X) / BOARDCELLSIZE;
         gpt.second = (pt.y - BOARDOFF_Y) / BOARDCELLSIZE;
 
@@ -1186,8 +1118,8 @@ static bool GetGridPos(HWND hWnd, std::pair<int, int>& gpt)
 
 static void NewNN(HWND hWnd)
 {
-    g_neural_net = std::unique_ptr<nu::MlpNN>(
-        new nu::MlpNN(g_topology, g_learning_rate, g_momentum));
+    g_neural_net
+        = std::unique_ptr<nu::MlpNN>(new nu::MlpNN(g_topology, g_learning_rate, g_momentum));
 
     realignNNCopy();
     UpdateStatusBar(hWnd);
@@ -1233,41 +1165,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         {
             LONG lStyle = GetWindowLong(hWnd, GWL_STYLE);
-            lStyle &= ~(WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+            lStyle
+                &= ~(WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
             SetWindowLong(hWnd, GWL_STYLE, lStyle);
 
-            SetWindowPos(hWnd,
-                NULL,
-                0,
-                0,
-                0,
-                0,
+            SetWindowPos(hWnd, NULL, 0, 0, 0, 0,
                 SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
         }
 
         MoveWindow(hWnd, 0, 0, PROG_WINXRES, PROG_WINYRES, TRUE);
 
-        g_toolbar = new toolbar_t(hWnd,
-            hInst,
-            IDI_TOOLBAR,
-            IDI_TOOLBAR,
-            g_toolbar_n_of_bmps,
-            g_toolbar_buttons,
-            g_toolbar_n_of_buttons);
+        g_toolbar = new toolbar_t(hWnd, hInst, IDI_TOOLBAR, IDI_TOOLBAR, g_toolbar_n_of_bmps,
+            g_toolbar_buttons, g_toolbar_n_of_buttons);
 
 
-        hwndPB = CreateWindowEx(0,
-            PROGRESS_CLASS,
-            (LPTSTR)NULL,
-            WS_CHILD | WS_VISIBLE,
-            0,
-            YBMPOFF + cyVScroll / 2,
-            PROG_WINXRES,
-            cyVScroll,
-            hWnd,
-            (HMENU)0,
-            hInst,
-            NULL);
+        hwndPB = CreateWindowEx(0, PROGRESS_CLASS, (LPTSTR)NULL, WS_CHILD | WS_VISIBLE, 0,
+            YBMPOFF + cyVScroll / 2, PROG_WINXRES, cyVScroll, hWnd, (HMENU)0, hInst, NULL);
 
         NewNN(hWnd);
 
@@ -1290,9 +1203,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case IDM_LR_40:
             if (g_neural_net) {
                 g_neural_net->setLearningRate(
-                    wmId == IDM_LR_30
-                        ? 0.030
-                        : (wmId == IDM_LR_35 ? 0.035 : 0.040));
+                    wmId == IDM_LR_30 ? 0.030 : (wmId == IDM_LR_35 ? 0.035 : 0.040));
 
                 g_learning_rate = g_neural_net->getLearningRate();
             }
@@ -1305,12 +1216,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case IDM_M_40:
         case IDM_M_50:
             if (g_neural_net) {
-                g_neural_net->setMomentum(
-                    wmId == IDM_M_0
+                g_neural_net->setMomentum(wmId == IDM_M_0
                         ? 0
-                        : (wmId == IDM_M_30
-                                ? 0.30
-                                : (wmId == IDM_M_40 ? 0.40 : 0.50)));
+                        : (wmId == IDM_M_30 ? 0.30 : (wmId == IDM_M_40 ? 0.40 : 0.50)));
                 g_momentum = g_neural_net->getMomentum();
             }
             UpdateStatusBar(hWnd);
@@ -1361,13 +1269,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             game_board.clear();
 
             if (g_neural_net)
-                ComputerPlay(
-                    hWnd, hInst, *g_neural_net, game_board, grid_t::O);
+                ComputerPlay(hWnd, hInst, *g_neural_net, game_board, grid_t::O);
             else
-                MessageBox(
-                    hWnd,
-                    "Please, load neural network data to proceed",
-                    "Warning",
+                MessageBox(hWnd, "Please, load neural network data to proceed", "Warning",
                     MB_ICONEXCLAMATION | MB_OK);
 
             InvalidateRect(hWnd, NULL, TRUE);
@@ -1386,8 +1290,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
 
         case IDM_ABOUT: {
-            MessageBox(
-                hWnd, ABOUT_TEXT, ABOUT_INFO, MB_ICONINFORMATION | MB_OK);
+            MessageBox(hWnd, ABOUT_TEXT, ABOUT_INFO, MB_ICONINFORMATION | MB_OK);
         }
 
         default:
@@ -1400,9 +1303,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
 
         if (!g_neural_net) {
-            MessageBox(hWnd,
-                "Please, load neural network data to proceed",
-                "Warning",
+            MessageBox(hWnd, "Please, load neural network data to proceed", "Warning",
                 MB_ICONEXCLAMATION | MB_OK);
 
             break;
@@ -1434,8 +1335,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             bool nnet_ok = g_neural_net != nullptr;
 
             if (modified && nnet_ok && win_symb == grid_t::EMPTY) {
-                ComputerPlay(
-                    hWnd, hInst, *g_neural_net, game_board, grid_t::O);
+                ComputerPlay(hWnd, hInst, *g_neural_net, game_board, grid_t::O);
                 win_symb = game_board.get_winner_symbol();
             }
 
@@ -1464,19 +1364,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
 
                 if (win_symb) {
-                    MoveToEx(hdc,
-                        BOARDOFF_X + start.first * BOARDCELLSIZE + BOARDCELLSIZE / 2,
-                        BOARDOFF_Y + start.second * BOARDCELLSIZE + BOARDCELLSIZE / 2,
-                        NULL);
+                    MoveToEx(hdc, BOARDOFF_X + start.first * BOARDCELLSIZE + BOARDCELLSIZE / 2,
+                        BOARDOFF_Y + start.second * BOARDCELLSIZE + BOARDCELLSIZE / 2, NULL);
 
-                    LineTo(hdc,
-                        BOARDOFF_X + end.first * BOARDCELLSIZE + BOARDCELLSIZE / 2,
+                    LineTo(hdc, BOARDOFF_X + end.first * BOARDCELLSIZE + BOARDCELLSIZE / 2,
                         BOARDOFF_Y + end.second * BOARDCELLSIZE + BOARDCELLSIZE / 2);
 
-                    MessageBox(hWnd,
-                        verdict.c_str(),
-                        "Verdict",
-                        MB_ICONINFORMATION | MB_OK);
+                    MessageBox(hWnd, verdict.c_str(), "Verdict", MB_ICONINFORMATION | MB_OK);
                 }
 
                 ReleaseDC(hWnd, hdc);
@@ -1505,11 +1399,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             GetClientRect(hWnd, &rcClient);
             rcClient.top = rcClient.bottom - GetSystemMetrics(SM_CYVSCROLL);
             FillRect(hdc, &rcClient, GetStockBrush(WHITE_BRUSH));
-            TextOut(hdc,
-                0,
-                rcClient.top,
-                g_net_desc.c_str(),
-                int(g_net_desc.size() + 1));
+            TextOut(hdc, 0, rcClient.top, g_net_desc.c_str(), int(g_net_desc.size() + 1));
         }
 
         EndPaint(hWnd, &ps);
@@ -1563,16 +1453,8 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
-toolbar_t::toolbar_t(HWND hWnd,
-    HINSTANCE hInstance,
-    UINT idi_toolbar,
-    UINT_PTR res_id,
-    int n_of_bitmaps,
-    TBBUTTON buttons[],
-    int n_of_buttons,
-    int bmwidth,
-    int bmheight,
-    int btwidth,
+toolbar_t::toolbar_t(HWND hWnd, HINSTANCE hInstance, UINT idi_toolbar, UINT_PTR res_id,
+    int n_of_bitmaps, TBBUTTON buttons[], int n_of_buttons, int bmwidth, int bmheight, int btwidth,
     int btheight)
     : _hinstance(hInstance)
 {
@@ -1584,9 +1466,7 @@ toolbar_t::toolbar_t(HWND hWnd,
         n_of_bitmaps, // number of bitmaps
         hInstance, // mod instance
         res_id, // resource ID for bitmap
-        0,
-        0,
-        btwidth,
+        0, 0, btwidth,
         btheight, // width & height of buttons
         bmwidth,
         bmheight, // width & height of bitmaps
@@ -1594,8 +1474,7 @@ toolbar_t::toolbar_t(HWND hWnd,
 
     assert(_toolbar);
 
-    SendMessage(_toolbar,
-        TB_ADDBUTTONS,
+    SendMessage(_toolbar, TB_ADDBUTTONS,
         (WPARAM)n_of_buttons, // number of buttons
         (LPARAM)buttons);
 }

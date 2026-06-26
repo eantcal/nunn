@@ -14,17 +14,14 @@
 
 namespace nu {
 
-template <class Action, class Agent, class RndGen = RandomGenerator<>>
-class EGreedyPolicy {
+template <class Action, class Agent, class RndGen = RandomGenerator<>> class EGreedyPolicy {
 public:
     void setEpsilon(const double& e) noexcept { _epsilon = e; }
 
     double getEpsilon() const noexcept { return _epsilon; }
 
     template <class QMap>
-    Action selectAction(const Agent& agent,
-        QMap& qMap,
-        bool dontExplore = false) const
+    Action selectAction(const Agent& agent, QMap& qMap, bool dontExplore = false) const
     {
         auto validActions = agent.getValidActions();
 
@@ -66,8 +63,7 @@ public:
         return action;
     }
 
-    template <class QMap>
-    Action getLearnedAction(const Agent& agent, QMap& qMap) const
+    template <class QMap> Action getLearnedAction(const Agent& agent, QMap& qMap) const
     {
         return selectAction(agent, qMap, true);
     }

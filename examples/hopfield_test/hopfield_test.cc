@@ -161,8 +161,8 @@ static void print_pattern(const nu::HopfieldNN::FpVector& pattern)
 }
 
 
-static void convert_pattern_into_input_v(const std::string& pattern,
-    nu::HopfieldNN::FpVector& input_vector)
+static void convert_pattern_into_input_v(
+    const std::string& pattern, nu::HopfieldNN::FpVector& input_vector)
 {
     size_t i = 0;
     for (auto c : pattern) {
@@ -192,15 +192,11 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         convert_pattern_into_input_v(g_test_patterns[i], input_v);
         net.recall(input_v, output_pattern);
 
-        std::cout << std::endl
-                  << std::endl
-                  << std::endl
-                  << " THIS IMAGE" << std::endl;
+        std::cout << std::endl << std::endl << std::endl << " THIS IMAGE" << std::endl;
 
         print_pattern(g_test_patterns[i]);
 
-        std::cout << std::endl
-                  << "  RECALLS" << std::endl;
+        std::cout << std::endl << "  RECALLS" << std::endl;
 
         print_pattern(output_pattern);
     }

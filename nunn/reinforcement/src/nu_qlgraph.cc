@@ -10,9 +10,7 @@
 
 namespace nu {
 
-QLGraph::QLGraph(const size_t& n_of_states,
-    const size_t& goal_state,
-    const Topology& topology)
+QLGraph::QLGraph(const size_t& n_of_states, const size_t& goal_state, const Topology& topology)
     : _nOfStates(n_of_states)
     , _goalState(goal_state)
     , _rewardMtx(n_of_states)
@@ -77,8 +75,7 @@ bool QLGraph::learn(const size_t& nOfEpisodes, const Helper& helper)
     return true;
 }
 
-QLGraph::valid_actions_t QLGraph::retrieveValidActions(const QMatrix& r,
-    size_t state)
+QLGraph::valid_actions_t QLGraph::retrieveValidActions(const QMatrix& r, size_t state)
 {
     assert(state < r.size());
 

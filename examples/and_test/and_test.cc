@@ -51,10 +51,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             0.01 // Min error
         );
 
-        std::cout << "AND training start ( Max epochs count="
-                  << trainer.getEpochs()
-                  << " Minimum error=" << trainer.getMinErr() << " )"
-                  << std::endl;
+        std::cout << "AND training start ( Max epochs count=" << trainer.getEpochs()
+                  << " Minimum error=" << trainer.getMinErr() << " )" << std::endl;
 
         size_t epoch_n = 0;
 
@@ -63,8 +61,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
             for (int a = 0; a < 2; ++a) {
                 for (int b = 0; b < 2; ++b) {
-                    training_epoch.train(
-                        { double(a), double(b) }, // input vector
+                    training_epoch.train({ double(a), double(b) }, // input vector
                         { double(and_function(a, b)) }, // target
 
                         // cost function
@@ -76,8 +73,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             }
 
             if (epoch_n++ % 100 == 0) {
-                std::cout << "Epoch #" << epoch_n << " Err = " << err
-                          << std::endl;
+                std::cout << "Epoch #" << epoch_n << " Err = " << err << std::endl;
             }
 
             if (err < trainer.getMinErr()) {
@@ -93,7 +89,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         for (int a = 0; a < 2; ++a) {
             for (int b = 0; b < 2; ++b) {
                 double output = 0.0;
-                nu::Vector input_vec { double(a), double(b) };
+                nu::Vector input_vec{ double(a), double(b) };
 
                 nn.setInputVector(input_vec);
                 nn.feedForward();
@@ -111,8 +107,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
                 // In case you'd play with configuration parameters
                 // and break the code :-)
                 if (int(and_res) != int(output)) {
-                    std::cerr << "ERROR!: and(" << a << "," << b
-                              << ") !=" << and_res << std::endl;
+                    std::cerr << "ERROR!: and(" << a << "," << b << ") !=" << and_res << std::endl;
 
                     return 1;
                 }
@@ -131,8 +126,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         std::cerr << "Check for configuration parameters and retry" << std::endl;
         return 1;
     } catch (...) {
-        std::cerr << "Fatal error. Check for configuration parameters and retry"
-                  << std::endl;
+        std::cerr << "Fatal error. Check for configuration parameters and retry" << std::endl;
 
         return 1;
     }

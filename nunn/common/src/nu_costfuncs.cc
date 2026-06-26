@@ -37,7 +37,7 @@ double calcCrossEntropy(Vector output, const Vector& target)
 
     log_inv_output.log();
 
-    auto res { target };
+    auto res{ target };
     res *= log_output;
 
     inv_target *= log_inv_output;

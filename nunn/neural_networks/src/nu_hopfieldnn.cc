@@ -73,10 +73,8 @@ void HopfieldNN::_propagate() noexcept
 
 bool HopfieldNN::_propagateNeuron(size_t i) noexcept
 {
-    double sum = std::inner_product(_w.begin() + i * getInputSize(),
-        _w.begin() + (i + 1) * getInputSize(),
-        _s.begin(),
-        0.0);
+    double sum = std::inner_product(
+        _w.begin() + i * getInputSize(), _w.begin() + (i + 1) * getInputSize(), _s.begin(), 0.0);
     double state = (sum > 0.0) - (sum < 0.0);
 
     if (state != _s[i]) {
@@ -133,11 +131,11 @@ std::ostream& HopfieldNN::toJson(std::ostream& os) noexcept
     using json = nlohmann::json;
 
     json j;
-    j["type"]         = std::string(ID_ANN);
-    j["version"]      = 1;
-    j["patternSize"]  = _patternSize;
+    j["type"] = std::string(ID_ANN);
+    j["version"] = 1;
+    j["patternSize"] = _patternSize;
     j["neuronStates"] = _s.to_stdvec();
-    j["weights"]      = _w.to_stdvec();
+    j["weights"] = _w.to_stdvec();
 
     os << j.dump(2);
     return os;
@@ -165,8 +163,8 @@ std::istream& HopfieldNN::loadJson(std::istream& is)
 
 std::ostream& HopfieldNN::dump(std::ostream& os) noexcept
 {
-    os << "Hopfield Neural Network\n# of Patterns: " << _patternSize
-       << "\nNeuron States: " << _s << "\nNet Weights: " << _w << "\n";
+    os << "Hopfield Neural Network\n# of Patterns: " << _patternSize << "\nNeuron States: " << _s
+       << "\nNet Weights: " << _w << "\n";
 
     return os;
 }

@@ -38,15 +38,9 @@ public:
 
     double getDiscountRate() const noexcept { return _discountRate; }
 
-    void setLearningRate(const double& lr) noexcept
-    {
-        _learningRate = lr;
-    }
+    void setLearningRate(const double& lr) noexcept { _learningRate = lr; }
 
-    void setDiscountRate(const double& dr) noexcept
-    {
-        _discountRate = dr;
-    }
+    void setDiscountRate(const double& dr) noexcept { _discountRate = dr; }
 
     Action selectAction(const Agent& agent, const Policy& policy = Policy())
     {
@@ -60,7 +54,8 @@ public:
         double reward = 0;
 
         while (!agent.goal()) {
-            if (auto listener = _listener.lock(); listener && !listener->notify(reward, moveCnt++)) {
+            if (auto listener = _listener.lock();
+                listener && !listener->notify(reward, moveCnt++)) {
                 break;
             }
 
@@ -116,8 +111,8 @@ protected:
     }
 
 private:
-    double _learningRate { 0.1 };
-    double _discountRate { 0.9 };
+    double _learningRate{ 0.1 };
+    double _discountRate{ 0.9 };
 
     QMap _qMap;
 

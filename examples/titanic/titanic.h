@@ -16,7 +16,8 @@
 #include <set>
 #include <vector>
 
-// DataSet: A mapping of input vectors to output vectors used in training and testing neural networks.
+// DataSet: A mapping of input vectors to output vectors used in training and testing neural
+// networks.
 using DataSet = std::map<std::vector<double>, std::vector<double>>;
 using TrainingSet = DataSet; // Represents a set of training data.
 using TestSet = DataSet; // Represents a set of test data.
@@ -76,18 +77,18 @@ struct Passenger {
     // Output vector contains a single value representing survival status.
     std::vector<double> getOutputVector() const { return { survived }; }
 
-    // Process new input data and display predicted survival chances using the provided neural network.
+    // Process new input data and display predicted survival chances using the provided neural
+    // network.
     void processNew(NN& nn);
 
-    // Searches for passengers by name in the given database and displays matched data with predicted survival chances.
+    // Searches for passengers by name in the given database and displays matched data with
+    // predicted survival chances.
     static void find(const Passenger* db, const std::string& searchFor, NN& nn);
 
     // Generates training and test datasets from a given passenger database.
     // Splits the database into training and test datasets based on the specified training set rate.
-    static void populateDataSet(const Passenger* db,
-        TrainingSet& trainingSet,
-        TestSet& testSet,
-        double trainingSetRate);
+    static void populateDataSet(
+        const Passenger* db, TrainingSet& trainingSet, TestSet& testSet, double trainingSetRate);
 };
 
 // Reference to a prepopulated database of Titanic passengers.

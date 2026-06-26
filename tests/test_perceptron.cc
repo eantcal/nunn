@@ -26,10 +26,10 @@ bool trainAnd()
     Perceptron p(2, 0.5, StepFunction(0.5, 0.0, 1.0));
 
     const std::array<std::pair<Vector, double>, 4> samples = { {
-        { Vector { 0.0, 0.0 }, 0.0 },
-        { Vector { 0.0, 1.0 }, 0.0 },
-        { Vector { 1.0, 0.0 }, 0.0 },
-        { Vector { 1.0, 1.0 }, 1.0 },
+        { Vector{ 0.0, 0.0 }, 0.0 },
+        { Vector{ 0.0, 1.0 }, 0.0 },
+        { Vector{ 1.0, 0.0 }, 0.0 },
+        { Vector{ 1.0, 1.0 }, 1.0 },
     } };
 
     for (int epoch = 0; epoch < 5000; ++epoch) {
@@ -65,8 +65,7 @@ TEST(PerceptronTest, InputSizeMatchesConstruction)
 TEST(PerceptronTest, SetInputVectorSizeMismatchThrows)
 {
     Perceptron p(2);
-    EXPECT_THROW(p.setInputVector(Vector { 1.0, 2.0, 3.0 }),
-        Perceptron::SizeMismatchException);
+    EXPECT_THROW(p.setInputVector(Vector{ 1.0, 2.0, 3.0 }), Perceptron::SizeMismatchException);
 }
 
 TEST(PerceptronTest, LearnsAndGate)
@@ -82,7 +81,7 @@ TEST(PerceptronTest, LearnsAndGate)
 TEST(PerceptronTest, SaveLoadRoundTrip)
 {
     Perceptron p(2, 0.3, StepFunction(0.5, 0.0, 1.0));
-    p.setInputVector(Vector { 1.0, 1.0 });
+    p.setInputVector(Vector{ 1.0, 1.0 });
     p.feedForward();
     const double before = p.getOutput();
 
@@ -90,7 +89,7 @@ TEST(PerceptronTest, SaveLoadRoundTrip)
     p.save(ss);
 
     Perceptron loaded(ss); // constructs via load()
-    loaded.setInputVector(Vector { 1.0, 1.0 });
+    loaded.setInputVector(Vector{ 1.0, 1.0 });
     loaded.feedForward();
 
     EXPECT_NEAR(loaded.getOutput(), before, 1e-4);
@@ -103,7 +102,7 @@ TEST(PerceptronTest, SaveLoadRoundTrip)
 TEST(PerceptronTest, SaveLoadRoundTripIsFullPrecision)
 {
     Perceptron p(2, 0.3, StepFunction(0.5, 0.0, 1.0));
-    p.setInputVector(Vector { 1.0, 1.0 });
+    p.setInputVector(Vector{ 1.0, 1.0 });
     p.feedForward();
     const double before = p.getOutput();
 
@@ -111,7 +110,7 @@ TEST(PerceptronTest, SaveLoadRoundTripIsFullPrecision)
     p.save(ss);
 
     Perceptron loaded(ss);
-    loaded.setInputVector(Vector { 1.0, 1.0 });
+    loaded.setInputVector(Vector{ 1.0, 1.0 });
     loaded.feedForward();
 
     EXPECT_NEAR(loaded.getOutput(), before, 1e-12);

@@ -30,7 +30,8 @@ MlpNN::MlpNN(const Topology& topology, double learningRate, double momentum, Cos
     reshuffleWeights();
 }
 
-MlpNN::MlpNN(const std::vector<LayerConfig>& layers, double learningRate, double momentum, CostFunction cf)
+MlpNN::MlpNN(
+    const std::vector<LayerConfig>& layers, double learningRate, double momentum, CostFunction cf)
     : _costFunction(cf)
     , _learningRate(learningRate)
     , _momentum(momentum)
@@ -50,7 +51,10 @@ MlpNN::MlpNN(const std::vector<LayerConfig>& layers, double learningRate, double
 
 // ── Getters ───────────────────────────────────────────────────────────────────
 
-size_t MlpNN::getInputSize() const noexcept { return _inputVector.size(); }
+size_t MlpNN::getInputSize() const noexcept
+{
+    return _inputVector.size();
+}
 
 size_t MlpNN::getOutputSize() const noexcept
 {
@@ -76,7 +80,7 @@ double MlpNN::_getInput(size_t layer, size_t idx) noexcept
 void MlpNN::_fireNeuron(NeuronLayer& nlayer, size_t layerIdx, size_t outIdx) noexcept
 {
     auto& neuron = nlayer[outIdx];
-    double sum { 0.0 };
+    double sum{ 0.0 };
     for (size_t idx = 0; const auto& wi : neuron.weights)
         sum += _getInput(layerIdx, idx++) * wi;
     sum += neuron.bias;
@@ -104,17 +108,16 @@ void MlpNN::copyOutputVector(FpVector& outputs) noexcept
 
 void MlpNN::_updateNeuronWeights(Neuron& neuron, size_t layerIdx)
 {
-    const double lr_err { neuron.error * _learningRate };
+    const double lr_err{ neuron.error * _learningRate };
 
     for (size_t inIdx = 0; inIdx < neuron.weights.size(); ++inIdx) {
         const double dw_prev = neuron.deltaW[inIdx];
-        neuron.deltaW[inIdx] = _getInput(layerIdx - 1, inIdx) * lr_err
-                             + _momentum * dw_prev;
+        neuron.deltaW[inIdx] = _getInput(layerIdx - 1, inIdx) * lr_err + _momentum * dw_prev;
         neuron.weights[inIdx] += neuron.deltaW[inIdx];
     }
 
     neuron.deltaB = lr_err + _momentum * neuron.deltaB;
-    neuron.bias  += neuron.deltaB;
+    neuron.bias += neuron.deltaB;
 }
 
 void MlpNN::_backPropagate(const FpVector& targetVector, const FpVector& outputVector)
@@ -131,19 +134,17 @@ void MlpNN::_backPropagate(const FpVector& targetVector, const FpVector& outputV
     //   δ_i = t_i - y_i
     //
     const Activation outAct = _layerActivations.back();
-    const bool ceSimplified = (_costFunction == CostFunction::CrossEntropy
-                               && outAct == Activation::Sigmoid);
+    const bool ceSimplified
+        = (_costFunction == CostFunction::CrossEntropy && outAct == Activation::Sigmoid);
 
     auto& outputLayer = _neuronLayers.back();
     for (size_t i = 0; i < outputLayer.size(); ++i) {
         const double y = outputVector[i], t = targetVector[i];
-        outputLayer[i].error = ceSimplified
-            ? (t - y)
-            : act::backward(outAct, y) * (t - y);
+        outputLayer[i].error = ceSimplified ? (t - y) : act::backward(outAct, y) * (t - y);
     }
 
     // ── Output layer weight update ─────────────────────────────────────────
-    auto layerIdx = _topology.size() - 1;  // 1-based index into neuron layers
+    auto layerIdx = _topology.size() - 1; // 1-based index into neuron layers
     for (auto& neuron : _neuronLayers[layerIdx - 1])
         _updateNeuronWeights(neuron, layerIdx);
 
@@ -154,14 +155,14 @@ void MlpNN::_backPropagate(const FpVector& targetVector, const FpVector& outputV
     while (layerIdx > 1) {
         --layerIdx;
 
-        auto& hiddenLayer  = _neuronLayers[layerIdx - 1];
+        auto& hiddenLayer = _neuronLayers[layerIdx - 1];
         const auto& nextLayer = _neuronLayers[layerIdx];
         const Activation hidAct = _layerActivations[layerIdx - 1];
 
         for (size_t nidx = 0; nidx < hiddenLayer.size(); ++nidx) {
             auto& neuron = hiddenLayer[nidx];
 
-            double sum { 0.0 };
+            double sum{ 0.0 };
             for (const auto& nextNeuron : nextLayer)
                 sum += nextNeuron.error * nextNeuron.weights[nidx];
 
@@ -189,11 +190,10 @@ void MlpNN::backPropagate(const FpVector& targetVector)
 void MlpNN::reshuffleWeights() noexcept
 {
     auto weights_cnt = std::accumulate(
-        _neuronLayers.begin(), _neuronLayers.end(), 0.0,
-        [](auto acc, const auto& nl) {
-            return acc + std::transform_reduce(
-                nl.begin(), nl.end(), 0.0, std::plus<>(),
-                [](const auto& n) { return static_cast<double>(n.weights.size()); });
+        _neuronLayers.begin(), _neuronLayers.end(), 0.0, [](auto acc, const auto& nl) {
+            return acc
+                + std::transform_reduce(nl.begin(), nl.end(), 0.0, std::plus<>(),
+                    [](const auto& n) { return static_cast<double>(n.weights.size()); });
         });
 
     weights_cnt = std::sqrt(weights_cnt);
@@ -202,21 +202,19 @@ void MlpNN::reshuffleWeights() noexcept
 
     for (auto& nl : _neuronLayers) {
         for (auto& neuron : nl) {
-            std::transform(neuron.weights.begin(), neuron.weights.end(),
-                           neuron.weights.begin(),
-                           [&](auto&) { return (-1.0 + 2.0 * rndgen()) / weights_cnt; });
+            std::transform(neuron.weights.begin(), neuron.weights.end(), neuron.weights.begin(),
+                [&](auto&) { return (-1.0 + 2.0 * rndgen()) / weights_cnt; });
             std::fill(neuron.deltaW.begin(), neuron.deltaW.end(), 0.0);
             neuron.deltaB = 0.0;
-            neuron.bias   = rndgen();
+            neuron.bias = rndgen();
         }
     }
 }
 
 // ── Build ─────────────────────────────────────────────────────────────────────
 
-void MlpNN::_build(const Topology& topology,
-                   std::vector<NeuronLayer>& neuronLayers,
-                   FpVector& inputs)
+void MlpNN::_build(
+    const Topology& topology, std::vector<NeuronLayer>& neuronLayers, FpVector& inputs)
 {
     if (topology.size() < 3)
         throw SizeMismatchException();
@@ -280,17 +278,17 @@ std::stringstream& MlpNN::save(std::stringstream& ss) noexcept
     ss.clear();
     ss << std::setprecision(std::numeric_limits<double>::max_digits10);
 
-    ss << getNetId()         << '\n';
-    ss << _learningRate      << '\n';
-    ss << _momentum          << '\n';
-    ss << getInputVectorId() << '\n' << _inputVector  << '\n';
-    ss << getTopologyId()    << '\n' << _topology     << '\n';
+    ss << getNetId() << '\n';
+    ss << _learningRate << '\n';
+    ss << _momentum << '\n';
+    ss << getInputVectorId() << '\n' << _inputVector << '\n';
+    ss << getTopologyId() << '\n' << _topology << '\n';
 
     for (auto& nl : _neuronLayers) {
         ss << getNeuronLayerId() << '\n';
         for (auto& neuron : nl) {
             ss << getNeuronId() << '\n';
-            ss << neuron        << '\n';
+            ss << neuron << '\n';
         }
     }
 
@@ -314,12 +312,12 @@ std::ostream& MlpNN::toJson(std::ostream& os) noexcept
     using json = nlohmann::json;
 
     json j;
-    j["type"]         = std::string(getNetId());
-    j["version"]      = 2;
+    j["type"] = std::string(getNetId());
+    j["version"] = 2;
     j["learningRate"] = _learningRate;
-    j["momentum"]     = _momentum;
+    j["momentum"] = _momentum;
     j["costFunction"] = std::string(costFunctionName(_costFunction));
-    j["topology"]     = static_cast<const std::vector<size_t>&>(_topology);
+    j["topology"] = static_cast<const std::vector<size_t>&>(_topology);
 
     json acts = json::array();
     for (const auto& a : _layerActivations)
@@ -333,9 +331,9 @@ std::ostream& MlpNN::toJson(std::ostream& os) noexcept
         json layer = json::array();
         for (const auto& n : nl) {
             layer.push_back({
-                {"bias",    n.bias},
-                {"weights", n.weights.to_stdvec()},
-                {"deltaW",  n.deltaW.to_stdvec()},
+                { "bias", n.bias },
+                { "weights", n.weights.to_stdvec() },
+                { "deltaW", n.deltaW.to_stdvec() },
             });
         }
         layers.push_back(std::move(layer));
@@ -356,8 +354,8 @@ std::istream& MlpNN::loadJson(std::istream& is)
         throw InvalidSStreamFormatException();
 
     _learningRate = j.at("learningRate").get<double>();
-    _momentum     = j.at("momentum").get<double>();
-    _topology     = j.at("topology").get<std::vector<size_t>>();
+    _momentum = j.at("momentum").get<double>();
+    _topology = j.at("topology").get<std::vector<size_t>>();
 
     const int version = j.value("version", 1);
 
@@ -385,11 +383,11 @@ std::istream& MlpNN::loadJson(std::istream& is)
     for (size_t li = 0; li < _neuronLayers.size(); ++li) {
         const auto& jlayer = jlayers.at(li);
         for (size_t ni = 0; ni < _neuronLayers[li].size(); ++ni) {
-            const auto& jn     = jlayer.at(ni);
-            auto&       neuron = _neuronLayers[li][ni];
-            neuron.bias    = jn.at("bias").get<double>();
+            const auto& jn = jlayer.at(ni);
+            auto& neuron = _neuronLayers[li][ni];
+            neuron.bias = jn.at("bias").get<double>();
             neuron.weights = FpVector(jn.at("weights").get<std::vector<double>>());
-            neuron.deltaW  = FpVector(jn.at("deltaW").get<std::vector<double>>());
+            neuron.deltaW = FpVector(jn.at("deltaW").get<std::vector<double>>());
         }
     }
 
@@ -406,8 +404,7 @@ std::ostream& MlpNN::dump(std::ostream& os) noexcept
 
     for (size_t li = 0; const auto& layer : _neuronLayers) {
         const bool isOutput = (li >= _topology.size() - 2);
-        os << "\nNeuron layer " << li
-           << " [" << act::name(_layerActivations[li]) << "] "
+        os << "\nNeuron layer " << li << " [" << act::name(_layerActivations[li]) << "] "
            << (isOutput ? "Output" : "Hidden") << '\n';
 
         for (size_t ni = 0; const auto& neuron : layer) {
@@ -416,9 +413,9 @@ std::ostream& MlpNN::dump(std::ostream& os) noexcept
                 os << "\t\tInput  [" << inIdx << "] = " << _getInput(li, inIdx) << '\n';
                 os << "\t\tWeight [" << inIdx << "] = " << neuron.weights[inIdx] << '\n';
             }
-            os << "\t\tBias   = " << neuron.bias   << '\n';
-            os << "\t\tOutput = " << neuron.output  << '\n';
-            os << "\t\tError  = " << neuron.error   << '\n';
+            os << "\t\tBias   = " << neuron.bias << '\n';
+            os << "\t\tOutput = " << neuron.output << '\n';
+            os << "\t\tError  = " << neuron.error << '\n';
         }
         ++li;
     }

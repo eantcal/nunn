@@ -12,8 +12,7 @@
 
 namespace nu {
 
-template <class Engine = std::mt19937,
-    class Distribution = std::uniform_real_distribution<double>>
+template <class Engine = std::mt19937, class Distribution = std::uniform_real_distribution<double>>
 struct RandomGenerator {
     RandomGenerator(const double& min_value = 0, const double& max_value = 1)
         : _distribution(min_value, max_value)

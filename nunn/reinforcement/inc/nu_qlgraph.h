@@ -26,11 +26,7 @@ public:
     using valid_actions_t = std::vector<size_t>;
 
     // Enum for reward constants used in learning.
-    enum {
-        NO_REWARD = 0,
-        REWARD = 100,
-        FORBIDDEN = -1
-    };
+    enum { NO_REWARD = 0, REWARD = 100, FORBIDDEN = -1 };
 
     // Topology maps a state to a list of valid actions (next states).
     using Topology = std::unordered_map<size_t, std::list<size_t>>;
@@ -59,11 +55,11 @@ public:
         {
         }
 
-        virtual ~Helper() {};
+        virtual ~Helper() { };
 
         // Callbacks for the beginning and end of each episode.
-        virtual void beginEpisode(const size_t& /*episode*/, QLGraph& /*qlobj*/) const {};
-        virtual void endEpisode(const size_t& /*episode*/, QLGraph& /*qlobj*/) const {};
+        virtual void beginEpisode(const size_t& /*episode*/, QLGraph& /*qlobj*/) const { };
+        virtual void endEpisode(const size_t& /*episode*/, QLGraph& /*qlobj*/) const { };
 
         // Check if a quit request is pending.
         virtual bool quitRequestPending() const { return false; }
@@ -72,7 +68,7 @@ public:
         virtual double rnd() const noexcept { return (*_rndGen)(); }
 
     private:
-        std::unique_ptr<RandomGenerator<>> _rndGen {};
+        std::unique_ptr<RandomGenerator<>> _rndGen{};
     };
 
     // Function to start the learning process over a specified number of episodes.
@@ -82,10 +78,7 @@ public:
     const QMatrix& get_q_mtx() const noexcept { return _q_mtx; }
 
     // Returns the next best state for a given state based on the Q-Matrix.
-    size_t getNextStateFor(const size_t& state) const
-    {
-        return _q_mtx.maxarg(state);
-    }
+    size_t getNextStateFor(const size_t& state) const { return _q_mtx.maxarg(state); }
 
 private:
     // Retrieves a list of valid actions for a given state.
@@ -104,8 +97,8 @@ private:
     QMatrix _rewardMtx; // Matrix representing the rewards for state transitions.
     QMatrix _q_mtx; // Q-Matrix representing the learned state-action values.
 
-    double _learningRate { 0.8 }; // Learning rate in the Q-Learning algorithm.
-    double _discountRate { 0.8 }; // Discount rate for future rewards.
+    double _learningRate{ 0.8 }; // Learning rate in the Q-Learning algorithm.
+    double _discountRate{ 0.8 }; // Discount rate for future rewards.
 };
 
 }

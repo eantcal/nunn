@@ -60,18 +60,9 @@ std::string config_test_image_fn = "t10k-images.idx3-ubyte";
 constexpr int TRAINING_EPOCH_NUMBER = 100;
 
 
-static bool process_cl(int argc,
-    char* argv[],
-    std::string& files_path,
-    std::string& load_file_name,
-    std::string& save_file_name,
-    bool& skip_training,
-    double& learningRate,
-    bool& change_lr,
-    double& momentum,
-    bool& change_m,
-    int& epoch,
-    std::vector<size_t>& hidden_layer,
+static bool process_cl(int argc, char* argv[], std::string& files_path, std::string& load_file_name,
+    std::string& save_file_name, bool& skip_training, double& learningRate, bool& change_lr,
+    double& momentum, bool& change_m, int& epoch, std::vector<size_t>& hidden_layer,
     bool& use_cross_entropy)
 {
     int pidx = 1;
@@ -84,9 +75,7 @@ static bool process_cl(int argc,
         }
 
         if ((arg == "--version" || arg == "-v")) {
-            std::cout
-                << "nunnlib MNIST Test 1.01 (c) antonino.calderone@gmail.com"
-                << std::endl;
+            std::cout << "nunnlib MNIST Test 1.01 (c) antonino.calderone@gmail.com" << std::endl;
             continue;
         }
 
@@ -213,70 +202,64 @@ static void locate(int x, int y = 0)
 
 static void usage(const char* appname)
 {
-    std::cerr
-        << "Usage:" << std::endl
-        << appname << std::endl
-        << "\t[--version|-v] " << std::endl
-        << "\t[--help|-h] " << std::endl
-        << "\t[--training_files_path|-p <path>] " << std::endl
-        << "\t[--training_imgsfn|-tri <filename>] (default " << config_training_images_fn
-        << ")" << std::endl
-        << "\t[--training_lblsfn|-trl <filename>] (default " << config_training_labels_fn
-        << ")" << std::endl
-        << "\t[--test_imgsfn|-ti <filename>] (default " << config_test_image_fn << ")"
-        << std::endl
-        << "\t[--test_lblsfn|-tl <filename>] (default " << config_test_image_fn << ")"
-        << std::endl
-        << "\t[--save|-s <net_description_file_name>] " << std::endl
-        << "\t[--load|-l <net_description_file_name>] " << std::endl
-        << "\t[--skip_training|-n] " << std::endl
-        << "\t[--use_cross_entropy|-c] " << std::endl
-        << "\t[--learningRate|-r <rate>] " << std::endl
-        << "\t[--momentum|-m <value>] " << std::endl
-        << "\t[--epoch_cnt|-e <count>] " << std::endl
-        << "\t[[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]  "
-        << std::endl
-        << std::endl
-        << "Where:" << std::endl
-        << "--version or -v " << std::endl
-        << "\tshows the program version" << std::endl
-        << "--help or -h " << std::endl
-        << "\tgenerates just this 'Usage' text " << std::endl
-        << "--training_files_path or -p " << std::endl
-        << "\tset training/test files set path" << std::endl
-        << "--training_imgsfn or -tri " << std::endl
-        << "\tset training images file name" << std::endl
-        << "--training_lblsfn or -trl " << std::endl
-        << "\tset training labels file name" << std::endl
-        << "--test_imgsfn or -ti " << std::endl
-        << "\tset test images file name" << std::endl
-        << "--test_lblsfn or -tl " << std::endl
-        << "\tset test labels file name" << std::endl
-        << "--save or -s" << std::endl
-        << "\tsave net data to file" << std::endl
-        << "--load or -l" << std::endl
-        << "\tload net data from file" << std::endl
-        << "--skip_training or -n" << std::endl
-        << "\tskip net training" << std::endl
-        << "--use_cross_entropy or -c" << std::endl
-        << "\tuse the cross entropy cost function instead of MSE" << std::endl
-        << "--learningRate or -r" << std::endl
-        << "\tset learning rate (default " << NET_LEARNING_RATE << ")"
-        << std::endl
-        << "--momentum or -m" << std::endl
-        << "\tset momentum (default " << NET_MOMENTUM << ")" << std::endl
-        << "--epoch_cnt or -e" << std::endl
-        << "\tset epoch count (default " << TRAINING_EPOCH_NUMBER << ")"
-        << std::endl
-        << "--hidden_layer or -hl" << std::endl
-        << "\tset hidden layer size (n. of neurons, default " << HIDDEN_LAYER_SIZE
-        << ")" << std::endl;
+    std::cerr << "Usage:" << std::endl
+              << appname << std::endl
+              << "\t[--version|-v] " << std::endl
+              << "\t[--help|-h] " << std::endl
+              << "\t[--training_files_path|-p <path>] " << std::endl
+              << "\t[--training_imgsfn|-tri <filename>] (default " << config_training_images_fn
+              << ")" << std::endl
+              << "\t[--training_lblsfn|-trl <filename>] (default " << config_training_labels_fn
+              << ")" << std::endl
+              << "\t[--test_imgsfn|-ti <filename>] (default " << config_test_image_fn << ")"
+              << std::endl
+              << "\t[--test_lblsfn|-tl <filename>] (default " << config_test_image_fn << ")"
+              << std::endl
+              << "\t[--save|-s <net_description_file_name>] " << std::endl
+              << "\t[--load|-l <net_description_file_name>] " << std::endl
+              << "\t[--skip_training|-n] " << std::endl
+              << "\t[--use_cross_entropy|-c] " << std::endl
+              << "\t[--learningRate|-r <rate>] " << std::endl
+              << "\t[--momentum|-m <value>] " << std::endl
+              << "\t[--epoch_cnt|-e <count>] " << std::endl
+              << "\t[[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]  " << std::endl
+              << std::endl
+              << "Where:" << std::endl
+              << "--version or -v " << std::endl
+              << "\tshows the program version" << std::endl
+              << "--help or -h " << std::endl
+              << "\tgenerates just this 'Usage' text " << std::endl
+              << "--training_files_path or -p " << std::endl
+              << "\tset training/test files set path" << std::endl
+              << "--training_imgsfn or -tri " << std::endl
+              << "\tset training images file name" << std::endl
+              << "--training_lblsfn or -trl " << std::endl
+              << "\tset training labels file name" << std::endl
+              << "--test_imgsfn or -ti " << std::endl
+              << "\tset test images file name" << std::endl
+              << "--test_lblsfn or -tl " << std::endl
+              << "\tset test labels file name" << std::endl
+              << "--save or -s" << std::endl
+              << "\tsave net data to file" << std::endl
+              << "--load or -l" << std::endl
+              << "\tload net data from file" << std::endl
+              << "--skip_training or -n" << std::endl
+              << "\tskip net training" << std::endl
+              << "--use_cross_entropy or -c" << std::endl
+              << "\tuse the cross entropy cost function instead of MSE" << std::endl
+              << "--learningRate or -r" << std::endl
+              << "\tset learning rate (default " << NET_LEARNING_RATE << ")" << std::endl
+              << "--momentum or -m" << std::endl
+              << "\tset momentum (default " << NET_MOMENTUM << ")" << std::endl
+              << "--epoch_cnt or -e" << std::endl
+              << "\tset epoch count (default " << TRAINING_EPOCH_NUMBER << ")" << std::endl
+              << "--hidden_layer or -hl" << std::endl
+              << "\tset hidden layer size (n. of neurons, default " << HIDDEN_LAYER_SIZE << ")"
+              << std::endl;
 }
 
-static double test_net(std::unique_ptr<NeuralNet>& net,
-    const TrainingData::data_t& test_data,
-    double& mean_square_error,
-    double& entropy_cost)
+static double test_net(std::unique_ptr<NeuralNet>& net, const TrainingData::data_t& test_data,
+    double& mean_square_error, double& entropy_cost)
 {
     size_t cnt = 0;
     size_t err_cnt = 0;
@@ -355,19 +338,8 @@ int main(int argc, char* argv[])
     bool change_m = false;
 
     if (argc > 1) {
-        if (!process_cl(argc,
-                argv,
-                files_path,
-                load_file_name,
-                save_file_name,
-                skip_training,
-                learningRate,
-                change_lr,
-                momentum,
-                change_m,
-                epoch_cnt,
-                hidden_layer,
-                use_ce)) {
+        if (!process_cl(argc, argv, files_path, load_file_name, save_file_name, skip_training,
+                learningRate, change_lr, momentum, change_m, epoch_cnt, hidden_layer, use_ce)) {
             usage(argv[0]);
             return 1;
         }
@@ -383,11 +355,7 @@ int main(int argc, char* argv[])
     (void)dummy;
 #endif
 
-    std::cout << std::endl
-              << std::endl
-              << std::endl
-              << std::endl
-              << std::endl;
+    std::cout << std::endl << std::endl << std::endl << std::endl << std::endl;
 
     for (int hl_cnt = 0; [[maybe_unused]] const auto& hl : hidden_layer) {
         std::cout << "NN hidden neurons L" << hl_cnt + 1;
@@ -443,15 +411,13 @@ int main(int argc, char* argv[])
 
             topology.push_back(OUTPUT_LAYER_SIZE);
 
-            net = std::unique_ptr<NeuralNet>(
-                new NeuralNet(topology, learningRate, momentum));
+            net = std::unique_ptr<NeuralNet>(new NeuralNet(topology, learningRate, momentum));
         }
 
         if (!load_file_name.empty()) {
             std::ifstream nf(load_file_name);
             if (!nf.is_open()) {
-                std::cerr << "Cannot open '" << load_file_name << "'"
-                          << std::endl;
+                std::cerr << "Cannot open '" << load_file_name << "'" << std::endl;
                 return 1;
             }
 
@@ -461,9 +427,7 @@ int main(int argc, char* argv[])
         }
 
         if (net == nullptr) {
-            std::cerr
-                << "Error: net not initialized... change parameters and retry"
-                << std::endl;
+            std::cerr << "Error: net not initialized... change parameters and retry" << std::endl;
             return 1;
         }
 
@@ -475,11 +439,11 @@ int main(int argc, char* argv[])
             net->setMomentum(momentum);
         }
 
-        size_t cnt { 0 };
+        size_t cnt{ 0 };
 
-        const int max_epoch_number { epoch_cnt };
-        double best_performance { 100.0 };
-        int best_epoch { 0 };
+        const int max_epoch_number{ epoch_cnt };
+        double best_performance{ 100.0 };
+        int best_epoch{ 0 };
 
         if (!skip_training) {
             std::cout << std::endl;
@@ -487,18 +451,17 @@ int main(int argc, char* argv[])
             for (int epoch = 0; epoch < max_epoch_number; ++epoch) {
                 locate(1);
 
-                double calcMSE { 0.0 };
-                double calcCrossEntropy { 0.0 };
+                double calcMSE{ 0.0 };
+                double calcCrossEntropy{ 0.0 };
 
-                std::cout << "Learning epoch " << epoch + 1 << " of "
-                          << max_epoch_number
-                          << " ( LR = " << net->getLearningRate()
-                          << ", M = " << net->getMomentum() << " )" << std::endl
+                std::cout << "Learning epoch " << epoch + 1 << " of " << max_epoch_number
+                          << " ( LR = " << net->getLearningRate() << ", M = " << net->getMomentum()
+                          << " )" << std::endl
                           << std::endl;
 
                 cnt = 0;
                 trainingSet.reshuffle();
-                const auto& data { trainingSet.data() };
+                const auto& data{ trainingSet.data() };
 
                 for (auto i = data.begin(); i != data.end(); ++i) {
                     nu::Vector inputs;
@@ -516,9 +479,8 @@ int main(int argc, char* argv[])
                     // Use cnt to show progress
                     if (cnt % 120 == 0) {
                         locate(1);
-                        std::cout << "Completed "
-                                  << (double(cnt) / data.size()) * 100.0
-                                  << "%   " << std::endl;
+                        std::cout << "Completed " << (double(cnt) / data.size()) * 100.0 << "%   "
+                                  << std::endl;
 
 #ifdef _WIN32
                         if (cnt % 600) {
@@ -530,17 +492,13 @@ int main(int argc, char* argv[])
 
                 auto err_rate = test_net(net, test_data, calcMSE, calcCrossEntropy);
 
-                std::cout << "Error rate   : " << err_rate * 100.0 << "%     "
-                          << std::endl;
+                std::cout << "Error rate   : " << err_rate * 100.0 << "%     " << std::endl;
 
-                std::cout << "MS Error rate: " << calcMSE * 100.0 << "%     "
-                          << std::endl;
+                std::cout << "MS Error rate: " << calcMSE * 100.0 << "%     " << std::endl;
 
-                std::cout << "Cross entropy: " << calcCrossEntropy * 100.0
-                          << "%     " << std::endl;
+                std::cout << "Cross entropy: " << calcCrossEntropy * 100.0 << "%     " << std::endl;
 
-                std::cout << "Success rate : " << (1.0 - err_rate) * 100.0
-                          << "%    " << std::endl;
+                std::cout << "Success rate : " << (1.0 - err_rate) * 100.0 << "%    " << std::endl;
 
                 if (err_rate < best_performance) {
                     best_performance = err_rate;
@@ -548,10 +506,8 @@ int main(int argc, char* argv[])
                     save_the_net(save_file_name, *net);
                 }
 
-                std::cout << "BER          : " << best_performance * 100.0
-                          << "%    " << std::endl;
-                std::cout << "Epoch BER    : " << best_epoch + 1 << "    "
-                          << std::endl
+                std::cout << "BER          : " << best_performance * 100.0 << "%    " << std::endl;
+                std::cout << "Epoch BER    : " << best_epoch + 1 << "    " << std::endl
                           << std::endl;
             }
         }

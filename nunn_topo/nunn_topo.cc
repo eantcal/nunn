@@ -16,10 +16,8 @@
 #include <set>
 #include <string>
 
-static bool process_cl(int argc,
-    char* argv[],
-    std::string& load_file_name,
-    std::string& save_file_name)
+static bool process_cl(
+    int argc, char* argv[], std::string& load_file_name, std::string& save_file_name)
 {
     int pidx = 1;
 
@@ -31,8 +29,7 @@ static bool process_cl(int argc,
         }
 
         if ((arg == "--version" || arg == "-v")) {
-            std::cout << "nunn_topo 1.0 (c) antonino.calderone@gmail.com"
-                      << std::endl;
+            std::cout << "nunn_topo 1.0 (c) antonino.calderone@gmail.com" << std::endl;
             exit(0);
         }
 
@@ -142,17 +139,11 @@ bool save_topo(const std::string& filename, nu::MlpNN::Topology& topology)
     ss << "; " << std::endl;
 
     ss << "\t\tlabel = \"Output Layer\"; " << std::endl;
-    ss << "\t}" << std::endl
-       << std::endl;
+    ss << "\t}" << std::endl << std::endl;
 
     for (size_t node = 0; node < input_n; ++node) {
         for (size_t level_node = 0; level_node < topology[1]; ++level_node) {
-            snprintf(buf,
-                sizeof(buf) - 1,
-                "x%03zu->a%03zu%03zu;\n",
-                node,
-                size_t(1),
-                level_node);
+            snprintf(buf, sizeof(buf) - 1, "x%03zu->a%03zu%03zu;\n", node, size_t(1), level_node);
             ss << buf;
         }
     }
@@ -161,17 +152,10 @@ bool save_topo(const std::string& filename, nu::MlpNN::Topology& topology)
 
 
     for (size_t level = 1; level < hlevel_n; ++level) {
-        for (size_t level_node_l = 0; level_node_l < topology[level];
-             ++level_node_l) {
-            for (size_t level_node_r = 0; level_node_r < topology[level + 1];
-                 ++level_node_r) {
-                snprintf(buf,
-                    sizeof(buf) - 1,
-                    "a%03zu%03zu->a%03zu%03zu;\n",
-                    level,
-                    level_node_l,
-                    level + 1,
-                    level_node_r);
+        for (size_t level_node_l = 0; level_node_l < topology[level]; ++level_node_l) {
+            for (size_t level_node_r = 0; level_node_r < topology[level + 1]; ++level_node_r) {
+                snprintf(buf, sizeof(buf) - 1, "a%03zu%03zu->a%03zu%03zu;\n", level, level_node_l,
+                    level + 1, level_node_r);
 
                 ss << buf;
             }
@@ -181,14 +165,8 @@ bool save_topo(const std::string& filename, nu::MlpNN::Topology& topology)
     }
 
     for (size_t node = 0; node < output_n; ++node) {
-        for (size_t level_node = 0; level_node < topology[topology.size() - 2];
-             ++level_node) {
-            snprintf(buf,
-                sizeof(buf) - 1,
-                "a%03zu%03zu->y%03zu;\n",
-                hlevel_n,
-                level_node,
-                node);
+        for (size_t level_node = 0; level_node < topology[topology.size() - 2]; ++level_node) {
+            snprintf(buf, sizeof(buf) - 1, "a%03zu%03zu->y%03zu;\n", hlevel_n, level_node, node);
             ss << buf;
         }
     }
@@ -238,8 +216,7 @@ int main(int argc, char* argv[])
     std::stringstream ss;
 
     if (!nf.is_open()) {
-        std::cerr << "Error: Cannot open '" << load_file_name << "'"
-                  << std::endl;
+        std::cerr << "Error: Cannot open '" << load_file_name << "'" << std::endl;
         return 1;
     }
 

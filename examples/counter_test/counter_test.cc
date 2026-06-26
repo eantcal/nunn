@@ -45,7 +45,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // - The topology vector must contain at least three elements.
     // - All elements must be non-zero positive integers.
     // Example:
-    // - 3 in the first position: the input layer has 3 neurons (suitable for a 3-dimensional input vector).
+    // - 3 in the first position: the input layer has 3 neurons (suitable for a 3-dimensional input
+    // vector).
     // - 20 in the second position: the hidden layer has 20 neurons.
     // - 3 in the third position: the output layer has 3 neurons.
     NeuralNet::Topology topology = { 3, 20, 3 };
@@ -53,7 +54,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     try {
 
         // Construct the network using topology, learning rate and momentum
-        NeuralNet nn {
+        NeuralNet nn{
             topology,
             0.05, // learning rate
             0.0, // momentum
@@ -91,31 +92,24 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             MIN_ERR // Min error
         );
 
-        std::cout << "Counter training start ( Max epochs count="
-                  << trainer.getEpochs()
-                  << " Minimum error=" << trainer.getMinErr() << " )"
-                  << std::endl;
+        std::cout << "Counter training start ( Max epochs count=" << trainer.getEpochs()
+                  << " Minimum error=" << trainer.getMinErr() << " )" << std::endl;
 
         // Called to print out training progress
-        auto progressCbk = []([[maybe_unused]] NeuralNet& n,
-                               [[maybe_unused]] const nu::Vector& i,
-                               [[maybe_unused]] const nu::Vector& t,
-                               size_t epoch,
-                               size_t sample,
-                               double err) {
-            if (epoch % 500 == 0 && sample == 0)
-                std::cout << "Epoch completed "
-                          << (double(epoch) / double(EPOCHS)) * 100.0
-                          << "% Err=" << err * 100.0 << "%" << std::endl;
+        auto progressCbk
+            = []([[maybe_unused]] NeuralNet& n, [[maybe_unused]] const nu::Vector& i,
+                  [[maybe_unused]] const nu::Vector& t, size_t epoch, size_t sample, double err) {
+                  if (epoch % 500 == 0 && sample == 0)
+                      std::cout << "Epoch completed " << (double(epoch) / double(EPOCHS)) * 100.0
+                                << "% Err=" << err * 100.0 << "%" << std::endl;
 
-            return false;
-        };
+                  return false;
+              };
 
         // Used by trainer to calculate the net error to
         // be compared with min error (MIN_ERR)
-        auto errCost = [](NeuralNet& net, const NeuralNet::FpVector& target) {
-            return net.calcMSE(target);
-        };
+        auto errCost
+            = [](NeuralNet& net, const NeuralNet::FpVector& target) { return net.calcMSE(target); };
 
         // Train the net
         trainer.runTraining<TrainingSet>(traing_set, errCost, progressCbk);
@@ -123,11 +117,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // ------------ Final Counter Test ------------
         //   This section conducts a final test after all processing or training cycles.
 
-        std::cout << std::endl
-                  << "Counter Test " << std::endl;
+        std::cout << std::endl << "Counter Test " << std::endl;
 
-        vect_t input_vec { 0, 0, 0 };
-        vect_t output_vec { 0, 0, 0 };
+        vect_t input_vec{ 0, 0, 0 };
+        vect_t output_vec{ 0, 0, 0 };
 
         while (1) {
             nn.setInputVector(input_vec);
@@ -144,8 +137,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             input_vec = output_vec;
             std::cout << "E|Output|: " << nu::Vector(output_vec) << std::endl;
 
-            std::cout << "-------------------------------" << std::endl
-                      << std::endl;
+            std::cout << "-------------------------------" << std::endl << std::endl;
 
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
@@ -164,8 +156,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         std::cerr << "Check for configuration parameters and retry" << std::endl;
         return 1;
     } catch (...) {
-        std::cerr << "Fatal error. Check for configuration parameters and retry"
-                  << std::endl;
+        std::cerr << "Fatal error. Check for configuration parameters and retry" << std::endl;
 
         return 1;
     }

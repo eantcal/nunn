@@ -26,10 +26,7 @@
 #include <vector>
 
 struct Envirnoment {
-    enum {
-        _X = 46,
-        _Y = 31
-    };
+    enum { _X = 46, _Y = 31 };
 
 private:
     // clang-format off
@@ -70,15 +67,9 @@ private:
 public:
     Envirnoment() = default;
 
-    bool getMapVal(int y, int x) const
-    {
-        return map_[x + y * _X] != ' ';
-    }
+    bool getMapVal(int y, int x) const { return map_[x + y * _X] != ' '; }
 
-    char getMapChar(int y, int x) const
-    {
-        return map_[x + y * _X];
-    }
+    char getMapChar(int y, int x) const { return map_[x + y * _X]; }
 
     constexpr int max_x() const { return _X; }
     constexpr int max_y() const { return _Y; }
@@ -86,12 +77,7 @@ public:
 
 struct Action {
     // Enum representing possible movements
-    enum class move_t : int {
-        Left,
-        Right,
-        Up,
-        Down
-    };
+    enum class move_t : int { Left, Right, Up, Down };
 
     // Using std::array for fixed-size list of actions
     using list_t = std::vector<Action>;
@@ -111,17 +97,12 @@ struct Action {
     move_t get() const noexcept { return _move; }
 
     // Equality comparison operator
-    bool operator==(const Action& other) const noexcept
-    {
-        return _move == other._move;
-    }
+    bool operator==(const Action& other) const noexcept { return _move == other._move; }
 
     // Static method to generate a complete list of possible actions
     static list_t make_complete_list() noexcept
     {
-        return { { Action(move_t::Left),
-            Action(move_t::Right),
-            Action(move_t::Up),
+        return { { Action(move_t::Left), Action(move_t::Right), Action(move_t::Up),
             Action(move_t::Down) } };
     }
 
@@ -170,14 +151,11 @@ public:
     }
 
     // Operator for comparing states
-    bool operator==(const State& other) const noexcept
-    {
-        return _x == other._x && _y == other._y;
-    }
+    bool operator==(const State& other) const noexcept { return _x == other._x && _y == other._y; }
 
 private:
-    int _x { 0 };
-    int _y { 0 };
+    int _x{ 0 };
+    int _y{ 0 };
 };
 
 class Agent {
@@ -212,10 +190,7 @@ public:
     {
         auto all_actions = Action::make_complete_list();
         Action::list_t valid_actions;
-        std::copy_if(
-            all_actions.cbegin(),
-            all_actions.cend(),
-            std::back_inserter(valid_actions),
+        std::copy_if(all_actions.cbegin(), all_actions.cend(), std::back_inserter(valid_actions),
             [this](const auto& action) { return isValid(action); });
         return valid_actions;
     }
@@ -229,15 +204,9 @@ public:
         return false;
     }
 
-    [[nodiscard]] const State& getCurrentState() const noexcept
-    {
-        return _state;
-    }
+    [[nodiscard]] const State& getCurrentState() const noexcept { return _state; }
 
-    [[nodiscard]] const State& getGoalState() const noexcept
-    {
-        return _goalState;
-    }
+    [[nodiscard]] const State& getGoalState() const noexcept { return _goalState; }
 
     void setCurrentState(const State& state) noexcept { _state = state; }
     void setGoalState(const State& state) noexcept { _goalState = state; }
@@ -274,17 +243,11 @@ struct Render {
     }
 
 private:
-    char getDisplayChar(int row,
-        int col,
-        int agentX,
-        int agentY,
-        int goalX,
-        int goalY,
+    char getDisplayChar(int row, int col, int agentX, int agentY, int goalX, int goalY,
         const Envirnoment& env) const
     {
         if (row == agentY && col == agentX) {
-            return (agentX == goalX && agentY == goalY) ? AGENT_AT_GOAL_CHAR
-                                                        : AGENT_CHAR;
+            return (agentX == goalX && agentY == goalY) ? AGENT_AT_GOAL_CHAR : AGENT_CHAR;
         } else if (row == goalY && col == goalX) {
             return GOAL_CHAR;
         } else {
@@ -295,23 +258,21 @@ private:
 
 namespace std {
 
-template <>
-struct hash<State> {
+template <> struct hash<State> {
     size_t operator()(const State& k) const
     {
         // A better hash combination technique using a prime number
-        size_t h1 = std::hash<int> {}(k.get_x());
-        size_t h2 = std::hash<int> {}(k.get_y());
+        size_t h1 = std::hash<int>{}(k.get_x());
+        size_t h2 = std::hash<int>{}(k.get_y());
         return h1 ^ (h2 << 1);
     }
 };
 
-template <>
-struct hash<Action> {
+template <> struct hash<Action> {
     size_t operator()(const Action& k) const
     {
         // Hashing the underlying integer value of the enum
-        return std::hash<size_t> {}(static_cast<size_t>(k.get()));
+        return std::hash<size_t>{}(static_cast<size_t>(k.get()));
     }
 };
 
@@ -338,8 +299,7 @@ void cls()
         DWORD cellCount = csbi.dwSize.X * csbi.dwSize.Y;
         COORD homeCoords = { 0, 0 };
         FillConsoleOutputCharacter(hStdOut, ' ', cellCount, homeCoords, &count);
-        FillConsoleOutputAttribute(
-            hStdOut, csbi.wAttributes, cellCount, homeCoords, &count);
+        FillConsoleOutputAttribute(hStdOut, csbi.wAttributes, cellCount, homeCoords, &count);
         SetConsoleCursorPosition(hStdOut, homeCoords);
     }
 #else
@@ -348,23 +308,17 @@ void cls()
 }
 
 constexpr bool useEGreedyPolicy = true;
-using Policy = std::conditional<useEGreedyPolicy,
-    nu::EGreedyPolicy<Action, Agent>,
+using Policy = std::conditional<useEGreedyPolicy, nu::EGreedyPolicy<Action, Agent>,
     nu::SoftmaxPolicy<Action, Agent>>::type;
 
 constexpr bool useSarsa = true;
-using Learner = std::conditional<useSarsa,
-    nu::Sarsa<Action, State, Agent, Policy>,
+using Learner = std::conditional<useSarsa, nu::Sarsa<Action, State, Agent, Policy>,
     nu::QLearn<Action, State, Agent, Policy>>::type;
 
 struct Simulator {
     template <class Render>
-    size_t play(int episode,
-        const Render& r,
-        const Envirnoment& env,
-        const State& goal,
-        Learner& ql,
-        int timeout)
+    size_t play(int episode, const Render& r, const Envirnoment& env, const State& goal,
+        Learner& ql, int timeout)
     {
         size_t moveCnt = 0;
 
@@ -374,8 +328,7 @@ struct Simulator {
         while (!agent.goal() && timeout--) {
 
             locate(1, 1);
-            std::cout << "Episode #" << episode
-                      << "                                 ";
+            std::cout << "Episode #" << episode << "                                 ";
 
             std::cout << std::endl;
             r.show(agent, std::cout);
@@ -396,12 +349,11 @@ struct Simulator {
 
         if (timeout < 1) {
             locate(1, 1);
-            std::cout << "Episode #" << episode << " not completed: timeout! "
-                      << std::endl;
+            std::cout << "Episode #" << episode << " not completed: timeout! " << std::endl;
         } else {
             locate(1, 1);
-            std::cout << "Episode #" << episode << " completed in " << moveCnt
-                      << " moves" << std::endl;
+            std::cout << "Episode #" << episode << " completed in " << moveCnt << " moves"
+                      << std::endl;
         }
 
         r.show(agent, std::cout);
@@ -414,14 +366,14 @@ struct Simulator {
 struct App {
     // envirnoment
     Envirnoment env;
-    State goal { 44, 29 };
+    State goal{ 44, 29 };
     Render render;
     Learner learner;
     Simulator simulator;
 
-    static constexpr int episodies { 100000 };
-    static constexpr int timeout { 3000 };
-    static constexpr double greward { 1000 };
+    static constexpr int episodies{ 100000 };
+    static constexpr int timeout{ 3000 };
+    static constexpr double greward{ 1000 };
 
     int learn()
     {
@@ -454,8 +406,7 @@ struct App {
     void play(int episode)
     {
         while (true) {
-            simulator.play<Render>(
-                episode, render, env, goal, learner, timeout);
+            simulator.play<Render>(episode, render, env, goal, learner, timeout);
         }
     }
 };
@@ -463,7 +414,7 @@ struct App {
 int main()
 {
     App app;
-    const auto episode { app.learn() };
+    const auto episode{ app.learn() };
     app.play(episode);
     return 0;
 }

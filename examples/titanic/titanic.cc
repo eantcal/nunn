@@ -26,7 +26,8 @@ void Passenger::processNew(NN& nn)
             if (!(std::cin >> value) || value < min || value > max) {
                 std::cout << "Invalid input. Please try again.\n";
                 std::cin.clear(); // Clear error flags
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard the line
+                std::cin.ignore(
+                    std::numeric_limits<std::streamsize>::max(), '\n'); // Discard the line
             } else {
                 break; // Valid input
             }
@@ -43,7 +44,7 @@ void Passenger::processNew(NN& nn)
     fare = pclass == 1 ? 150 : (pclass == 2 ? 30 : 10);
 
     NN::FpVector input = getInputVector();
-    NN::FpVector output { 0 };
+    NN::FpVector output{ 0 };
 
     nn.setInputVector(input);
     nn.feedForward();
@@ -52,7 +53,8 @@ void Passenger::processNew(NN& nn)
     std::cout << "Surviving chance: " << output[0] * 100 << "%\n\n";
 
     // Prepare for next input
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard the rest of the line
+    std::cin.ignore(
+        std::numeric_limits<std::streamsize>::max(), '\n'); // Discard the rest of the line
     std::cin.clear(); // Clear error flags
 }
 
@@ -68,22 +70,25 @@ void Passenger::find(const Passenger* db, const std::string& searchFor, NN& nn)
                       << "  # of siblings / spouses aboard : " << db[i].sibsp << std::endl
                       << "  # of parents / children aboard : " << db[i].parch << std::endl
                       << "  Ticket Fare                    : " << db[i].fare << std::endl
-                      << "  Survived:                      : " << (db[i].survived ? "Yes" : "No") << std::endl;
+                      << "  Survived:                      : " << (db[i].survived ? "Yes" : "No")
+                      << std::endl;
 
             NN::FpVector input = db[i].getInputVector();
-            NN::FpVector output { 0 };
+            NN::FpVector output{ 0 };
 
             nn.setInputVector(input);
             nn.feedForward();
             nn.copyOutputVector(output);
 
-            std::cout << "  Survived prediction:           : " << output[0] * 100 << "%" << std::endl
+            std::cout << "  Survived prediction:           : " << output[0] * 100 << "%"
+                      << std::endl
                       << std::endl;
         }
     }
 }
 
-void Passenger::populateDataSet(const Passenger* db, TrainingSet& trainingSet, TestSet& testSet, double trainingSetRate)
+void Passenger::populateDataSet(
+    const Passenger* db, TrainingSet& trainingSet, TestSet& testSet, double trainingSetRate)
 {
     // Calculate total number of valid entries in the database
     size_t dataSetSize = 0;
@@ -162,7 +167,8 @@ void initializeNetwork(NN& nn)
 void trainNetwork(NN& nn, const TrainingSet& trainingSet)
 {
     Trainer trainer(nn, 5000);
-    auto errorCostFunction = [](NN& net, const NN::FpVector& target) { return net.calcMSE(target); };
+    auto errorCostFunction
+        = [](NN& net, const NN::FpVector& target) { return net.calcMSE(target); };
 
     trainer.runTraining(trainingSet, errorCostFunction,
         [](NN&, const NN::FpVector&, const NN::FpVector&, size_t epoch, size_t sample, double err) {
@@ -213,12 +219,13 @@ int main()
 {
     printDivider();
 
-    std::cout << "RMS Titanic, the British passenger liner that sank in the North Atlantic Ocean\n"
-                 "on April 15, 1912, during her maiden voyage, after colliding with an iceberg.\n"
-                 "Of the 2224 passengers and crew aboard, 1502 died. A database of 1046 passengers\n"
-                 "has been created, classified with features like gender, age, and survival status.\n"
-                 "This dataset is divided into a training set of 946 passengers and a test set of\n"
-                 "100 passengers to measure the accuracy of a trained Neural Network.\n";
+    std::cout
+        << "RMS Titanic, the British passenger liner that sank in the North Atlantic Ocean\n"
+           "on April 15, 1912, during her maiden voyage, after colliding with an iceberg.\n"
+           "Of the 2224 passengers and crew aboard, 1502 died. A database of 1046 passengers\n"
+           "has been created, classified with features like gender, age, and survival status.\n"
+           "This dataset is divided into a training set of 946 passengers and a test set of\n"
+           "100 passengers to measure the accuracy of a trained Neural Network.\n";
 
     printDivider();
 

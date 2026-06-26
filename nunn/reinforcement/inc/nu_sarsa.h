@@ -14,9 +14,9 @@
 
 namespace nu {
 
-// Sarsa is a template class implementing the SARSA (State-Action-Reward-State-Action) learning algorithm.
-// It is a form of reinforcement learning that uses a policy-based approach to find a policy that maximizes
-// the cumulative reward of an agent.
+// Sarsa is a template class implementing the SARSA (State-Action-Reward-State-Action) learning
+// algorithm. It is a form of reinforcement learning that uses a policy-based approach to find a
+// policy that maximizes the cumulative reward of an agent.
 template <class Action, class State, class Agent, class Policy,
     class ActionRewardMap = std::unordered_map<Action, double>,
     class QMap = std::unordered_map<State, ActionRewardMap>>
@@ -61,7 +61,8 @@ public:
         double reward = 0;
 
         while (!agent.goal()) {
-            if (auto listener = _listener.lock(); listener && !listener->notify(reward, moveCnt++)) {
+            if (auto listener = _listener.lock();
+                listener && !listener->notify(reward, moveCnt++)) {
                 break;
             }
             reward += updateQ(agent, policy, state, action);
@@ -94,8 +95,8 @@ protected:
     }
 
 private:
-    double _learningRate { 0.1 }; // Default learning rate
-    double _discountRate { 0.9 }; // Default discount rate
+    double _learningRate{ 0.1 }; // Default learning rate
+    double _discountRate{ 0.9 }; // Default discount rate
 
     QMap _qMap; // Map storing the state-action values
 

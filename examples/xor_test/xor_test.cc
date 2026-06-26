@@ -61,7 +61,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     try {
 
         // Construct the network using topology, learning rate and momentum
-        NeuralNet nn {
+        NeuralNet nn{
             topology,
             0.4, // learning rate
             0.9, // momentum
@@ -73,9 +73,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         using TrainingSet = std::map<std::vector<double>, std::vector<double>>;
 
-        TrainingSet traing_set = { { { 0, 0 }, { 0 } },
-            { { 0, 1 }, { 1 } },
-            { { 1, 0 }, { 1 } },
+        TrainingSet traing_set = { { { 0, 0 }, { 0 } }, { { 0, 1 }, { 1 } }, { { 1, 0 }, { 1 } },
             { { 1, 1 }, { 0 } } };
 
 
@@ -93,32 +91,25 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             MIN_ERR // Disabled: run all epochs for stable XOR convergence
         );
 
-        std::cout << "XOR training start ( Max epochs count="
-                  << trainer.getEpochs()
-                  << " Minimum error=" << trainer.getMinErr() << " )"
-                  << std::endl;
+        std::cout << "XOR training start ( Max epochs count=" << trainer.getEpochs()
+                  << " Minimum error=" << trainer.getMinErr() << " )" << std::endl;
 
         // Called to print out training progress
-        auto progressCbk = [=]([[maybe_unused]] NeuralNet& n,
-                               [[maybe_unused]] const nu::Vector& i,
-                               [[maybe_unused]] const nu::Vector& t,
-                               size_t epoch,
-                               size_t sample,
-                               double err) {
-            if (epoch % 400 == 0 && sample == 0)
-                std::cout << "Epoch completed "
-                          << (double(epoch) / double(EPOCHS)) * 100.0
-                          << "% Err=" << err * 100.0 << "%" << std::endl;
+        auto progressCbk
+            = [=]([[maybe_unused]] NeuralNet& n, [[maybe_unused]] const nu::Vector& i,
+                  [[maybe_unused]] const nu::Vector& t, size_t epoch, size_t sample, double err) {
+                  if (epoch % 400 == 0 && sample == 0)
+                      std::cout << "Epoch completed " << (double(epoch) / double(EPOCHS)) * 100.0
+                                << "% Err=" << err * 100.0 << "%" << std::endl;
 
-            return false;
-        };
+                  return false;
+              };
 
 
         // Used by trainer to calculate the net error to
         // be compared with min error (MIN_ERR)
-        auto errCost = [](NeuralNet& net, const NeuralNet::FpVector& target) {
-            return net.calcMSE(target);
-        };
+        auto errCost
+            = [](NeuralNet& net, const NeuralNet::FpVector& target) { return net.calcMSE(target); };
 
 
         // Train the net
@@ -131,11 +122,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // Step function
         auto step_f = nu::StepFunction(0.5 /*threshold*/, 0 /* LO */, 1 /* HI */);
 
-        std::cout << std::endl
-                  << "XOR Test " << std::endl;
+        std::cout << std::endl << "XOR Test " << std::endl;
 
         for (const auto& sample : traing_set) {
-            vect_t output_vec { 0.0 };
+            vect_t output_vec{ 0.0 };
 
             nn.setInputVector(sample.first);
             nn.feedForward();
@@ -148,8 +138,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
             auto net_res = step_f(output_vec[0]);
 
-            std::cout << sample.first[0] << " xor " << sample.first[1] << " = "
-                      << net_res << std::endl;
+            std::cout << sample.first[0] << " xor " << sample.first[1] << " = " << net_res
+                      << std::endl;
 
             auto xor_res = sample.second[0];
 
@@ -157,14 +147,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             // and break the code :-)
 
             if (xor_res != net_res) {
-                std::cerr << "ERROR!: xor(" << sample.first[0] << ","
-                          << sample.first[1] << ") !=" << xor_res << std::endl;
+                std::cerr << "ERROR!: xor(" << sample.first[0] << "," << sample.first[1]
+                          << ") !=" << xor_res << std::endl;
 
                 return 1;
             }
 
-            std::cout << "-------------------------------" << std::endl
-                      << std::endl;
+            std::cout << "-------------------------------" << std::endl << std::endl;
         }
 
         std::cout << "Test completed successfully" << std::endl;
@@ -181,8 +170,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         std::cerr << "Check for configuration parameters and retry" << std::endl;
         return 1;
     } catch (...) {
-        std::cerr << "Fatal error. Check for configuration parameters and retry"
-                  << std::endl;
+        std::cerr << "Fatal error. Check for configuration parameters and retry" << std::endl;
 
         return 1;
     }

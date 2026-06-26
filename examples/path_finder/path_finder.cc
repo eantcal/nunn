@@ -60,28 +60,21 @@ int main()
               << "Goal is state [" << GoalState << "]" << std::endl;
 
 
-    nu::QLGraph ql(NumberOfStates,
-        GoalState,
+    nu::QLGraph ql(NumberOfStates, GoalState,
 
         // graph topology
         { // from  you can go to ...
-            { 0, { 4 } },
-            { 1, { 3, 5 } },
-            { 2, { 3 } },
-            { 3, { 1, 2, 4 } },
-            { 4, { 0, 3, 5 } },
+            { 0, { 4 } }, { 1, { 3, 5 } }, { 2, { 3 } }, { 3, { 1, 2, 4 } }, { 4, { 0, 3, 5 } },
             { 5, { 1, 4, 5 } } });
 
     ql.learn(NumberOfEpisodies);
 
 #ifdef _DEBUG
     auto& q = ql.get_q_mtx();
-    std::cout << "Q=" << std::endl
-              << q << std::endl;
+    std::cout << "Q=" << std::endl << q << std::endl;
 #endif
 
-    std::cout << std::endl
-              << "From | Shortest path to " << GoalState << std::endl;
+    std::cout << std::endl << "From | Shortest path to " << GoalState << std::endl;
     std::cout << "---- | ------------------- " << std::endl;
 
     for (size_t init_state = 0; init_state < NumberOfStates; ++init_state) {

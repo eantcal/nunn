@@ -17,23 +17,24 @@ namespace nu {
 
 //! Represents a single neuron within a neural network layer.
 struct Neuron {
-    //! Vector of synaptic weights. Each weight corresponds to the connection strength with an input.
+    //! Vector of synaptic weights. Each weight corresponds to the connection strength with an
+    //! input.
     Vector weights;
 
     //! Adjustment vector for weights used during the training process (backpropagation).
     Vector deltaW;
 
     //! Bias term for the neuron, contributing to the net input signal beyond weighted inputs.
-    double bias { .0 };
+    double bias{ .0 };
 
     //! Adjustment for bias used during the training process (mirrors deltaW for the bias).
-    double deltaB { .0 };
+    double deltaB{ .0 };
 
     //! Output value of the neuron after applying the activation function.
-    double output { .0 };
+    double output{ .0 };
 
     //! Error gradient value for the neuron, used in training to update weights and bias.
-    double error { .0 };
+    double error{ .0 };
 
     //! Serializes the neuron's state (bias, weights, delta weights) into a stringstream for saving.
     friend std::stringstream& operator<<(std::stringstream& ss, const Neuron& n) noexcept
@@ -55,7 +56,8 @@ struct Neuron {
         return ss;
     }
 
-    //! Outputs the neuron's state in JSON format, useful for data interchange or human-readable saves.
+    //! Outputs the neuron's state in JSON format, useful for data interchange or human-readable
+    //! saves.
     std::ostream& toJson(std::ostream& ss) noexcept
     {
         ss << "{\"bias\":" << bias << ",";
@@ -67,7 +69,8 @@ struct Neuron {
         return ss;
     }
 
-    //! Resizes the weight and delta weight vectors to a new specified size. Used when initializing or modifying the neuron.
+    //! Resizes the weight and delta weight vectors to a new specified size. Used when initializing
+    //! or modifying the neuron.
     void resize(size_t size) noexcept
     {
         weights.resize(size);
