@@ -1,16 +1,16 @@
 # Common paths and helpers sourced by every training script.
 # Usage: . "$PSScriptRoot\_common.ps1"
 
-$RepoRoot  = Resolve-Path "$PSScriptRoot\..\..\"
+$RepoRoot   = Resolve-Path "$PSScriptRoot\..\.."
 $ExeRelease = "$RepoRoot\build\examples\mnist_test\Release\mnist_test.exe"
 $ExeDebug   = "$RepoRoot\build\examples\mnist_test\Debug\mnist_test.exe"
-$DataPath   = "$RepoRoot\build\examples\mnist_test\"
+$DataPath   = "$RepoRoot\build\examples\mnist_test"
 $ModelsDir  = "$RepoRoot\scripts\mnist\models"
 
 # Prefer Release for speed; fall back to Debug.
+# Add DLL directories to PATH so Windows can locate mnist.dll and nunn.dll.
 if (Test-Path $ExeRelease) {
     $Exe = $ExeRelease
-    # Add DLL directories to PATH so Windows can locate mnist.dll and nunn.dll.
     $env:PATH = "$RepoRoot\build\mnist\Release;$RepoRoot\build\nunn\Release;$env:PATH"
 } elseif (Test-Path $ExeDebug) {
     $Exe = $ExeDebug
@@ -22,10 +22,12 @@ if (Test-Path $ExeRelease) {
 
 New-Item -ItemType Directory -Force $ModelsDir | Out-Null
 
+# NOTE: parameter is named $CmdArgs (not $Args) to avoid shadowing
+# PowerShell's automatic $args variable, which would break @-splatting.
 function Run-Training {
     param(
         [string]   $Label,
-        [string[]] $Args,
+        [string[]] $CmdArgs,
         [string]   $LogFile = ""
     )
 
@@ -33,15 +35,15 @@ function Run-Training {
     Write-Host ""
     Write-Host $banner -ForegroundColor Cyan
     Write-Host "  $Label" -ForegroundColor Yellow
-    Write-Host "  $Exe $Args" -ForegroundColor DarkGray
+    Write-Host "  $Exe $CmdArgs" -ForegroundColor DarkGray
     Write-Host $banner -ForegroundColor Cyan
     Write-Host ""
 
     $start = Get-Date
     if ($LogFile) {
-        & $Exe @Args 2>&1 | Tee-Object -FilePath $LogFile
+        & $Exe @CmdArgs 2>&1 | Tee-Object -FilePath $LogFile
     } else {
-        & $Exe @Args
+        & $Exe @CmdArgs
     }
     $elapsed = (Get-Date) - $start
     Write-Host ""

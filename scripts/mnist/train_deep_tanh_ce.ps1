@@ -6,7 +6,7 @@
 Run-Training `
     -Label   "Deep Tanh + CrossEntropy  |  LR=0.02  M=0.9  HL=512+256+128  epochs=50" `
     -LogFile "$ModelsDir\deep_tanh_ce.log" `
-    -Args    @(
+    -CmdArgs @(
         "-p", $DataPath,
         "-a", "tanh",
         "-c",

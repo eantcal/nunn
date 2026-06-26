@@ -6,7 +6,7 @@
 Run-Training `
     -Label   "Sigmoid + CrossEntropy  |  LR=0.05  M=0.9  HL=300  epochs=30" `
     -LogFile "$ModelsDir\sigmoid_ce.log" `
-    -Args    @(
+    -CmdArgs @(
         "-p", $DataPath,
         "-a", "sigmoid",
         "-c",

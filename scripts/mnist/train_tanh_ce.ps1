@@ -6,7 +6,7 @@
 Run-Training `
     -Label   "Tanh + CrossEntropy  |  LR=0.05  M=0.9  HL=512  epochs=30" `
     -LogFile "$ModelsDir\tanh_ce.log" `
-    -Args    @(
+    -CmdArgs @(
         "-p", $DataPath,
         "-a", "tanh",
         "-c",

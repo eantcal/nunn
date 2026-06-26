@@ -5,7 +5,7 @@
 Run-Training `
     -Label   "Sigmoid + MSE  |  LR=0.025  M=0.9  HL=300  epochs=30" `
     -LogFile "$ModelsDir\sigmoid_mse.log" `
-    -Args    @(
+    -CmdArgs @(
         "-p", $DataPath,
         "-a", "sigmoid",
         "-r", "0.025",

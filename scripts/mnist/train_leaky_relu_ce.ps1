@@ -6,7 +6,7 @@
 Run-Training `
     -Label   "LeakyReLU + CrossEntropy  |  LR=0.01  M=0.9  HL=512  epochs=30" `
     -LogFile "$ModelsDir\leaky_relu_ce.log" `
-    -Args    @(
+    -CmdArgs @(
         "-p", $DataPath,
         "-a", "leaky_relu",
         "-c",

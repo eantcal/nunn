@@ -6,7 +6,7 @@
 Run-Training `
     -Label   "Deep ReLU + CrossEntropy  |  LR=0.005  M=0.9  HL=512+256+128  epochs=50" `
     -LogFile "$ModelsDir\deep_relu_ce.log" `
-    -Args    @(
+    -CmdArgs @(
         "-p", $DataPath,
         "-a", "relu",
         "-c",

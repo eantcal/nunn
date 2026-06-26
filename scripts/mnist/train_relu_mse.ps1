@@ -6,7 +6,7 @@
 Run-Training `
     -Label   "ReLU + MSE  |  LR=0.01  M=0.9  HL=512  epochs=30" `
     -LogFile "$ModelsDir\relu_mse.log" `
-    -Args    @(
+    -CmdArgs @(
         "-p", $DataPath,
         "-a", "relu",
         "-r", "0.01",

@@ -75,7 +75,7 @@ foreach ($cfg in $configs) {
     if ($cfg.CE) { $argList += "-c" }
     $argList += @("-s", $modelFile)
 
-    $output = Run-Training -Label $cfg.Label -Args $argList -LogFile $logFile
+    $output = Run-Training -Label $cfg.Label -CmdArgs $argList -LogFile $logFile
 
     # Extract best error rate (BER) from the last "BER" line in the log.
     $berLine = (Get-Content $logFile -ErrorAction SilentlyContinue) |
