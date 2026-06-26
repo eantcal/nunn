@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 project(nunnlib)
 
-# Set binary and runtime output directories
-set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
-set(RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
 # Configuring build type
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING
