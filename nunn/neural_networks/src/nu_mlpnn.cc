@@ -132,8 +132,14 @@ void MlpNN::_backPropagate(const FpVector& targetVector, const FpVector& outputV
     // MSE + any activation:
     //   δ_i = act'(y_i) * (t_i - y_i)
     //
-    // Cross-Entropy + Sigmoid  (simplification cancels sigmoid derivative):
+    // Cross-Entropy + Sigmoid (the sigmoid derivative y*(1-y) cancels with
+    // the CE gradient (y-t)/(y*(1-y)), leaving the clean form):
     //   δ_i = t_i - y_i
+    //
+    // Cross-Entropy + non-Sigmoid output: theoretically requires a different
+    // formula; CE is only well-defined for probability outputs in (0,1), so
+    // pairing it with Tanh/ReLU/Linear output is mathematically unsound.
+    // The fallback below uses the MSE-shaped gradient as an approximation.
     //
     const Activation outAct = _layerActivations.back();
     const bool ceSimplified
