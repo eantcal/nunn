@@ -26,12 +26,6 @@ target_link_libraries(winttt PRIVATE nunn Comctl32)
 
 if(MSVC)
     target_compile_options(winttt PRIVATE /W3 /permissive-)
-
-    # Precompiled header — replicates the /Yc / /Yu setup from the old .vcxproj
-    target_compile_options(winttt PRIVATE /Yu"stdafx.h")
-    set_source_files_properties(stdafx.cpp
-        PROPERTIES COMPILE_FLAGS "/Yc\"stdafx.h\""
-    )
 endif()
 
 install(TARGETS winttt

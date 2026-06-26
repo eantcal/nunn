@@ -1,35 +1,35 @@
 /*
-*  This file is part of nunnlib
-*
-*  nunnlib is free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  nunnlib is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with nunnlib; if not, write to the Free Software
-*  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  US
-*
-*  Author: Antonino Calderone <antonino.calderone@gmail.com>
-*
-*/
+ *  This file is part of nunnlib
+ *
+ *  nunnlib is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  nunnlib is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with nunnlib; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  US
+ *
+ *  Author: Antonino Calderone <antonino.calderone@gmail.com>
+ *
+ */
 
-#include "stdafx.h"
 #include "ocr_test.h"
+#include "stdafx.h"
 
 #include "mnist.h"
 #include "nu_mlpnn.h"
 
-#include <vector>
 #include <fstream>
-#include <sstream>
 #include <memory>
+#include <sstream>
 #include <string>
+#include <vector>
 
 #define PROG_VERSION "1.56"
 #define ABOUT_TEXT "OCR Test by A. Calderone (c) - 2015"
@@ -38,13 +38,13 @@
 #define PROG_WINYRES 600
 
 #define TRAINING_NET_EPOCHS 10000
-#define TRAINING_NET_ERRTR  0.05
+#define TRAINING_NET_ERRTR 0.05
 #define MAX_LOADSTRING 100
 
 #define DIGIT_SIDE_LEN 28
-#define PENSIZE  10
+#define PENSIZE 10
 #define CELLSIZE 5
-#define GRIDSIZE (DIGIT_SIDE_LEN*CELLSIZE)
+#define GRIDSIZE (DIGIT_SIDE_LEN * CELLSIZE)
 #define FRAME_SIZE 20
 #define WHITEBOARD_X 100
 #define WHITEBOARD_Y 130
@@ -53,16 +53,12 @@
 #define FILE_FILTER "nunn JSON (.json)\0*.json;\0All Files (*.*)\0*.*\0\0";
 
 
-
-//Loading a new NN we check for the following values
-#define NN_INPUTS  784
+// Loading a new NN we check for the following values
+#define NN_INPUTS 784
 #define NN_OUTPUTS 10
 
 
-
-
-class toolbar_t
-{
+class toolbar_t {
 private:
     HWND _toolbar;
     HINSTANCE _hinstance;
@@ -91,12 +87,10 @@ public:
 };
 
 
-
-
 // Global Variables
-HINSTANCE hInst;                        // current instance
-TCHAR szTitle[MAX_LOADSTRING];			// The title bar text
-TCHAR szWindowClass[MAX_LOADSTRING];	// the main window class name
+HINSTANCE hInst; // current instance
+TCHAR szTitle[MAX_LOADSTRING]; // The title bar text
+TCHAR szWindowClass[MAX_LOADSTRING]; // the main window class name
 
 
 static HFONT g_hfFont = nullptr;
@@ -107,48 +101,41 @@ std::string netDescription = "Load a net description file (File->Load)";
 nu::Vector g_hwdigit;
 
 
-
-
 // Toolbar
-static toolbar_t * gtb = nullptr;
+static toolbar_t* gtb = nullptr;
 const int gtb_n_of_bmps = 4;
 const int gtb_btn_state = TBSTATE_ENABLED;
 const int gtb_btn_style = BTNS_BUTTON /*| TBSTATE_ELLIPSES*/;
 
-TBBUTTON gtb_buttons[] =
-{
-    { 0, 0, TBSTATE_ENABLED, BTNS_SEP,{ 0 }, NULL, NULL },
+TBBUTTON gtb_buttons[] = {
+    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-    { 0, IDM_LOAD, gtb_btn_state, gtb_btn_style,{ 0 }, NULL, (INT_PTR) "Load" },
-    { 1, IDM_SAVE, gtb_btn_state, gtb_btn_style,{ 0 }, NULL, (INT_PTR) "Save" },
+    { 0, IDM_LOAD, gtb_btn_state, gtb_btn_style, { 0 }, NULL, (INT_PTR) "Load" },
+    { 1, IDM_SAVE, gtb_btn_state, gtb_btn_style, { 0 }, NULL, (INT_PTR) "Save" },
 
-    { 0, 0, TBSTATE_ENABLED, BTNS_SEP,{ 0 }, NULL, NULL },
+    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-    { 2, IDM_CLS, gtb_btn_state, gtb_btn_style,{ 0 }, NULL, (INT_PTR) "Clear" },
+    { 2, IDM_CLS, gtb_btn_state, gtb_btn_style, { 0 }, NULL, (INT_PTR) "Clear" },
 
-    { 0, 0, TBSTATE_ENABLED, BTNS_SEP,{ 0 }, NULL, NULL },
+    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-    { 3, IDM_RECOGNIZE, gtb_btn_state, gtb_btn_style,{ 0 }, NULL, (INT_PTR) "Recognize" },
+    { 3, IDM_RECOGNIZE, gtb_btn_state, gtb_btn_style, { 0 }, NULL, (INT_PTR) "Recognize" },
 };
 
 const int gtb_n_of_buttons = sizeof(gtb_buttons) / sizeof(TBBUTTON);
 
 
-
-
 // Forward declarations of functions included in this code module:
-ATOM	MyRegisterClass(HINSTANCE hInstance);
-BOOL	InitInstance(HINSTANCE, int);
-LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
-
-
+ATOM MyRegisterClass(HINSTANCE hInstance);
+BOOL InitInstance(HINSTANCE, int);
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
 
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
-    _In_ LPTSTR    lpCmdLine,
-    _In_ int       nCmdShow)
+    _In_ LPTSTR lpCmdLine,
+    _In_ int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
@@ -168,10 +155,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
     hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_OCR_TEST));
 
     // Main message loop:
-    while (GetMessage(&msg, NULL, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
+    while (GetMessage(&msg, NULL, 0, 0)) {
+        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
@@ -179,8 +164,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
     return (int)msg.wParam;
 }
-
-
 
 
 ATOM MyRegisterClass(HINSTANCE hInstance)
@@ -206,8 +189,6 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 }
 
 
-
-
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
     HWND hWnd;
@@ -225,8 +206,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
     return TRUE;
 }
-
-
 
 
 bool LoadNetData(HWND hWnd, HINSTANCE hInst)
@@ -263,16 +242,13 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 
         currentFileName = open_file_name.data();
 
-        auto nn = std::make_unique< nu::MlpNN >();
+        auto nn = std::make_unique<nu::MlpNN>();
 
         try {
             if (nn)
                 nn->loadJson(nf);
 
-            if (!nn ||
-                nn->getInputSize() != NN_INPUTS ||
-                nn->getOutputSize() != NN_OUTPUTS)
-            {
+            if (!nn || nn->getInputSize() != NN_INPUTS || nn->getOutputSize() != NN_OUTPUTS) {
                 MessageBox(
                     hWnd,
                     "Invalid network topology detected. "
@@ -284,8 +260,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
             }
 
 
-        }
-        catch (...) {
+        } catch (...) {
             MessageBox(
                 hWnd,
                 "Error loading data from file",
@@ -302,7 +277,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
         return false;
 
     const double learningRate = neuralNet->getLearningRate();
-    const auto & topology = neuralNet->getTopology();
+    const auto& topology = neuralNet->getTopology();
 
     std::string inputs;
     std::string outputs;
@@ -317,10 +292,7 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
             hl += std::to_string(topology[i]) + " ";
     }
 
-    netDescription =
-        "   Inputs: " + inputs +
-        "   Outputs: " + outputs +
-        "   HL Neurons: " + hl;
+    netDescription = "   Inputs: " + inputs + "   Outputs: " + outputs + "   HL Neurons: " + hl;
 
     SetWindowText(hWnd, currentFileName.c_str());
 
@@ -332,12 +304,9 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
 }
 
 
-
-
-void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
+void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string& filename)
 {
-    if (!neuralNet)
-    {
+    if (!neuralNet) {
         MessageBox(
             hWnd,
             "No neural network loaded",
@@ -364,8 +333,6 @@ void SaveNetData(HWND hWnd, HINSTANCE hInst, const std::string & filename)
 }
 
 
-
-
 void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 {
     char openName[MAX_PATH] = "\0";
@@ -385,8 +352,6 @@ void SaveFileAs(HWND hWnd, HINSTANCE hInst)
 }
 
 
-
-
 bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 {
     assert(digit >= 0 && digit <= 9);
@@ -396,7 +361,7 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 
     double err = 0.0;
 
-    RECT rcClient;  // Client area of parent window.
+    RECT rcClient; // Client area of parent window.
     GetClientRect(hWnd, &rcClient);
 
     int cyVScroll = GetSystemMetrics(SM_CYVSCROLL);
@@ -410,7 +375,7 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 
     const int cb = TRAINING_NET_EPOCHS;
 
-    // Set the range and increment of the progress bar. 
+    // Set the range and increment of the progress bar.
     SendMessage(hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, cb));
     SendMessage(hwndPB, PBM_SETSTEP, (WPARAM)1, 0);
 
@@ -436,36 +401,38 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 }
 
 
-
-
-class bmpImage
-{
+class bmpImage {
 private:
     std::vector<char> _data;
     int _dx = 0;
     int _dy = 0;
 
 public:
-    int getdx() const noexcept {
+    int getdx() const noexcept
+    {
         return _dx;
     }
 
-    int getdy() const noexcept {
+    int getdy() const noexcept
+    {
         return _dy;
     }
 
-    bool capture(HDC hdcWindow, HWND hWnd) {
+    bool capture(HDC hdcWindow, HWND hWnd)
+    {
 
         struct resource_t {
-            ~resource_t() {
-                if (hbmScreen) DeleteObject(hbmScreen);
-                if (hdcMemDC) DeleteObject(hdcMemDC);
+            ~resource_t()
+            {
+                if (hbmScreen)
+                    DeleteObject(hbmScreen);
+                if (hdcMemDC)
+                    DeleteObject(hdcMemDC);
             }
 
             HDC hdcMemDC = nullptr;
             HBITMAP hbmScreen = nullptr;
-        }
-        resource;
+        } resource;
 
         BITMAP bmpScreen;
 
@@ -501,7 +468,7 @@ public:
         // Get the BITMAP from the HBITMAP
         GetObject(resource.hbmScreen, sizeof(BITMAP), &bmpScreen);
 
-        BITMAPINFOHEADER   bi;
+        BITMAPINFOHEADER bi;
 
         bi.biSize = sizeof(BITMAPINFOHEADER);
         bi.biWidth = bmpScreen.bmWidth;
@@ -515,23 +482,23 @@ public:
         bi.biClrUsed = 0;
         bi.biClrImportant = 0;
 
-        DWORD dwBmpSize =
-            ((bmpScreen.bmWidth * bi.biBitCount + 31) / 32) * 4 * bmpScreen.bmHeight;
+        DWORD dwBmpSize = ((bmpScreen.bmWidth * bi.biBitCount + 31) / 32) * 4 * bmpScreen.bmHeight;
 
         _data.resize(dwBmpSize);
 
-        // Gets the "bits" from the bitmap and copies them into a buffer 
+        // Gets the "bits" from the bitmap and copies them into a buffer
         // which is pointed to by _data.data().
         GetDIBits(hdcWindow, resource.hbmScreen, 0,
             (UINT)bmpScreen.bmHeight,
             _data.data(),
-            (BITMAPINFO *)&bi, DIB_RGB_COLORS);
+            (BITMAPINFO*)&bi, DIB_RGB_COLORS);
 
         return true;
     }
 
 
-    COLORREF getPixel(int x_, int y_) const noexcept {
+    COLORREF getPixel(int x_, int y_) const noexcept
+    {
 
         const int x = x_; // _dx - x_ - 1;
         const int y = _dy - y_ - 1;
@@ -546,10 +513,7 @@ public:
 };
 
 
-
-
-
-void GetDigitBox(int xo, int yo, HDC hdc, RECT& r, HWND hwnd, const bmpImage & image)
+void GetDigitBox(int xo, int yo, HDC hdc, RECT& r, HWND hwnd, const bmpImage& image)
 {
     DWORD res = 0;
 
@@ -568,8 +532,7 @@ void GetDigitBox(int xo, int yo, HDC hdc, RECT& r, HWND hwnd, const bmpImage & i
 
             COLORREF c = image.getPixel(xcell, ycell);
 
-            switch (c)
-            {
+            switch (c) {
             case RGB(255, 255, 255):
             case RGB(0, 0, 0):
                 break;
@@ -596,10 +559,7 @@ void GetDigitBox(int xo, int yo, HDC hdc, RECT& r, HWND hwnd, const bmpImage & i
 
     r.right += xo;
     r.bottom += yo;
-
 }
-
-
 
 
 int ReadCellValue(
@@ -623,8 +583,7 @@ int ReadCellValue(
 
     DWORD res = 0;
 
-    if (xoff < FRAME_SIZE || xoff >(GRIDSIZE - FRAME_SIZE) ||
-        yoff < FRAME_SIZE || yoff >(GRIDSIZE - FRAME_SIZE))
+    if (xoff < FRAME_SIZE || xoff > (GRIDSIZE - FRAME_SIZE) || yoff < FRAME_SIZE || yoff > (GRIDSIZE - FRAME_SIZE))
         return 0;
 
     for (int x = 0; x < CELLSIZE; ++x) {
@@ -634,8 +593,7 @@ int ReadCellValue(
 
             COLORREF c = image.getPixel(xcell, ycell);
 
-            switch (c)
-            {
+            switch (c) {
             case RGB(255, 255, 255):
             case RGB(0, 0, 0):
                 break;
@@ -652,8 +610,6 @@ int ReadCellValue(
 }
 
 
-
-
 void PrintGrayscaleDigit(
     int xo,
     int yo,
@@ -666,13 +622,11 @@ void PrintGrayscaleDigit(
     Rectangle(hdc,
         xo - 1,
         yo - 1,
-        xo + DIGIT_SIDE_LEN*zoom + 1,
-        yo + DIGIT_SIDE_LEN*zoom + 1);
+        xo + DIGIT_SIDE_LEN * zoom + 1,
+        yo + DIGIT_SIDE_LEN * zoom + 1);
 
-    for (size_t y = 0; y < DIGIT_SIDE_LEN; ++y)
-    {
-        for (size_t x = 0; x < DIGIT_SIDE_LEN; ++x)
-        {
+    for (size_t y = 0; y < DIGIT_SIDE_LEN; ++y) {
+        for (size_t x = 0; x < DIGIT_SIDE_LEN; ++x) {
             int c = int(hwdigit[idx++] * 255);
 
 
@@ -687,31 +641,25 @@ void PrintGrayscaleDigit(
 }
 
 
-
-
-bool GetDigitInfo(HDC hdc, nu::Vector& hwdigit, const RECT & r, bmpImage& image)
+bool GetDigitInfo(HDC hdc, nu::Vector& hwdigit, const RECT& r, bmpImage& image)
 {
     size_t vec_idx = 0;
     double sum = 0.0;
 
-    auto f = [](double x) { return (x / double(CELLSIZE*CELLSIZE)); };
+    auto f = [](double x) { return (x / double(CELLSIZE * CELLSIZE)); };
 
     for (int y = 0; y < GRIDSIZE / CELLSIZE; ++y)
-        for (int x = 0; x < GRIDSIZE / CELLSIZE; ++x)
-        {
-            const double value =
-                f(double(ReadCellValue(hdc, WHITEBOARD_X, WHITEBOARD_Y, x, y, r, image)));
+        for (int x = 0; x < GRIDSIZE / CELLSIZE; ++x) {
+            const double value = f(double(ReadCellValue(hdc, WHITEBOARD_X, WHITEBOARD_Y, x, y, r, image)));
 
             sum += value;
 
-            if (vec_idx < (DIGIT_SIDE_LEN*DIGIT_SIDE_LEN))
+            if (vec_idx < (DIGIT_SIDE_LEN * DIGIT_SIDE_LEN))
                 hwdigit[vec_idx++] = value;
         }
 
     return sum > 0.0;
 }
-
-
 
 
 void WriteBars(int xo, int yo, HDC hdc, nu::Vector& results)
@@ -735,9 +683,6 @@ void WriteBars(int xo, int yo, HDC hdc, nu::Vector& results)
             digit * step + yo + 10);
     }
 }
-
-
-
 
 
 void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
@@ -804,8 +749,7 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
 
             g_hwdigit = hwdigit;
         }
-    }
-    else
+    } else
         MessageBox(
             hWnd,
             "Write a digit into the box",
@@ -813,10 +757,7 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
             MB_ICONWARNING);
 
     ReleaseDC(hWnd, hdc);
-
 }
-
-
 
 
 void DoSelectFont(HWND hwnd)
@@ -834,11 +775,7 @@ void DoSelectFont(HWND hwnd)
 
         g_hfFont = hf;
     }
-
-
 }
-
-
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -859,15 +796,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static POINT old_pt = { 0 };
 
 
-    auto checkFrame = [](HWND hWnd, POINT & pt) {
+    auto checkFrame = [](HWND hWnd, POINT& pt) {
         GetCursorPos(&pt);
         ScreenToClient(hWnd, &pt);
 
         return (
-            (pt.x > WHITEBOARD_X + FRAME_SIZE &&
-                pt.x <= WHITEBOARD_X + GRIDSIZE - FRAME_SIZE) &&
-                (pt.y >= WHITEBOARD_Y + FRAME_SIZE &&
-                    pt.y <= WHITEBOARD_Y + GRIDSIZE - FRAME_SIZE));
+            (pt.x > WHITEBOARD_X + FRAME_SIZE && pt.x <= WHITEBOARD_X + GRIDSIZE - FRAME_SIZE) && (pt.y >= WHITEBOARD_Y + FRAME_SIZE && pt.y <= WHITEBOARD_Y + GRIDSIZE - FRAME_SIZE));
     };
 
     switch (message) {
@@ -880,19 +814,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             LONG lStyle = GetWindowLong(hWnd, GWL_STYLE);
             lStyle &= ~(
-                WS_THICKFRAME |
-                WS_MINIMIZE |
-                WS_MAXIMIZE |
-                WS_MINIMIZEBOX |
-                WS_MAXIMIZEBOX);
+                WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
             SetWindowLong(hWnd, GWL_STYLE, lStyle);
 
             SetWindowPos(hWnd, NULL, 0, 0, 0, 0,
-                SWP_FRAMECHANGED |
-                SWP_NOMOVE |
-                SWP_NOSIZE |
-                SWP_NOZORDER |
-                SWP_NOOWNERZORDER);
+                SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
         }
 
         MoveWindow(hWnd, 0, 0, PROG_WINXRES, PROG_WINYRES, TRUE);
@@ -912,8 +838,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         wmEvent = HIWORD(wParam);
 
         // Parse the menu selections:
-        switch (wmId)
-        {
+        switch (wmId) {
         case IDM_CLS:
             InvalidateRect(hWnd, NULL, TRUE);
             break;
@@ -944,16 +869,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case IDM_7:
         case IDM_8:
         case IDM_9:
-            if (!TrainNet(hWnd, hInst, wmId - IDM_0))
-            {
+            if (!TrainNet(hWnd, hInst, wmId - IDM_0)) {
                 MessageBox(
                     hWnd,
                     "Cannot perform this operation",
                     "Error",
                     MB_ICONASTERISK);
-            }
-            else
-            {
+            } else {
                 MessageBox(
                     hWnd,
                     "Save your net status if you want "
@@ -963,13 +885,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
 
-        case IDM_ABOUT:
-        {
+        case IDM_ABOUT: {
             MessageBox(hWnd,
                 ABOUT_TEXT,
                 ABOUT_INFO,
                 MB_ICONINFORMATION | MB_OK);
-
         }
 
         default:
@@ -979,10 +899,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_MOUSEMOVE:
 
-        // When moving the mouse, the user must hold down 
-        // the left mouse button to draw lines. 
-        if (wParam & MK_LBUTTON)
-        {
+        // When moving the mouse, the user must hold down
+        // the left mouse button to draw lines.
+        if (wParam & MK_LBUTTON) {
             SetCursor(hcurCross);
             HDC hdc = GetDC(hWnd);
 
@@ -991,17 +910,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             POINT pt = { 0 };
 
-            if (checkFrame(hWnd, pt))
-            {
+            if (checkFrame(hWnd, pt)) {
                 MoveToEx(hdc, old_pt.x, old_pt.y, NULL);
                 LineTo(hdc, pt.x, pt.y);
                 old_pt = pt;
             }
 
             ReleaseDC(hWnd, hdc);
-        }
-        else if (wParam & MK_RBUTTON)
-        {
+        } else if (wParam & MK_RBUTTON) {
             SetCursor(hcurCross);
             HDC hdc = GetDC(hWnd);
 
@@ -1017,8 +933,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
 
-    case WM_LBUTTONDOWN:
-    {
+    case WM_LBUTTONDOWN: {
         hcur = SetCursor(hcurCross);
         HDC hdc = GetDC(hWnd);
         SelectObject(hdc, hbr);
@@ -1032,11 +947,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
 
         ReleaseDC(hWnd, hdc);
-    }
-    break;
+    } break;
 
-    case WM_RBUTTONDOWN:
-    {
+    case WM_RBUTTONDOWN: {
         hcur = SetCursor(hcurCross);
         HDC hdc = GetDC(hWnd);
         SelectObject(hdc, hbr);
@@ -1048,28 +961,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             Rectangle(hdc, pt.x, pt.y, pt.x + PENSIZE, pt.y + PENSIZE);
 
         ReleaseDC(hWnd, hdc);
-    }
-    break;
+    } break;
 
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
-        if (hcur)
-        {
+        if (hcur) {
             SetCursor(hcur);
             hcur = 0;
         }
         break;
 
-    case WM_PAINT:
-    {
+    case WM_PAINT: {
         static HANDLE image = ::LoadBitmap(
             GetModuleHandle(NULL),
             MAKEINTRESOURCE(IDI_BG));
 
         hdc = BeginPaint(hWnd, &ps);
 
-        if (image)
-        {
+        if (image) {
             HDC hdcMem = ::CreateCompatibleDC(hdc);
             auto hbmOld = ::SelectObject(hdcMem, (HGDIOBJ)image);
 
@@ -1104,18 +1013,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             WHITEBOARD_Y + GRIDSIZE - FRAME_SIZE / 2);
 
         EndPaint(hWnd, &ps);
-    }
-    break;
+    } break;
 
     case WM_NOTIFY:
         if (wParam == IDI_TOOLBAR && gtb) {
             const auto retVal = gtb->on_notify(hWnd, lParam);
 
             switch (((LPNMHDR)lParam)->code) {
-                case TBN_QUERYDELETE:
-                case TBN_GETBUTTONINFO:
-                case TBN_QUERYINSERT:
-                    return retVal;
+            case TBN_QUERYDELETE:
+            case TBN_GETBUTTONINFO:
+            case TBN_QUERYINSERT:
+                return retVal;
             }
         }
         return 0;
@@ -1135,20 +1043,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-
-
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
+    switch (message) {
     case WM_INITDIALOG:
         return (INT_PTR)TRUE;
 
     case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
+        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
             EndDialog(hDlg, LOWORD(wParam));
             return (INT_PTR)TRUE;
         }
@@ -1157,8 +1061,6 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
     return (INT_PTR)FALSE;
 }
-
-
 
 
 toolbar_t::toolbar_t(
@@ -1170,44 +1072,37 @@ toolbar_t::toolbar_t(
     TBBUTTON buttons[],
     int n_of_buttons,
     int bmwidth, int bmheight,
-    int btwidth, int btheight
-)
-    :
-    _hinstance(hInstance)
+    int btwidth, int btheight)
+    : _hinstance(hInstance)
 {
     _hparent = hWnd;
 
     _toolbar = CreateToolbarEx(
-        hWnd,                  // parent
-        WS_CHILD | WS_BORDER | WS_VISIBLE |
-        TBSTYLE_TOOLTIPS | CCS_ADJUSTABLE | TBSTYLE_FLAT,
-        idi_toolbar,           // toolbar id
-        n_of_bitmaps,          // number of bitmaps
-        hInstance,             // mod instance
-        res_id,                // resource ID for bitmap
+        hWnd, // parent
+        WS_CHILD | WS_BORDER | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_ADJUSTABLE | TBSTYLE_FLAT,
+        idi_toolbar, // toolbar id
+        n_of_bitmaps, // number of bitmaps
+        hInstance, // mod instance
+        res_id, // resource ID for bitmap
         0, 0,
-        btwidth, btheight,     // width & height of buttons
-        bmwidth, bmheight,     // width & height of bitmaps
-        sizeof(TBBUTTON));     // structure size
+        btwidth, btheight, // width & height of buttons
+        bmwidth, bmheight, // width & height of bitmaps
+        sizeof(TBBUTTON)); // structure size
 
     assert(_toolbar);
 
     SendMessage(
         _toolbar,
         TB_ADDBUTTONS,
-        (WPARAM)n_of_buttons,  // number of buttons
+        (WPARAM)n_of_buttons, // number of buttons
         (LPARAM)buttons);
 }
-
-
 
 
 void toolbar_t::on_resize()
 {
     SendMessage(_toolbar, TB_AUTOSIZE, 0L, 0L);
 }
-
-
 
 
 void toolbar_t::on_customize()
@@ -1217,20 +1112,17 @@ void toolbar_t::on_customize()
 }
 
 
-
-
 BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
 {
     static CHAR szBuf[128];
 
     LPTOOLTIPTEXT lpToolTipText;
 
-    switch (((LPNMHDR)lParam)->code)
-    {
+    switch (((LPNMHDR)lParam)->code) {
     case TTN_GETDISPINFO:
         // Display the ToolTip text.
         lpToolTipText = (LPTOOLTIPTEXT)lParam;
-        lpToolTipText->lpszText = /*szBuf*/ "TODO";
+        lpToolTipText->lpszText = const_cast<LPSTR>("TODO");
         break;
 
     case TBN_QUERYDELETE:
@@ -1265,8 +1157,6 @@ BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
 }
 
 
-
-
 void toolbar_t::enable(DWORD id)
 {
     SendMessage(_toolbar, TB_ENABLEBUTTON,
@@ -1274,15 +1164,11 @@ void toolbar_t::enable(DWORD id)
 }
 
 
-
-
 void toolbar_t::disable(DWORD id)
 {
     SendMessage(_toolbar, TB_ENABLEBUTTON,
         id, (LPARAM)MAKELONG(FALSE, 0));
 }
-
-
 
 
 bool toolbar_t::get_rect(RECT& rect)

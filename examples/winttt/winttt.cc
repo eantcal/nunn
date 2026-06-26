@@ -1621,7 +1621,7 @@ BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
     case TTN_GETDISPINFO:
         // Display the ToolTip text.
         lpToolTipText = (LPTOOLTIPTEXT)lParam;
-        lpToolTipText->lpszText = /*szBuf*/ "TODO";
+        lpToolTipText->lpszText = const_cast<LPSTR>("TODO");
         break;
 
     case TBN_QUERYDELETE:
