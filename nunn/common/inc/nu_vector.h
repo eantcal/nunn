@@ -34,25 +34,18 @@ template <typename T> std::stringstream& operator>>(std::stringstream& ss, std::
 template <typename T> std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) noexcept
 {
     os << "[ ";
-
-    for (auto i = v.cbegin(); i != v.cend(); ++i) {
-        os << *i << " ";
-    }
-
+    for (const auto& elem : v)
+        os << elem << " ";
     os << " ]";
-
     return os;
 }
 
 template <typename T>
 std::stringstream& operator<<(std::stringstream& ss, const std::vector<T>& v) noexcept
 {
-    ss << v.size() << std::endl;
-
-    for (auto i = v.cbegin(); i != v.cend(); ++i) {
-        ss << *i << std::endl;
-    }
-
+    ss << v.size() << '\n';
+    for (const auto& elem : v)
+        ss << elem << '\n';
     return ss;
 }
 
@@ -61,14 +54,13 @@ namespace nu {
 template <typename T> void toJson(std::ostream& os, const std::vector<T>& v) noexcept
 {
     os << "[";
-
-    for (auto it = v.cbegin(); it != v.cend(); ++it) {
-        os << *it;
-        if ((it + 1) != v.cend()) {
+    bool first = true;
+    for (const auto& elem : v) {
+        if (!first)
             os << ",";
-        }
+        os << elem;
+        first = false;
     }
-
     os << "]";
 }
 
@@ -137,10 +129,10 @@ public:
     Vector& operator=(Vector&& other) = default;
 
     //! Return size
-    size_t size() const noexcept { return _vectorData.size(); }
+    [[nodiscard]] size_t size() const noexcept { return _vectorData.size(); }
 
     //! Return whether the vector is empty
-    bool empty() const noexcept { return _vectorData.empty(); }
+    [[nodiscard]] bool empty() const noexcept { return _vectorData.empty(); }
 
     //! Change size
     void resize(const size_t& size, double v = 0.0) noexcept { _vectorData.resize(size, v); }
@@ -198,10 +190,10 @@ public:
     }
 
     //! Returns the sum of all vector items
-    double sum() const noexcept;
+    [[nodiscard]] double sum() const noexcept;
 
     //! Returns the sum of all vector items divided by size()
-    double mean() const noexcept { return empty() ? 0 : sum() / double(size()); }
+    [[nodiscard]] double mean() const noexcept { return empty() ? 0 : sum() / double(size()); }
 
     //! Relational operator ==
     bool operator==(const Vector& other) const noexcept
@@ -295,13 +287,13 @@ public:
     friend Vector operator-(const Vector& v1, const Vector& v2);
 
     //! Return the square euclidean norm of vector
-    double euclideanNorm2() const noexcept;
+    [[nodiscard]] double euclideanNorm2() const noexcept;
 
     //! Return the euclidean norm of vector
-    double euclidean_norm() const noexcept { return std::sqrt(euclideanNorm2()); }
+    [[nodiscard]] double euclidean_norm() const noexcept { return std::sqrt(euclideanNorm2()); }
 
     //! Return a const reference to standard vector
-    const std::vector<double>& to_stdvec() const noexcept { return _vectorData; }
+    [[nodiscard]] const std::vector<double>& to_stdvec() const noexcept { return _vectorData; }
 
     //! Return a reference to standard vector
     std::vector<double>& to_stdvec() noexcept { return _vectorData; }

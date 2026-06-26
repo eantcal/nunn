@@ -29,7 +29,7 @@ namespace act {
     constexpr double LEAKY_RELU_ALPHA = 0.01;
 
     //! Apply activation function forward pass.
-    inline double forward(Activation a, double x) noexcept
+    [[nodiscard]] inline double forward(Activation a, double x) noexcept
     {
         switch (a) {
         case Activation::Sigmoid:
@@ -48,7 +48,7 @@ namespace act {
 
     //! Derivative of the activation function with respect to its output y = f(x).
     //! For ReLU/LeakyReLU the sign of y unambiguously determines the derivative.
-    inline double backward(Activation a, double y) noexcept
+    [[nodiscard]] inline double backward(Activation a, double y) noexcept
     {
         switch (a) {
         case Activation::Sigmoid:
@@ -66,7 +66,7 @@ namespace act {
     }
 
     //! String representation (used for JSON serialization).
-    inline std::string_view name(Activation a) noexcept
+    [[nodiscard]] inline std::string_view name(Activation a) noexcept
     {
         switch (a) {
         case Activation::Sigmoid:
@@ -84,7 +84,7 @@ namespace act {
     }
 
     //! Parse activation from string (throws std::invalid_argument on unknown name).
-    inline Activation fromString(std::string_view s)
+    [[nodiscard]] inline Activation fromString(std::string_view s)
     {
         if (s == "sigmoid")
             return Activation::Sigmoid;

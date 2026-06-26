@@ -9,9 +9,11 @@
 #include "nu_mlpnn.h"
 #include "nu_random_gen.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <limits>
 #include <numeric>
+#include <ranges>
 
 #include <nlohmann/json.hpp>
 
@@ -189,22 +191,20 @@ void MlpNN::backPropagate(const FpVector& targetVector)
 
 void MlpNN::reshuffleWeights() noexcept
 {
-    auto weights_cnt = std::accumulate(
-        _neuronLayers.begin(), _neuronLayers.end(), 0.0, [](auto acc, const auto& nl) {
-            return acc
-                + std::transform_reduce(nl.begin(), nl.end(), 0.0, std::plus<>(),
-                    [](const auto& n) { return static_cast<double>(n.weights.size()); });
-        });
-
-    weights_cnt = std::sqrt(weights_cnt);
+    // Count total weights across all layers with nested transform_reduce (C++17/20).
+    const double weights_cnt = std::sqrt(std::transform_reduce(
+        _neuronLayers.begin(), _neuronLayers.end(), 0.0, std::plus<>(), [](const auto& nl) {
+            return std::transform_reduce(nl.begin(), nl.end(), 0.0, std::plus<>(),
+                [](const auto& n) { return static_cast<double>(n.weights.size()); });
+        }));
 
     RandomGenerator<> rndgen;
 
     for (auto& nl : _neuronLayers) {
         for (auto& neuron : nl) {
-            std::transform(neuron.weights.begin(), neuron.weights.end(), neuron.weights.begin(),
-                [&](auto&) { return (-1.0 + 2.0 * rndgen()) / weights_cnt; });
-            std::fill(neuron.deltaW.begin(), neuron.deltaW.end(), 0.0);
+            std::ranges::generate(
+                neuron.weights, [&] { return (-1.0 + 2.0 * rndgen()) / weights_cnt; });
+            std::ranges::fill(neuron.deltaW, 0.0);
             neuron.deltaB = 0.0;
             neuron.bias = rndgen();
         }

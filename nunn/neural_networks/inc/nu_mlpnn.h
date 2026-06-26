@@ -122,31 +122,31 @@ public:
 
     // ── Getters / setters ────────────────────────────────────────────────────
 
-    size_t getInputSize() const noexcept;
-    size_t getOutputSize() const noexcept;
+    [[nodiscard]] size_t getInputSize() const noexcept;
+    [[nodiscard]] size_t getOutputSize() const noexcept;
 
-    const Topology& getTopology() const noexcept { return _topology; }
+    [[nodiscard]] const Topology& getTopology() const noexcept { return _topology; }
 
     //! Activation function for neuron layer i (0 = first hidden, last = output).
-    Activation getLayerActivation(size_t i) const { return _layerActivations.at(i); }
+    [[nodiscard]] Activation getLayerActivation(size_t i) const { return _layerActivations.at(i); }
 
     //! All per-layer activations (size == number of neuron layers).
-    const std::vector<Activation>& getLayerActivations() const noexcept
+    [[nodiscard]] const std::vector<Activation>& getLayerActivations() const noexcept
     {
         return _layerActivations;
     }
 
-    double getLearningRate() const noexcept { return _learningRate; }
+    [[nodiscard]] double getLearningRate() const noexcept { return _learningRate; }
     void setLearningRate(double r) noexcept { _learningRate = r; }
 
-    double getMomentum() const noexcept { return _momentum; }
+    [[nodiscard]] double getMomentum() const noexcept { return _momentum; }
     void setMomentum(double m) noexcept { _momentum = m; }
 
-    CostFunction getCostFunction() const noexcept { return _costFunction; }
+    [[nodiscard]] CostFunction getCostFunction() const noexcept { return _costFunction; }
     void setCostFunction(CostFunction cf) noexcept { _costFunction = cf; }
 
     void setInputVector(const FpVector& inputs);
-    const FpVector& getInputVector() const noexcept { return _inputVector; }
+    [[nodiscard]] const FpVector& getInputVector() const noexcept { return _inputVector; }
 
     void copyOutputVector(FpVector& outputs) noexcept;
 
@@ -168,8 +168,8 @@ public:
 
     // ── Loss helpers ──────────────────────────────────────────────────────────
 
-    double calcMSE(const FpVector& targetVector);
-    double calcCrossEntropy(const FpVector& targetVector);
+    [[nodiscard]] double calcMSE(const FpVector& targetVector);
+    [[nodiscard]] double calcCrossEntropy(const FpVector& targetVector);
 
     // ── Stream operators ──────────────────────────────────────────────────────
 
