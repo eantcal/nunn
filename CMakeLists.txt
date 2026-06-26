@@ -70,6 +70,13 @@ install(TARGETS
     COMPONENT runtime
 )
 
+if(WIN32)
+    install(TARGETS ocr_test winttt
+        RUNTIME DESTINATION bin
+        COMPONENT runtime
+    )
+endif()
+
 # mnist helper DLL (runtime) / import lib (devel)
 install(TARGETS mnist
     RUNTIME DESTINATION bin   # .dll on Windows

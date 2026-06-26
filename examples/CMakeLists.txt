@@ -10,3 +10,8 @@ add_subdirectory(path_finder)
 add_subdirectory(tictactoe)
 add_subdirectory(xor_test)
 add_subdirectory(titanic)
+
+if(WIN32)
+    add_subdirectory(ocr_test)
+    add_subdirectory(winttt)
+endif()
