@@ -16,5 +16,10 @@ dist/
 /build-linux
 /nunn/Debug
 
+# CMake generated files at repo root (in-source configure artefacts)
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
 # Local planning notes — not for the repo
 piano_gpu.md

@@ -3,28 +3,44 @@ Author - Antonino Calderone - <acaldmail@gmail.com> - (c) 2015, 2016
 
 Please send nunn bug reports to <acaldmail@gmail.com>.
 
-Jun 25, 2026
+Jun 27, 2026
 * Released nunn library 2.1
-- Add a GoogleTest unit-test suite (fetched via CMake FetchContent, registered
-  with CTest) covering Vector, cost functions, Perceptron, MlpNN, QMatrix, the
-  policies and the QLearn/SARSA learners
-- Fix Vector(const double*, size_t): it copied v_len bytes instead of v_len
-  doubles, dropping most of the data
-- Fix SoftmaxPolicy: avoid dereferencing the end iterator on rounding, guard
-  against a zero/negative temperature, and honour the RndGen template parameter
-- Fix EGreedyPolicy: clamp the random action index so it can never run past the
-  end of the valid-action list
-- Fix Sarsa::learn(): the move counter was incremented twice per step
-- Fix NNTrainer::runTraining(): the sample index is now advanced even without a
-  progress callback, so partial-set training (p2use < 1.0) stops correctly
-- Fix QLearn::updateQ(): guard against states with no valid actions
-- Make MlpNN/Perceptron save() lossless by writing doubles at full precision
-- Minor cleanups: remove unused Policy members, const-correct trainer iterator
-  comparisons, default/movable QMatrix special members
-- Examples build fixes: titanic now includes <numeric>; the mnist helper library
-  exports its symbols on Windows
-- Note: the EGreedy/Softmax zero-Q exploration heuristic and the hidden-layer
-  bias term in backprop are intentionally left unchanged and deferred to 3.0
+
+Core:
+- CostFunction enum moved to nu_costfuncs.h (shared between MlpNN and MlpMatrixNN)
+- CrossEntropy+Sigmoid constraint enforced at construction time in both MlpNN and
+  MlpMatrixNN via InvalidCostFunctionCombinationException
+- CE+Sigmoid gradient: delta = t - a (sigmoid derivative cancels, correct formula)
+
+New: MlpMatrixNN — Eigen 3.4.0 backed matrix MLP
+- Weights stored as Eigen::MatrixXd [out x in] per layer
+- Forward pass via GEMV (single sample) and GEMM (mini-batch via trainBatch)
+- Same per-layer activation and CE+Sigmoid constraint as MlpNN
+- 128 unit tests covering API, XOR convergence, and mini-batch SGD
+
+New: mnist_test --matrix / --batch flags
+- --matrix / -M selects MlpMatrixNN instead of MlpNN
+- --batch N / -b N enables mini-batch SGD (default 1 = online SGD)
+- Epoch time (ms) and throughput (samples/s) reported each epoch
+
+Build:
+- Eigen 3.4.0 fetched via CMake FetchContent (header-only, no extra install)
+- mnist helper library changed from SHARED to STATIC (no runtime DLL needed)
+- GoogleTest fetched via FetchContent; 128 tests registered with CTest
+
+Scripts (scripts/mnist/):
+- All training scripts default to --matrix --batch 32 (MlpMatrixNN)
+- -NoMatrix switch restores classic MlpNN path
+- run_all.ps1 shows Backend and Throughput columns in results table
+
+Bug fixes (backported from ongoing work):
+- Vector(const double*, size_t): fixed byte-count vs element-count copy
+- SoftmaxPolicy: fixed end-iterator dereference and zero/negative temperature
+- EGreedyPolicy: clamped random action index to valid range
+- Sarsa::learn(): move counter was incremented twice per step
+- NNTrainer::runTraining(): sample index now advances without progress callback
+- QLearn::updateQ(): guard against states with no valid actions
+- MlpNN/Perceptron save(): doubles written at full precision
 
 Mar 22, 2019
 - Change license to MIT
