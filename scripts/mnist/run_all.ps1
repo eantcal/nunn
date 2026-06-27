@@ -126,7 +126,7 @@ foreach ($cfg in $configs) {
 # ---------------------------------------------------------------------------
 Write-Host ""
 Write-Host ("=" * 75) -ForegroundColor Cyan
-Write-Host "  MNIST Training Results  —  $backend" -ForegroundColor Yellow
+Write-Host "  MNIST Training Results  --  $backend" -ForegroundColor Yellow
 Write-Host ("=" * 75) -ForegroundColor Cyan
 $results | Sort-Object "BER (%)" | Format-Table -AutoSize
 Write-Host "Logs saved to: $ModelsDir" -ForegroundColor DarkGray
