@@ -6,17 +6,21 @@
 #   .\run_all.ps1 -BatchSize 64        # override batch size
 #   .\run_all.ps1 -Quick               # skip deep-network configs
 #   .\run_all.ps1 -Epochs 5            # override epoch count for all runs
+#   .\run_all.ps1 -OpenCL              # use ArrayFire/OpenCL GPU backend
 #
 param(
     [switch] $Quick,
     [switch] $NoMatrix,
+    [switch] $OpenCL,
     [int]    $Epochs    = 0,   # 0 = use each config's default
     [int]    $BatchSize = 32
 )
 
 . "$PSScriptRoot\_common.ps1"
 
-$backend = if ($NoMatrix) { "MlpNN" } else { "MlpMatrixNN batch=$BatchSize" }
+$backend = if ($OpenCL)    { "MlpMatrixNN/OpenCL batch=$BatchSize" }
+           elseif ($NoMatrix) { "MlpNN" }
+           else            { "MlpMatrixNN batch=$BatchSize" }
 
 # ---------------------------------------------------------------------------
 # Config table
@@ -77,14 +81,16 @@ foreach ($cfg in $configs) {
     $epochCount = if ($Epochs -gt 0) { $Epochs } else { $cfg.E }
     $costTag    = if ($cfg.CE) { 'ce' } else { 'mse' }
     $hlTag      = $cfg.HL -join '-'
-    $backendTag = if ($NoMatrix) { 'mlpnn' } else { "mat_b$BatchSize" }
+    $backendTag = if ($OpenCL) { "ocl_b$BatchSize" } elseif ($NoMatrix) { 'mlpnn' } else { "mat_b$BatchSize" }
     $logFile    = "$ModelsDir\$($cfg.Act)_${costTag}_hl${hlTag}_${backendTag}.log"
 
     $argList = @("-p", $DataPath, "-a", $cfg.Act, "-r", $cfg.LR, "-m", $cfg.M, "-e", $epochCount)
     foreach ($hl in $cfg.HL) { $argList += @("-hl", "$hl") }
     if ($cfg.CE) { $argList += "-c" }
 
-    if ($NoMatrix) {
+    if ($OpenCL) {
+        $argList += @("-g", "-b", "$BatchSize")
+    } elseif ($NoMatrix) {
         # Save model only available for MlpNN
         $modelFile = "$ModelsDir\$($cfg.Act)_${costTag}_hl${hlTag}.json"
         $argList  += @("-s", $modelFile)

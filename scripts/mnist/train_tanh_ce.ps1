@@ -5,15 +5,21 @@
 # Flags:
 #   -NoMatrix        Use MlpNN instead of MlpMatrixNN (Eigen)
 #   -BatchSize <N>   Mini-batch size when using MlpMatrixNN (default 32)
+#   -OpenCL          Use ArrayFire/OpenCL GPU backend (implies MlpMatrixNN)
 param(
     [switch] $NoMatrix,
-    [int]    $BatchSize = 32
+    [int]    $BatchSize = 32,
+    [switch] $OpenCL
 )
 . "$PSScriptRoot\_common.ps1"
 
-$matrixArgs = if (-not $NoMatrix) { @("-M", "-b", "$BatchSize") } else { @() }
-$saveArgs   = if ($NoMatrix)      { @("-s", "$ModelsDir\tanh_ce.json") } else { @() }
-$backend    = if ($NoMatrix)      { "MlpNN" } else { "MlpMatrixNN batch=$BatchSize" }
+$matrixArgs = if ($OpenCL)            { @("-g", "-b", "$BatchSize") }
+              elseif (-not $NoMatrix) { @("-M", "-b", "$BatchSize") }
+              else                    { @() }
+$saveArgs   = if ($NoMatrix -and -not $OpenCL) { @("-s", "$ModelsDir\tanh_ce.json") } else { @() }
+$backend    = if ($OpenCL)     { "MlpMatrixNN/OpenCL batch=$BatchSize" }
+              elseif ($NoMatrix){ "MlpNN" }
+              else              { "MlpMatrixNN batch=$BatchSize" }
 
 Run-Training `
     -Label   "Tanh + CrossEntropy  |  LR=0.05  M=0.9  HL=512  epochs=30  [$backend]" `

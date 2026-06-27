@@ -23,6 +23,15 @@ target_link_libraries(nunn PRIVATE nlohmann_json::nlohmann_json)
 # can find <Eigen/Core> without an extra target_link_libraries call.
 target_link_libraries(nunn PUBLIC Eigen3::Eigen)
 
+# ArrayFire — optional GPU/OpenCL backend for MlpMatrixNN
+if(ArrayFire_OpenCL_FOUND)
+    target_link_libraries(nunn PUBLIC ArrayFire::afopencl)
+    target_compile_definitions(nunn PUBLIC NUNN_HAS_ARRAYFIRE)
+elseif(ArrayFire_FOUND)
+    target_link_libraries(nunn PUBLIC ArrayFire::af)
+    target_compile_definitions(nunn PUBLIC NUNN_HAS_ARRAYFIRE)
+endif()
+
 # Set target properties
 set_target_properties(nunn PROPERTIES 
     CXX_STANDARD 20

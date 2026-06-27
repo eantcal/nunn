@@ -20,6 +20,14 @@
 #include <stdexcept>
 #include <vector>
 
+#ifdef NUNN_HAS_ARRAYFIRE
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <arrayfire.h>
+#include <optional>
+#endif
+
 namespace nu {
 
 class MlpMatrixNN {
@@ -42,6 +50,13 @@ public:
         }
     };
 
+    // ── Compute backend ────────────────────────────────────────────────────────
+
+    enum class ComputeBackend {
+        Eigen, // CPU path via Eigen (default)
+        OpenCL, // GPU path via ArrayFire/OpenCL (requires NUNN_HAS_ARRAYFIRE)
+    };
+
     // ── Exceptions ────────────────────────────────────────────────────────────
 
     class InvalidCostFunctionCombinationException : public std::runtime_error {
@@ -59,8 +74,11 @@ public:
     // layers[1..N] are the neuron layers.
     // Throws InvalidCostFunctionCombinationException if CrossEntropy is
     // paired with a non-Sigmoid output activation.
+    // Throws std::runtime_error if backend == OpenCL but NUNN_HAS_ARRAYFIRE is
+    // not defined at compile time.
     explicit MlpMatrixNN(const std::vector<LayerConfig>& layers, double learningRate = 0.1,
-        double momentum = 0.0, CostFunction cf = CostFunction::MSE);
+        double momentum = 0.0, CostFunction cf = CostFunction::MSE,
+        ComputeBackend backend = ComputeBackend::Eigen);
 
     // ── Forward / backward — single sample ───────────────────────────────────
 
@@ -92,6 +110,7 @@ public:
     [[nodiscard]] double getLearningRate() const noexcept { return _lr; }
     [[nodiscard]] double getMomentum() const noexcept { return _momentum; }
     [[nodiscard]] CostFunction getCostFunction() const noexcept { return _cf; }
+    [[nodiscard]] ComputeBackend getBackend() const noexcept { return _backend; }
 
     void reshuffleWeights();
 
@@ -99,11 +118,22 @@ private:
     struct Layer {
         Eigen::MatrixXd W; // [out_size × in_size]  weight matrix
         Eigen::VectorXd b; // [out_size]             bias vector
-        Eigen::VectorXd a; // [out_size]             activation output (from feedForward)
-        Eigen::VectorXd delta; // [out_size]             error signal (from backPropagate)
+        Eigen::VectorXd a; // [out_size]             activation output (host mirror)
+        Eigen::VectorXd delta; // [out_size]             error signal (Eigen path)
         Eigen::MatrixXd dW; // [out_size × in_size]   momentum accumulator for W
         Eigen::VectorXd db; // [out_size]             momentum accumulator for b
         Activation act;
+
+#ifdef NUNN_HAS_ARRAYFIRE
+        // std::optional avoids default-constructing af::array (which would
+        // call af_create_handle and require a backend even on the Eigen path).
+        std::optional<af::array> W_af;
+        std::optional<af::array> b_af;
+        std::optional<af::array> a_af;
+        std::optional<af::array> delta_af;
+        std::optional<af::array> dW_af;
+        std::optional<af::array> db_af;
+#endif
     };
 
     std::vector<Layer> _layers;
@@ -112,6 +142,7 @@ private:
     double _lr = 0.1;
     double _momentum = 0.0;
     CostFunction _cf = CostFunction::MSE;
+    ComputeBackend _backend = ComputeBackend::Eigen;
 
     static void _validateCostFunction(CostFunction cf, Activation outAct)
     {
