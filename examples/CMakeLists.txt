@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.12)
 project(nunnlib)
 
 add_subdirectory(and_test)
+add_subdirectory(rnn_sine)
+add_subdirectory(rnn_char)
 add_subdirectory(counter_test)
 add_subdirectory(hopfield_test)
 add_subdirectory(maze)

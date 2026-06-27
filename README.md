@@ -10,11 +10,16 @@ The project aims to provide a compact, understandable, and practical framework f
 
 ## Features
 
-- Support for fully connected multilayer neural networks and additional machine learning algorithms
-- Simple and easy-to-understand design
+- Fully connected multilayer neural networks (`MlpNN`, `MlpMatrixNN` with Eigen backend and optional ArrayFire/OpenCL GPU path)
+- Recurrent neural networks: **VanillaRnn** (Elman) and **LSTM**, both with truncated BPTT
+- Single-neuron **Perceptron** with MSE and cross-entropy cost functions and momentum
+- **Hopfield** associative memory network
+- **Q-learning** and **SARSA** reinforcement learning
+- Simple and easy-to-understand design — the whole library is readable C++20
 - Save and load complete model states
-- Cross-platform
-- Includes demos and sample applications
+- Cross-platform (Windows, Linux, macOS)
+- Comprehensive GoogleTest unit-test suite (159 tests)
+- Demos and sample applications for every major component
 
 ## Building and testing
 
@@ -268,6 +273,74 @@ Hopfield networks are recurrent neural networks that can recall a previously lea
 `nunn_topo` exports neural network topologies to **Graphviz DOT** format.
 
 This makes it possible to visualize network structures using the Graphviz `dot` tool, which can generate diagrams in formats such as **GIF**, **PNG**, **SVG**, and **PostScript**.
+
+## Recurrent neural networks
+
+Nunn provides two recurrent architectures that share the same public interface, making them interchangeable with a single flag.
+
+### VanillaRnn (`nu_rnn.h`)
+
+Elman-style single-layer RNN trained with truncated Backpropagation Through Time (BPTT):
+
+```
+h_t = tanh(Wx·x_t + Wh·h_{t-1} + b_h)
+y_t = f_out(Wy·h_t + b_y)          f_out ∈ {Linear, Softmax}
+```
+
+```cpp
+#include "nu_rnn.h"
+
+nu::VanillaRnn rnn(
+    /*inputSize*/  1,
+    /*hiddenSize*/ 32,
+    /*outputSize*/ 1,
+    /*lr*/         0.005,
+    /*gradClip*/   5.0,
+    /*outMode*/    nu::RnnOutput::Linear   // or Softmax
+);
+
+rnn.resetState();
+double loss = rnn.bptt(inputs, targets, /*truncate*/ 25);
+
+rnn.step({0.5});
+double y = rnn.getOutput()[0];
+```
+
+### LSTM (`nu_lstm.h`)
+
+Long Short-Term Memory with 4-gate stacked weights for efficient computation.  
+Forget-gate bias is initialised to 1 to encourage memory retention at the start of training.
+
+```
+i_t = σ(Wi·x_t + Ui·h_{t-1} + b_i)   input  gate
+f_t = σ(Wf·x_t + Uf·h_{t-1} + b_f)   forget gate  (b_f init = 1)
+o_t = σ(Wo·x_t + Uo·h_{t-1} + b_o)   output gate
+g_t = tanh(Wg·x_t + Ug·h_{t-1} + b_g) cell candidate
+c_t = f_t ⊙ c_{t-1} + i_t ⊙ g_t
+h_t = o_t ⊙ tanh(c_t)
+```
+
+The `Lstm` class has the same API as `VanillaRnn` (`resetState`, `step`, `bptt`, `reshuffleWeights`).
+
+### Sine-wave prediction demo (`rnn_sine`)
+
+Trains the network to predict the next sample of a sine wave and then runs autoregressively.
+
+```sh
+rnn_sine              # VanillaRnn, 1500 epochs, hidden=32
+rnn_sine --lstm       # LSTM
+rnn_sine --lstm 2000 64 0.003   # epochs / hidden / lr
+```
+
+### Character-level language model demo (`rnn_char`)
+
+Trains on a short embedded English corpus (~28-character vocabulary) and generates text with temperature-controlled sampling.
+
+```sh
+rnn_char              # VanillaRnn, 800 epochs
+rnn_char --lstm       # LSTM
+rnn_char --lstm 1200 128 80 0.6   # epochs / hidden / gen_length / temperature
+```
 
 ## Reinforcement learning
 

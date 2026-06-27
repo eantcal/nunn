@@ -4,6 +4,43 @@ Author - Antonino Calderone - <acaldmail@gmail.com> - (c) 2015, 2016
 Please send nunn bug reports to <acaldmail@gmail.com>.
 
 Jun 27, 2026
+* Added VanillaRnn and LSTM recurrent neural networks
+
+New: VanillaRnn (nu_rnn.h) — Elman-style RNN with truncated BPTT
+- Architecture: h_t = tanh(Wx·x_t + Wh·h_{t-1} + b_h), y_t = f_out(Wy·h_t + b_y)
+- Linear output (MSE) and Softmax output (cross-entropy) modes
+- Truncated BPTT with per-element gradient clipping
+- Xavier normal weight initialisation; resetState() / step() / bptt() / reshuffleWeights()
+- 14 unit tests covering construction, step, BPTT, convergence (identity, echo, binary sequence)
+
+New: Lstm (nu_lstm.h) — LSTM with truncated BPTT
+- 4-gate architecture (input, forget, output, cell candidate)
+- Gate weights stacked [i;f;o;g] for a single GEMV per step
+- Forget-gate bias initialised to 1 (standard trick to aid early gradient flow)
+- Same public API as VanillaRnn; drop-in swap via --lstm flag in examples
+- 14 unit tests (same coverage as VanillaRnn tests)
+
+New examples:
+- rnn_sine: predict sin(t+1) from sin(t); teacher-forcing training then autoregressive
+  inference; supports --lstm, positional args for epochs/hidden/lr
+- rnn_char: character-level language model on embedded English corpus (~28-char vocab);
+  temperature-scaled sampling for text generation; supports --lstm
+
+Scripts:
+- scripts/mnist/ reorganised into powershell/ and bash/ subdirectories
+- Bash equivalents added for all 7 training configs and run_all
+
+Bug fixes (committed separately):
+- Perceptron backPropagate(): MSE gradient now includes sigmoid derivative
+  delta = (t-y)*y*(1-y); CE gradient unchanged (delta = t-y)
+- Perceptron: momentum support added (matches MlpMatrixNN pattern)
+- Perceptron: save/load/JSON round-trip preserves momentum and cost function
+- NNTrainer::runTraining(): early stopping now checks epoch-average cost
+  (textbook convention) instead of stopping on any single-sample threshold
+- NNTrainer::end(): fixed iterator off-by-one (_epochs+1 corrected to _epochs)
+- run_all.ps1: replaced UTF-8 em-dash with ASCII -- to fix PS 5.1 parse error
+
+Jun 27, 2026
 * Released nunn library 2.1
 
 Core:
