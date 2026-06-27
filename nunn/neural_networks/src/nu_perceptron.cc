@@ -11,9 +11,12 @@
 
 namespace nu {
 
-Perceptron::Perceptron(size_t inputSize, double learningRate, StepFunction step_f)
+Perceptron::Perceptron(
+    size_t inputSize, double learningRate, StepFunction step_f, CostFunction cf, double momentum)
     : _step_f(step_f)
+    , _costFunction(cf)
     , _learningRate(learningRate)
+    , _momentum(momentum)
 {
     if (inputSize < 1) {
         throw SizeMismatchException();
@@ -48,13 +51,23 @@ void Perceptron::backPropagate(const double& target, double& output) noexcept
     feedForward();
     output = getOutput();
 
-    double error = target - output;
-    double e = _learningRate * error;
+    // MSE + Sigmoid: δ = (t − y) · σ'(y) = (t − y) · y · (1 − y)
+    // CE  + Sigmoid: δ = (t − y)   [σ' cancels with CE gradient, same simplification as MlpNN]
+    const double diff = target - output;
+    const double delta
+        = (_costFunction == CostFunction::CrossEntropy) ? diff : diff * output * (1.0 - output);
 
-    std::transform(_inputVector.begin(), _inputVector.end(), _neuron.weights.begin(),
-        _neuron.weights.begin(), [&](double input, double weight) { return weight + e * input; });
+    const double lr_delta = _learningRate * delta;
 
-    _neuron.bias += e;
+    // Weight update with momentum:  dw = lr·δ·x + momentum·dw_prev
+    for (size_t i = 0; i < _neuron.weights.size(); ++i) {
+        _neuron.deltaW[i] = lr_delta * _inputVector[i] + _momentum * _neuron.deltaW[i];
+        _neuron.weights[i] += _neuron.deltaW[i];
+    }
+
+    // Bias update with momentum
+    _neuron.deltaB = lr_delta + _momentum * _neuron.deltaB;
+    _neuron.bias += _neuron.deltaB;
 }
 
 void Perceptron::backPropagate(const double& target) noexcept
@@ -92,6 +105,20 @@ std::stringstream& Perceptron::load(std::stringstream& ss)
 
     ss >> _neuron;
 
+    // Optional fields added in v2 (backward-compatible: absent = use defaults)
+    _momentum = 0.0;
+    _costFunction = CostFunction::MSE;
+    std::string key;
+    while (ss >> key) {
+        if (key == "momentum") {
+            ss >> _momentum;
+        } else if (key == "costFunction") {
+            std::string v;
+            ss >> v;
+            _costFunction = (v == "CrossEntropy") ? CostFunction::CrossEntropy : CostFunction::MSE;
+        }
+    }
+
     return ss;
 }
 
@@ -111,6 +138,10 @@ std::stringstream& Perceptron::save(std::stringstream& ss) noexcept
 
     ss << Perceptron::ID_NEURON << std::endl;
     ss << _neuron << std::endl;
+
+    ss << "momentum " << _momentum << std::endl;
+    ss << "costFunction " << (_costFunction == CostFunction::CrossEntropy ? "CrossEntropy" : "MSE")
+       << std::endl;
 
     return ss;
 }
@@ -136,8 +167,10 @@ std::ostream& Perceptron::toJson(std::ostream& os) noexcept
 
     json j;
     j["type"] = std::string(ID_ANN);
-    j["version"] = 1;
+    j["version"] = 2;
     j["learningRate"] = _learningRate;
+    j["momentum"] = _momentum;
+    j["costFunction"] = (_costFunction == CostFunction::CrossEntropy) ? "CrossEntropy" : "MSE";
     j["inputs"] = _inputVector.to_stdvec();
     j["neuron"] = {
         { "bias", _neuron.bias },
@@ -160,6 +193,9 @@ std::istream& Perceptron::loadJson(std::istream& is)
     }
 
     _learningRate = j.at("learningRate").get<double>();
+    _momentum = j.value("momentum", 0.0);
+    const std::string cf = j.value("costFunction", "MSE");
+    _costFunction = (cf == "CrossEntropy") ? CostFunction::CrossEntropy : CostFunction::MSE;
     _inputVector = FpVector(j.at("inputs").get<std::vector<double>>());
 
     const auto& jn = j.at("neuron");

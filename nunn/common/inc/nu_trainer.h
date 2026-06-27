@@ -107,8 +107,8 @@ public:
     //! Return an iterator to the first epoch
     iterator begin() noexcept { return iterator(*this, 0); }
 
-    //! Return an iterator to the last epoch
-    iterator end() noexcept { return iterator(*this, this->_epochs + 1); }
+    //! Return an iterator past the last epoch
+    iterator end() noexcept { return iterator(*this, this->_epochs); }
 
     //! Constructor
     //! @nn:      the network to train
@@ -146,16 +146,22 @@ public:
     }
 
 
-    //! Trains the net using a training set of samples
+    //! Trains the net using a training set of samples.
+    //!
+    //! Early stopping follows the textbook convention: after each complete epoch
+    //! the mean epoch cost is compared to minErr; training stops only when the
+    //! full epoch average falls below the threshold (not on any single sample).
     template <class TSet>
     size_t runTraining(const TSet& trainingSet, costFunction_t errCost,
         progressCallback_t progressCbk = nullptr, double p2use = 1.0)
     {
+        const size_t end_idx = size_t(double(trainingSet.size()) * p2use);
         size_t epoch = 0;
-        size_t end_idx = size_t(double(trainingSet.size()) * p2use);
 
-        for (bool bContinue = true; bContinue && epoch < _epochs; ++epoch) {
+        for (; epoch < _epochs; ++epoch) {
             size_t sampleIdx = 0;
+            double epochErrSum = 0.0;
+            bool bContinue = true;
 
             for (const auto& [input, target] : trainingSet) {
                 if (progressCbk) {
@@ -164,16 +170,28 @@ public:
 
                 // Advance the sample index regardless of whether a progress
                 // callback is supplied, otherwise the partial-set early stop
-                // below (p2use < 1.0) would never trigger.
+                // (p2use < 1.0) would never trigger without a callback.
                 ++sampleIdx;
 
-                if (train(input, target, errCost) == true) {
-                    return epoch;
-                }
+                _nn.setInputVector(input);
+                _nn.backPropagate(target);
+                _err = errCost(_nn, target);
+                epochErrSum += _err;
 
                 if (!bContinue || (p2use < 1.0 && sampleIdx >= end_idx)) {
-                    return epoch;
+                    break;
                 }
+            }
+
+            if (!bContinue)
+                break;
+
+            // Textbook convergence check: stop when the epoch-average cost
+            // drops below the threshold (minErr < 0 disables the check).
+            if (_minError >= 0.0 && sampleIdx > 0
+                && (epochErrSum / double(sampleIdx)) < _minError) {
+                ++epoch;
+                break;
             }
         }
 

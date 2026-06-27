@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "nu_costfuncs.h"
 #include "nu_neuron.h"
 #include "nu_stepf.h"
 #include "nu_trainer.h"
@@ -63,11 +64,15 @@ struct Perceptron {
 
     /**
      * @brief Constructs a perceptron with a specified input size.
-     * @param inputSize The size of the input vector.
-     * @param learningRate The learning rate of the perceptron.
-     * @param step_f The step function used for neuron activation.
+     * @param inputSize    The size of the input vector.
+     * @param learningRate The learning rate.
+     * @param step_f       Step function applied to sigmoid output for hard classification.
+     * @param cf           Cost function: MSE (includes σ' in gradient) or CrossEntropy
+     *                     (gradient simplifies to t−y, no σ' factor needed).
+     * @param momentum     Momentum coefficient for weight updates (0 = no momentum).
      */
-    Perceptron(size_t inputSize, double learningRate = 0.1, StepFunction step_f = StepFunction());
+    Perceptron(size_t inputSize, double learningRate = 0.1, StepFunction step_f = StepFunction(),
+        CostFunction cf = CostFunction::MSE, double momentum = 0.0);
 
     //! Constructs a perceptron from serialized data in a stream.
     Perceptron(std::stringstream& ss) { load(ss); }
@@ -88,6 +93,18 @@ struct Perceptron {
 
     //! Sets a new learning rate for the perceptron.
     void setLearningRate(double new_rate) { _learningRate = new_rate; }
+
+    //! Returns the cost function used during training.
+    CostFunction getCostFunction() const noexcept { return _costFunction; }
+
+    //! Sets the cost function used during training.
+    void setCostFunction(CostFunction cf) noexcept { _costFunction = cf; }
+
+    //! Returns the momentum coefficient.
+    double getMomentum() const noexcept { return _momentum; }
+
+    //! Sets the momentum coefficient.
+    void setMomentum(double m) noexcept { _momentum = m; }
 
     //! Sets the input vector for the perceptron.
     void setInputVector(const FpVector& inputs);
@@ -157,7 +174,9 @@ private:
     constexpr static std::string_view ID_INPUTS = "inputs";
 
     StepFunction _step_f;
+    CostFunction _costFunction{ CostFunction::MSE };
     double _learningRate{ 0.1 };
+    double _momentum{ 0.0 };
     FpVector _inputVector;
     Neuron _neuron;
 };
