@@ -3,7 +3,7 @@
 #
 # mnist is now a static library; no DLL path manipulation is needed.
 
-$RepoRoot   = Resolve-Path "$PSScriptRoot\..\.."
+$RepoRoot   = Resolve-Path "$PSScriptRoot\..\..\.."
 $ExeRelease = "$RepoRoot\build\examples\mnist_test\Release\mnist_test.exe"
 $ExeDebug   = "$RepoRoot\build\examples\mnist_test\Debug\mnist_test.exe"
 $DataPath   = "$RepoRoot\build\examples\mnist_test"
