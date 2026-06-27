@@ -1,5 +1,7 @@
 # Common paths and helpers sourced by every training script.
 # Usage: . "$PSScriptRoot\_common.ps1"
+#
+# mnist is now a static library; no DLL path manipulation is needed.
 
 $RepoRoot   = Resolve-Path "$PSScriptRoot\..\.."
 $ExeRelease = "$RepoRoot\build\examples\mnist_test\Release\mnist_test.exe"
@@ -7,14 +9,10 @@ $ExeDebug   = "$RepoRoot\build\examples\mnist_test\Debug\mnist_test.exe"
 $DataPath   = "$RepoRoot\build\examples\mnist_test"
 $ModelsDir  = "$RepoRoot\scripts\mnist\models"
 
-# Prefer Release for speed; fall back to Debug.
-# Add DLL directories to PATH so Windows can locate mnist.dll and nunn.dll.
 if (Test-Path $ExeRelease) {
     $Exe = $ExeRelease
-    $env:PATH = "$RepoRoot\build\mnist\Release;$RepoRoot\build\nunn\Release;$env:PATH"
 } elseif (Test-Path $ExeDebug) {
     $Exe = $ExeDebug
-    $env:PATH = "$RepoRoot\build\mnist\Debug;$RepoRoot\build\nunn\Debug;$env:PATH"
 } else {
     Write-Error "mnist_test.exe not found. Build the project first."
     exit 1
