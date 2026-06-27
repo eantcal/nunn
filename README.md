@@ -1,291 +1,216 @@
-# Nunn 2.1
+# Nunn
 
 | Platform | Status |
 |---|---|
 | Linux | [![Linux Build](https://travis-ci.org/eantcal/nunn.svg?branch=master)](https://travis-ci.org/eantcal/nunn) |
 
-**Nunn** is a free and open-source machine learning library written in **C++20** and distributed under the **MIT License**.
+**Nunn** is a free and open-source machine learning library written in **C++20**, distributed under the **MIT License**.
 
-The project aims to provide a compact, understandable, and practical framework for experimenting with neural networks and other machine learning algorithms in modern C++.
+The library aims to be compact, readable, and practical — a codebase you can actually study while experimenting with neural networks and other machine learning algorithms in modern C++.
+
+---
+
+## Table of contents
+
+1. [Features](#features)
+2. [Building and testing](#building-and-testing)
+3. [Feedforward networks](#feedforward-networks)
+   - [Perceptron](#perceptron-nu_perceptronh)
+   - [MlpNN — classic MLP](#mlpnn--classic-mlp-nu_mlpnnh)
+   - [MlpMatrixNN — Eigen-backed MLP](#mlpmatrixnn--eigen-backed-mlp-nu_mlpmatrixnnh)
+4. [Recurrent networks](#recurrent-networks)
+   - [VanillaRnn — Elman RNN](#vanillarnn--elman-rnn-nu_rnnh)
+   - [LSTM](#lstm-nu_lstmh)
+5. [Associative memory](#associative-memory)
+   - [Hopfield network](#hopfield-network)
+6. [Reinforcement learning](#reinforcement-learning)
+7. [Demos and tools](#demos-and-tools)
+
+---
 
 ## Features
 
-- Fully connected multilayer neural networks (`MlpNN`, `MlpMatrixNN` with Eigen backend and optional ArrayFire/OpenCL GPU path)
-- Recurrent neural networks: **VanillaRnn** (Elman) and **LSTM**, both with truncated BPTT
-- Single-neuron **Perceptron** with MSE and cross-entropy cost functions and momentum
-- **Hopfield** associative memory network
+- **Perceptron** — single neuron, MSE or cross-entropy loss, momentum
+- **MlpNN** — classic fully connected MLP with per-layer activations
+- **MlpMatrixNN** — Eigen 3.4 backed MLP with mini-batch SGD
+- **VanillaRnn** — Elman-style RNN with truncated BPTT
+- **LSTM** — Long Short-Term Memory with truncated BPTT
+- **Hopfield** — energy-based associative memory
 - **Q-learning** and **SARSA** reinforcement learning
-- Simple and easy-to-understand design — the whole library is readable C++20
-- Save and load complete model states
-- Cross-platform (Windows, Linux, macOS)
-- Comprehensive GoogleTest unit-test suite (159 tests)
-- Demos and sample applications for every major component
+- 159 GoogleTest unit tests; all network classes are fully tested
+- Cross-platform: Windows, Linux, macOS
+
+---
 
 ## Building and testing
 
-Nunn is built with **CMake** (3.14+) and a **C++20** compiler:
+Requires CMake 3.14+ and a C++20 compiler. All dependencies (Eigen 3.4, GoogleTest) are fetched automatically via FetchContent.
 
 ```sh
 cmake -S . -B build
 cmake --build build --config Release
-```
-
-The library ships with a **GoogleTest** unit-test suite (covering the math
-vector, cost functions, perceptron, MLP, Q-matrix, policies, the trainer and
-the Q-learning / SARSA learners). GoogleTest is fetched automatically at
-configure time; the tests are registered with CTest:
-
-```sh
 ctest --test-dir build -C Release
 ```
 
-Tests are built by default; pass `-DNUNN_BUILD_TESTS=OFF` to disable them.
+Pass `-DNUNN_BUILD_TESTS=OFF` to skip the test suite.
 
-## Project contents
+---
 
-The library package includes a collection of demos and tools that illustrate different machine learning techniques and use cases.
+## Feedforward networks
 
-## Included demos and tools
+### Perceptron (`nu_perceptron.h`)
 
-### MNIST test demo (`mnist_test`)
+The simplest trainable unit: a single neuron with a weighted sum, a bias, and a nonlinearity. It can only learn **linearly separable** functions (e.g. AND, OR) but serves as the foundation for understanding gradient descent.
 
-`mnist_test` demonstrates how to train and evaluate an MLP neural network on the **MNIST** handwritten digit dataset.
+**Learning rule** (online SGD):
 
-The MNIST dataset contains:
-
-- **60,000 training images**
-- **10,000 test images**
-
-Each image is a **28×28 grayscale** digit. When flattened, each sample becomes a **784-dimensional input vector**. The expected output is a **10-dimensional vector** representing the digit classes from **0 to 9**.
-
-The first 60,000 images are used for training, while the remaining 10,000 are used for evaluation. Since the test set comes from different writers than the training set, it provides a meaningful measure of generalization.
-
-More information about MNIST:  
-http://yann.lecun.com/exdb/mnist/
-
-### Handwritten digit OCR demo (`ocr_test`)
-
-`ocr_test` is an interactive OCR demo built on top of a neural network trained with `mnist_test`.
-
-The trained network is saved as a Nunn status file (`.net`) and then loaded by `ocr_test` for real-time handwritten digit recognition.
-
-[![Watch the video](https://youtu.be/ereeEG_1lmY)](https://youtu.be/ereeEG_1lmY)
-
-![ocr_test](examples/images/ocr.jpg)
-
-### TicTacToe demo (`tictactoe`)
-
-A basic Tic Tac Toe example powered by neural networks.
-
-### TicTacToe demo for Windows (`winttt`)
-
-`winttt` is an interactive Windows version of the Tic Tac Toe demo. It can either be trained dynamically or use pre-trained neural networks, including networks generated by `tictactoe`.
-
-![tictactoe](examples/images/tictactoe.jpg)
-
-### XOR problem sample (`xor_test`)
-
-The XOR function is a classic example of a **non-linearly separable** problem and has historically been used to demonstrate the value of multilayer neural networks.
-
-The XOR function takes two binary inputs and produces one binary output:
-
-```text
- x1 | x2 | y
-----+----+---
- 0  | 0  | 0
- 0  | 1  | 1
- 1  | 0  | 1
- 1  | 1  | 0
+```
+ŷ   = σ(w · x + b)
+δ   = (t − ŷ) · σ'(ŷ)      MSE loss
+δ   = t − ŷ                 cross-entropy + sigmoid (derivative cancels)
+w  += lr · δ · x + momentum · Δw_prev
+b  += lr · δ
 ```
 
-A linear model cannot solve this problem correctly, while an MLP can learn the required non-linear decision boundary.
+```cpp
+#include "nu_perceptron.h"
 
-#### Defining the network topology
+nu::Perceptron p(
+    2,                          // number of inputs
+    0.1,                        // learning rate
+    0.9,                        // momentum
+    nu::CostFunction::MSE
+);
 
-In Nunn, topology is defined as a vector of positive integers:
+p.setInputVector({1.0, 0.0});
+p.feedForward();
+p.backPropagate({1.0});         // target
+```
 
-- the **first** element is the input layer size
-- the **last** element is the output layer size
-- the elements in between represent hidden layers, ordered from input to output
+**Demo:** `and_test` — learns the AND function in a handful of epochs.
 
-The topology vector must contain at least three elements, and all values must be non-zero positive integers.
+---
 
-#### Step-by-step example
+### MlpNN — classic MLP (`nu_mlpnn.h`)
 
-**1. Include the required headers**
+A fully connected multilayer network trained with online SGD and backpropagation. Topology is expressed as a `vector<size_t>` where the first element is the input size, the last is the output size, and everything in between defines hidden layers.
+
+Supported per-layer activations: `Sigmoid`, `Tanh`, `ReLU`, `Linear`.  
+Cost functions: `MSE`, `CrossEntropy` (CE requires Sigmoid on the output layer).
 
 ```cpp
 #include "nu_mlpnn.h"
-#include <iostream>
-#include <map>
+
+nu::MlpNN nn(
+    {784, 300, 10},             // input → hidden → output
+    0.05,                       // learning rate
+    0.9,                        // momentum
+    nu::CostFunction::CrossEntropy
+);
+
+nn.setInputVector(sample);
+nn.feedForward();
+nn.backPropagate(target);
 ```
 
-**2. Define the topology**
+`MlpNNTrainer` wraps the epoch loop with an early-stopping criterion:
 
 ```cpp
-int main(int argc, char* argv[])
-{
-    using vect_t = nu::MlpNN::FpVector;
-
-    nu::MlpNN::Topology topology = {
-        2, // input layer
-        2, // hidden layer
-        1  // output layer
-    };
+nu::MlpNNTrainer trainer(nn, /*max_epochs*/ 30, /*min_err*/ 0.01);
+trainer.train<TrainingSet>(dataset, costCallback);
 ```
 
-**3. Construct the network**
+Model states can be saved and reloaded:
 
 ```cpp
-    try
-    {
-        nu::MlpNN nn{
-            topology,
-            0.4, // learning rate
-            0.9  // momentum
-        };
+nn.save("model.net");
+nn.load("model.net");
 ```
 
-**4. Create the training set**
+**Demo:** `xor_test` — the classic non-linearly separable problem.  
+**Demo:** `mnist_test` — MNIST digit recognition (784→300→10, ~98% accuracy).
 
-The training set is a collection of input/output pairs.
+#### XOR walkthrough
 
-```cpp
-        using training_set_t = std::map<std::vector<double>, std::vector<double>>;
+XOR cannot be solved by a linear model, but a two-layer MLP with a single hidden unit can learn the required non-linear boundary:
 
-        training_set_t training_set = {
-            {{0, 0}, {0}},
-            {{0, 1}, {1}},
-            {{1, 0}, {1}},
-            {{1, 1}, {0}}
-        };
+```
+x1 | x2 | y
+---+----+---
+ 0 |  0 | 0
+ 0 |  1 | 1
+ 1 |  0 | 1
+ 1 |  1 | 0
 ```
 
-**5. Train the network**
-
-The trainer iterates over the dataset until either:
-
-- the maximum number of epochs is reached, or
-- the error falls below the configured minimum
-
 ```cpp
-        nu::MlpNNTrainer trainer(
-            nn,
-            20000, // max epochs
-            0.01   // minimum error
-        );
+nu::MlpNN nn({2, 2, 1}, 0.4, 0.9);
 
-        std::cout
-            << "XOR training start (Max epochs count=" << trainer.get_epochs()
-            << ", Minimum error=" << trainer.get_min_err() << ")"
-            << std::endl;
-
-        trainer.train<training_set_t>(
-            training_set,
-            [](
-                nu::MlpNN& net,
-                const nu::MlpNN::FpVector_t& target) -> double
-            {
-                static size_t i = 0;
-                if (i++ % 200 == 0)
-                    std::cout << ">";
-                return net.calcMSE(target);
-            }
-        );
-```
-
-**6. Test the trained network**
-
-```cpp
-        auto step_f = [](double x) { return x < 0.5 ? 0 : 1; };
-
-        std::cout << std::endl << "XOR Test" << std::endl;
-
-        for (int a = 0; a < 2; ++a)
-        {
-            for (int b = 0; b < 2; ++b)
-            {
-                vect_t output_vec{0.0};
-                vect_t input_vec{double(a), double(b)};
-
-                nn.setInputVector(input_vec);
-                nn.feedForward();
-                nn.getOutputVector(output_vec);
-
-                std::cout << nn;
-                std::cout << "-------------------------------" << std::endl;
-
-                auto net_res = step_f(output_vec[0]);
-                std::cout << a << " xor " << b << " = " << net_res << std::endl;
-
-                auto xor_res = a ^ b;
-                if (xor_res != net_res)
-                {
-                    std::cerr
-                        << "ERROR!: xor(" << a << "," << b << ") != "
-                        << xor_res << std::endl;
-                    return 1;
-                }
-
-                std::cout << "-------------------------------" << std::endl;
-            }
-        }
-
-        std::cout << "Test completed successfully" << std::endl;
+nu::MlpNNTrainer trainer(nn, 20000, 0.01);
+trainer.train<TrainingSet>(
+    {{{0,0},{0}}, {{0,1},{1}}, {{1,0},{1}}, {{1,1},{0}}},
+    [](nu::MlpNN& net, const auto& target) {
+        return net.calcMSE(target);
     }
-    catch (...)
-    {
-        std::cerr << "Fatal error. Check configuration parameters and retry" << std::endl;
-        return 1;
-    }
-
-    return 0;
-}
+);
 ```
 
-#### Sample output
+---
 
-```text
-XOR training start (Max epochs count=20000, Minimum error=0.01)
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
+### MlpMatrixNN — Eigen-backed MLP (`nu_mlpmatrixnn.h`)
 
-XOR Test
-...
-Test completed successfully
+A drop-in, higher-performance alternative to `MlpNN`. Weights are stored as `Eigen::MatrixXd` tensors, enabling vectorised GEMV (single sample) and GEMM (mini-batch) operations via Eigen 3.4.
+
+The public interface mirrors `MlpNN`; the key addition is `trainBatch()`:
+
+```cpp
+#include "nu_mlpmatrixnn.h"
+
+nu::MlpMatrixNN nn(
+    {784, 300, 10},
+    0.05, 0.9,
+    nu::CostFunction::CrossEntropy
+);
+
+// Mini-batch SGD — batch is a vector of (input, target) pairs
+nn.trainBatch(batch);
 ```
 
-### Perceptron AND sample (`and_test`)
+`mnist_test` exposes both backends via flags:
 
-This sample shows how a single perceptron can solve the **AND** function, which is a classic example of a **linearly separable** problem.
+```sh
+mnist_test                           # classic MlpNN, online SGD
+mnist_test --matrix                  # MlpMatrixNN, online SGD
+mnist_test --matrix --batch 32       # MlpMatrixNN, mini-batch SGD
+```
 
-The AND function returns `1` only when both inputs are `1`.
+---
 
-### Hopfield test (`hopfield_test`)
+## Recurrent networks
 
-This example demonstrates how a **Hopfield network** can be used as an auto-associative memory system.
+Both recurrent classes (`VanillaRnn`, `Lstm`) share the same public interface and are interchangeable. They use **truncated BPTT** (backpropagation through time) with per-element gradient clipping, and support two output modes:
 
-Hopfield networks are recurrent neural networks that can recall a previously learned pattern from incomplete or noisy input. In this sample, a **100-pixel image** is recognized using a **100-neuron** neural network.
+| `RnnOutput` | Loss | Typical use |
+|---|---|---|
+| `Linear` | MSE | regression, sequence prediction |
+| `Softmax` | Cross-entropy | classification, language modelling |
 
-![hopfield test](examples/images/hopfield.jpg)
+---
 
-### Topology to Graphviz converter (`nunn_topo`)
+### VanillaRnn — Elman RNN (`nu_rnn.h`)
 
-`nunn_topo` exports neural network topologies to **Graphviz DOT** format.
-
-This makes it possible to visualize network structures using the Graphviz `dot` tool, which can generate diagrams in formats such as **GIF**, **PNG**, **SVG**, and **PostScript**.
-
-## Recurrent neural networks
-
-Nunn provides two recurrent architectures that share the same public interface, making them interchangeable with a single flag.
-
-### VanillaRnn (`nu_rnn.h`)
-
-Elman-style single-layer RNN trained with truncated Backpropagation Through Time (BPTT):
+The simplest recurrent architecture. At each time step the hidden state is updated from the current input and the previous hidden state, then passed through an output projection:
 
 ```
-h_t = tanh(Wx·x_t + Wh·h_{t-1} + b_h)
-y_t = f_out(Wy·h_t + b_y)          f_out ∈ {Linear, Softmax}
+h_t = tanh(Wx · x_t  +  Wh · h_{t-1}  +  b_h)
+y_t = f_out(Wy · h_t  +  b_y)
 ```
+
+`Wx` maps the input, `Wh` feeds the hidden state back into itself.  
+The hidden state carries information forward in time; training "unrolls" the computation graph for `truncate` steps at a time (truncated BPTT).
+
+**Strengths:** simple, fast, good for short dependencies.  
+**Weakness:** gradients vanish quickly over long sequences (the LSTM addresses this).
 
 ```cpp
 #include "nu_rnn.h"
@@ -296,62 +221,183 @@ nu::VanillaRnn rnn(
     /*outputSize*/ 1,
     /*lr*/         0.005,
     /*gradClip*/   5.0,
-    /*outMode*/    nu::RnnOutput::Linear   // or Softmax
+    /*outMode*/    nu::RnnOutput::Linear
 );
 
+// Training: feed a full sequence, get mean loss and update weights
 rnn.resetState();
 double loss = rnn.bptt(inputs, targets, /*truncate*/ 25);
 
-rnn.step({0.5});
+// Inference: one step at a time
+rnn.step({0.42});
 double y = rnn.getOutput()[0];
 ```
 
+Weight initialisation: Xavier normal for `Wx`, `Wh`, `Wy`; biases zero.  
+Gradient clipping is per-element: each gradient component is clamped to `[-gradClip, +gradClip]`.
+
+---
+
 ### LSTM (`nu_lstm.h`)
 
-Long Short-Term Memory with 4-gate stacked weights for efficient computation.  
-Forget-gate bias is initialised to 1 to encourage memory retention at the start of training.
+The Long Short-Term Memory adds a **cell state** `c_t` — a separate memory line that flows through time with only element-wise operations (no matrix multiply). Three sigmoid **gates** control what information enters, leaves, and is forgotten from the cell:
 
 ```
-i_t = σ(Wi·x_t + Ui·h_{t-1} + b_i)   input  gate
-f_t = σ(Wf·x_t + Uf·h_{t-1} + b_f)   forget gate  (b_f init = 1)
-o_t = σ(Wo·x_t + Uo·h_{t-1} + b_o)   output gate
-g_t = tanh(Wg·x_t + Ug·h_{t-1} + b_g) cell candidate
-c_t = f_t ⊙ c_{t-1} + i_t ⊙ g_t
-h_t = o_t ⊙ tanh(c_t)
+i_t = σ(Wi·x_t + Ui·h_{t-1} + b_i)      input gate  — what to write
+f_t = σ(Wf·x_t + Uf·h_{t-1} + b_f)      forget gate — what to erase  (b_f init = 1)
+o_t = σ(Wo·x_t + Uo·h_{t-1} + b_o)      output gate — what to expose
+g_t = tanh(Wg·x_t + Ug·h_{t-1} + b_g)  cell candidate
+
+c_t = f_t ⊙ c_{t-1}  +  i_t ⊙ g_t      update cell state
+h_t = o_t ⊙ tanh(c_t)                   hidden state exposed to output
+y_t = f_out(Wy · h_t + b_y)
 ```
 
-The `Lstm` class has the same API as `VanillaRnn` (`resetState`, `step`, `bptt`, `reshuffleWeights`).
+The forget gate bias is initialised to **1** so the network starts by remembering everything, which helps gradients flow at the beginning of training.
 
-### Sine-wave prediction demo (`rnn_sine`)
+**Implementation detail:** the four gate weight matrices are stacked vertically as `W [4·nh × ni]` and `U [4·nh × nh]`, allowing a single GEMV per step (`pre = W·x + U·h + b`) followed by a split into four blocks. This reduces kernel-launch overhead and keeps the hot path cache-friendly.
 
-Trains the network to predict the next sample of a sine wave and then runs autoregressively.
+```cpp
+#include "nu_lstm.h"
+
+nu::Lstm lstm(
+    /*inputSize*/  28,          // vocabulary size (one-hot)
+    /*hiddenSize*/ 64,
+    /*outputSize*/ 28,
+    /*lr*/         0.005,
+    /*gradClip*/   5.0,
+    /*outMode*/    nu::RnnOutput::Softmax
+);
+
+lstm.resetState();
+double loss = lstm.bptt(inputs, targets, /*truncate*/ 25);
+
+lstm.step(oneHot('a'));
+char next = sampleFromSoftmax(lstm.getOutput());
+```
+
+The `Lstm` API is identical to `VanillaRnn` — `resetState()`, `step()`, `bptt()`, `reshuffleWeights()`, `getOutput()`, `getHidden()` — so the two classes can be used interchangeably (e.g. via a template or the `--lstm` flag in the demos).
+
+---
+
+### Demo: sine-wave prediction (`rnn_sine`)
+
+Trains a recurrent network to predict the next sample of a sine wave given the current one. After training it runs **autoregressively**: each predicted value is fed back as the next input, testing whether the learned dynamics are self-sustaining.
 
 ```sh
-rnn_sine              # VanillaRnn, 1500 epochs, hidden=32
-rnn_sine --lstm       # LSTM
-rnn_sine --lstm 2000 64 0.003   # epochs / hidden / lr
+rnn_sine                         # VanillaRnn, 1500 epochs, hidden=32, lr=0.005
+rnn_sine --lstm                  # LSTM, same defaults
+rnn_sine --lstm 2000 64 0.003   # --lstm [epochs] [hidden] [lr]
 ```
 
-### Character-level language model demo (`rnn_char`)
+---
 
-Trains on a short embedded English corpus (~28-character vocabulary) and generates text with temperature-controlled sampling.
+### Demo: character-level language model (`rnn_char`)
+
+Trains a recurrent network to predict the next character given the current one, accumulating context in the hidden (and cell) state. After training it generates text autoregressively, sampling from the softmax output with a temperature parameter.
+
+The corpus is an embedded English pangram repeated several times (~28-character vocabulary); enough to observe the network learning basic character-level statistics within a few hundred epochs.
 
 ```sh
-rnn_char              # VanillaRnn, 800 epochs
-rnn_char --lstm       # LSTM
-rnn_char --lstm 1200 128 80 0.6   # epochs / hidden / gen_length / temperature
+rnn_char                              # VanillaRnn, 800 epochs, hidden=64
+rnn_char --lstm                       # LSTM
+rnn_char --lstm 1200 128 80 0.6      # --lstm [epochs] [hidden] [gen_len] [temperature]
 ```
+
+Lower temperature → more repetitive but coherent text.  
+Higher temperature → more varied but noisier output.
+
+---
+
+## Associative memory
+
+### Hopfield network
+
+A Hopfield network is an **energy-based** recurrent model that stores patterns as stable attractors of a dynamical system. Given a noisy or incomplete input, it converges to the nearest stored pattern by repeatedly applying an update rule until the energy stops decreasing.
+
+The network has `N` fully connected neurons with symmetric weights (no self-connections). Patterns are stored using the Hebb rule:
+
+```
+W_ij = (1/N) Σ_p  ξ_i^p · ξ_j^p        (i ≠ j)
+```
+
+Retrieval: start from a corrupted input and update neurons asynchronously until convergence.
+
+Storage capacity is approximately `0.138 · N` patterns before retrieval becomes unreliable.
+
+**Demo:** `hopfield_test` — stores and recalls a set of 100-pixel binary images.
+
+![hopfield test](examples/images/hopfield.jpg)
+
+---
 
 ## Reinforcement learning
 
-Nunn also includes reinforcement learning components, with implementations of:
+Nunn includes tabular implementations of two fundamental RL algorithms.
 
-- **Q-learning**
-- **SARSA** (State–Action–Reward–State–Action)
+### Q-learning
 
-Reinforcement learning focuses on training an agent to make decisions by interacting with an environment and maximizing cumulative reward over time.
+An **off-policy** temporal-difference method. The agent learns an action-value function `Q(s, a)` — the expected cumulative reward for taking action `a` in state `s` — by bootstrapping from the Bellman equation:
 
-These algorithms are useful for solving sequential decision-making problems and are demonstrated in the following examples:
+```
+Q(s, a) ← Q(s, a) + α · [r + γ · max_a' Q(s', a')  −  Q(s, a)]
+```
 
-- [Maze example](https://github.com/eantcal/nunn/blob/master/examples/maze/maze.cc)
-- [Path finder example](https://github.com/eantcal/nunn/blob/master/examples/path_finder/path_finder.cc)
+The policy is `ε`-greedy: with probability `ε` the agent explores randomly; otherwise it picks `argmax_a Q(s, a)`. Q-learning converges to the optimal policy regardless of which policy is used to collect data (off-policy).
+
+### SARSA
+
+An **on-policy** TD method. The update uses the action actually taken next (`a'`), not the greedy best:
+
+```
+Q(s, a) ← Q(s, a) + α · [r + γ · Q(s', a')  −  Q(s, a)]
+```
+
+SARSA is more conservative than Q-learning in stochastic environments because it accounts for the exploration policy during learning.
+
+**Demos:**
+- [Maze](https://github.com/eantcal/nunn/blob/master/examples/maze/maze.cc) — navigate from start to goal on a grid
+- [Path finder](https://github.com/eantcal/nunn/blob/master/examples/path_finder/path_finder.cc) — find shortest paths under obstacles
+
+---
+
+## Demos and tools
+
+| Demo | Model | Description |
+|------|-------|-------------|
+| `and_test` | Perceptron | AND function (linearly separable) |
+| `xor_test` | MlpNN | XOR function (non-linearly separable) |
+| `mnist_test` | MlpNN / MlpMatrixNN | MNIST digit recognition (784→300→10) |
+| `ocr_test` | MlpNN | Interactive handwritten digit recognition |
+| `rnn_sine` | VanillaRnn / LSTM | Sine-wave next-step prediction |
+| `rnn_char` | VanillaRnn / LSTM | Character-level language model |
+| `tictactoe` | MlpNN | Tic Tac Toe via neural network |
+| `winttt` | MlpNN | Interactive Windows Tic Tac Toe |
+| `hopfield_test` | Hopfield | Pattern recall from noisy input |
+| `maze` | Q-learning / SARSA | Grid-world navigation |
+| `path_finder` | Q-learning / SARSA | Shortest-path under obstacles |
+| `nunn_topo` | — | Export network topology to Graphviz DOT |
+
+### MNIST
+
+The MNIST dataset contains 60,000 training and 10,000 test images of handwritten digits (28×28 grayscale, flattened to 784 inputs). The `mnist_test` tool supports three backends:
+
+```sh
+mnist_test -p /path/to/mnist              # MlpNN, online SGD
+mnist_test -p /path/to/mnist --matrix     # MlpMatrixNN, online SGD
+mnist_test -p /path/to/mnist --matrix --batch 32   # MlpMatrixNN, mini-batch SGD
+```
+
+More information: http://yann.lecun.com/exdb/mnist/
+
+### OCR demo
+
+`ocr_test` loads a `.net` model produced by `mnist_test` and performs real-time handwritten digit recognition.
+
+[![Watch the video](https://youtu.be/ereeEG_1lmY)](https://youtu.be/ereeEG_1lmY)
+
+![ocr_test](examples/images/ocr.jpg)
+
+### Topology visualiser (`nunn_topo`)
+
+Exports a network topology to **Graphviz DOT** format, which `dot` can render as GIF, PNG, SVG, or PostScript.
