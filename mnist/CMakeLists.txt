@@ -14,7 +14,7 @@ include_directories(${nunn_SOURCE_DIR}/neural_networks/inc)
 file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 
 # Add library
-add_library(mnist SHARED ${SOURCES})
+add_library(mnist STATIC ${SOURCES})
 
 # Set target properties
 set_target_properties(mnist PROPERTIES
