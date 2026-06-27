@@ -62,12 +62,23 @@ public:
     explicit MlpMatrixNN(const std::vector<LayerConfig>& layers, double learningRate = 0.1,
         double momentum = 0.0, CostFunction cf = CostFunction::MSE);
 
-    // ── Forward / backward ────────────────────────────────────────────────────
+    // ── Forward / backward — single sample ───────────────────────────────────
 
     void setInputVector(const std::vector<double>& input);
     void feedForward();
     void backPropagate(const std::vector<double>& target);
     void copyOutputVector(std::vector<double>& out) const;
+
+    // ── Mini-batch SGD ────────────────────────────────────────────────────────
+
+    // Run one mini-batch training step (forward + backward + weight update).
+    // inputs[i]  — one sample of size getInputSize()
+    // targets[i] — corresponding target of size getOutputSize()
+    // Batch must be non-empty and inputs.size() == targets.size().
+    // Gradients are averaged over the batch before the weight update.
+    // Throws std::invalid_argument on empty or mismatched batch.
+    void trainBatch(const std::vector<std::vector<double>>& inputs,
+        const std::vector<std::vector<double>>& targets);
 
     // ── Metrics ───────────────────────────────────────────────────────────────
 

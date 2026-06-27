@@ -15,3 +15,6 @@ dist/
 /build-linux/_deps/nlohmann_json-subbuild
 /build-linux
 /nunn/Debug
+
+# Local planning notes — not for the repo
+piano_gpu.md

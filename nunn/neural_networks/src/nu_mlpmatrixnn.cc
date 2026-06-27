@@ -12,6 +12,7 @@
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 
 namespace nu {
 
@@ -149,6 +150,82 @@ void MlpMatrixNN::backPropagate(const std::vector<double>& target)
         cur.db = _lr * cur.delta + _momentum * cur.db;
         cur.W += cur.dW;
         cur.b += cur.db;
+    }
+}
+
+// ── trainBatch ────────────────────────────────────────────────────────────────
+
+void MlpMatrixNN::trainBatch(
+    const std::vector<std::vector<double>>& inputs, const std::vector<std::vector<double>>& targets)
+{
+    if (inputs.empty() || inputs.size() != targets.size())
+        throw std::invalid_argument(
+            "trainBatch: batch must be non-empty and inputs/targets must have the same size");
+
+    const auto B = static_cast<Eigen::Index>(inputs.size());
+    const auto inSz = static_cast<Eigen::Index>(_inputSize);
+    const auto ouSz = static_cast<Eigen::Index>(_layers.back().a.size());
+
+    // ── Pack inputs and targets into column-major matrices ────────────────────
+    Eigen::MatrixXd X(inSz, B);
+    Eigen::MatrixXd T(ouSz, B);
+    for (Eigen::Index j = 0; j < B; ++j) {
+        X.col(j) = Eigen::Map<const Eigen::VectorXd>(inputs[j].data(), inSz);
+        T.col(j) = Eigen::Map<const Eigen::VectorXd>(targets[j].data(), ouSz);
+    }
+
+    // ── Forward pass ──────────────────────────────────────────────────────────
+    //   Z[l] = W[l] * A[l-1] + b[l] (broadcast)    [out_l × B]
+    //   A[l] = activate(Z[l])                        [out_l × B]
+    //
+    std::vector<Eigen::MatrixXd> A(_layers.size());
+    {
+        const Eigen::MatrixXd* prev = &X;
+        for (size_t l = 0; l < _layers.size(); ++l) {
+            Eigen::MatrixXd Z = _layers[l].W * (*prev);
+            Z.colwise() += _layers[l].b; // broadcast bias over B columns
+            A[l] = Z.unaryExpr([a = _layers[l].act](double x) { return act::forward(a, x); });
+            prev = &A[l];
+        }
+    }
+
+    // ── Backward pass (standard batch: all deltas use original weights) ───────
+    //   Output delta — same formula as single-sample:
+    //     CE+Sigmoid: D[L] = T − A[L]
+    //     MSE:        D[L] = act'(A[L]) ⊙ (T − A[L])
+    //   Hidden delta:
+    //     D[l] = (W[l+1]^T · D[l+1]) ⊙ act'(A[l])
+    //
+    std::vector<Eigen::MatrixXd> D(_layers.size());
+    {
+        const size_t L = _layers.size() - 1;
+        if (_cf == CostFunction::CrossEntropy) {
+            D[L] = T - A[L];
+        } else {
+            Eigen::MatrixXd actD
+                = A[L].unaryExpr([a = _layers[L].act](double y) { return act::backward(a, y); });
+            D[L] = actD.cwiseProduct(T - A[L]);
+        }
+    }
+    for (int l = static_cast<int>(_layers.size()) - 2; l >= 0; --l) {
+        const size_t lu = static_cast<size_t>(l);
+        Eigen::MatrixXd prop = _layers[lu + 1].W.transpose() * D[lu + 1];
+        Eigen::MatrixXd actD
+            = A[lu].unaryExpr([a = _layers[lu].act](double y) { return act::backward(a, y); });
+        D[lu] = prop.cwiseProduct(actD);
+    }
+
+    // ── Weight update — mean gradient over batch + momentum ───────────────────
+    //   dW[l] = (lr/B) · D[l] · prevA[l]^T  +  momentum · dW[l]_prev
+    //   db[l] = (lr/B) · D[l] · 1            +  momentum · db[l]_prev
+    //
+    const double lrB = _lr / static_cast<double>(B);
+    for (size_t l = 0; l < _layers.size(); ++l) {
+        const Eigen::MatrixXd& prevA = (l == 0) ? X : A[l - 1];
+        _layers[l].dW = lrB * D[l] * prevA.transpose() + _momentum * _layers[l].dW;
+        _layers[l].db = lrB * D[l].rowwise().sum() + _momentum * _layers[l].db;
+        _layers[l].W += _layers[l].dW;
+        _layers[l].b += _layers[l].db;
     }
 }
 
