@@ -19,6 +19,9 @@ file(GLOB SOURCES
 # Add library
 add_library(nunn STATIC ${SOURCES})
 target_link_libraries(nunn PRIVATE nlohmann_json::nlohmann_json)
+# Eigen is header-only; PUBLIC so that consumers that include nu_mlpmatrixnn.h
+# can find <Eigen/Core> without an extra target_link_libraries call.
+target_link_libraries(nunn PUBLIC Eigen3::Eigen)
 
 # Set target properties
 set_target_properties(nunn PROPERTIES 

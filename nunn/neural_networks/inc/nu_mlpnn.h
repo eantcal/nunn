@@ -44,12 +44,6 @@
 
 namespace nu {
 
-//! Cost functions available for back-propagation.
-enum class CostFunction {
-    MSE, //!< Mean Squared Error  (works with any output activation)
-    CrossEntropy, //!< Binary cross-entropy (best paired with Sigmoid output)
-};
-
 //! @class MlpNN
 //! @brief Multi-Layer Perceptron neural network.
 class MlpNN {

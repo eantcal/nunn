@@ -31,8 +31,9 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 endif()
 
-# nlohmann/json — fetched before subdirectories that use it
+# External dependencies — fetched before subdirectories that use them
 include(FetchContent)
+
 FetchContent_Declare(
     nlohmann_json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
@@ -41,6 +42,18 @@ FetchContent_Declare(
 set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
 set(JSON_Install    OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(nlohmann_json)
+
+# Eigen — header-only linear algebra library used by MlpMatrixNN
+FetchContent_Declare(
+    Eigen3
+    GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+    GIT_TAG        3.4.0
+    GIT_SHALLOW    TRUE
+)
+set(EIGEN_BUILD_DOC       OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTING         OFF CACHE BOOL "" FORCE)
+set(EIGEN_BUILD_PKGCONFIG OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(Eigen3)
 
 # Add subdirectories
 add_subdirectory(nunn)
