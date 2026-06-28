@@ -3,6 +3,7 @@ project(nunnlib)
 
 add_subdirectory(ae_demo)
 add_subdirectory(rbf_demo)
+add_subdirectory(dqn_maze)
 add_subdirectory(and_test)
 add_subdirectory(rnn_sine)
 add_subdirectory(rnn_char)
