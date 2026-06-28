@@ -437,6 +437,14 @@ void MlpMatrixNN::setLayerB(size_t layer, const Eigen::VectorXd& b)
     _layers.at(layer).b = b;
 }
 
+// ── getInputGradient ──────────────────────────────────────────────────────────
+
+Eigen::VectorXd MlpMatrixNN::getInputGradient() const
+{
+    // dL/d_input = W[0]^T * delta[0], valid after backPropagate() (Eigen path).
+    return _layers[0].W.transpose() * _layers[0].delta;
+}
+
 // ── calcMSE ───────────────────────────────────────────────────────────────────
 
 double MlpMatrixNN::calcMSE(const std::vector<double>& target) const

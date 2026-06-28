@@ -125,6 +125,10 @@ public:
 
     void reshuffleWeights();
 
+    // Returns dL/d_input = W[0]^T * delta[0] after backPropagate() (Eigen path only).
+    // Used by ConvNet to propagate gradients back through conv/pool layers.
+    [[nodiscard]] Eigen::VectorXd getInputGradient() const;
+
 private:
     struct Layer {
         Eigen::MatrixXd W; // [out_size × in_size]  weight matrix
