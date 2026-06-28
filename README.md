@@ -24,9 +24,18 @@ The library aims to be compact, readable, and practical — a codebase you can a
    - [LSTM](#lstm-nu_lstmh)
 5. [Associative memory](#associative-memory)
    - [Hopfield network](#hopfield-network)
-6. [Reinforcement learning](#reinforcement-learning)
-7. [Scripts](#scripts)
-8. [Demos and tools](#demos-and-tools)
+6. [Unsupervised / generative](#unsupervised--generative)
+   - [Autoencoder](#autoencoder-nu_autoencoderh)
+   - [RBF Network](#rbf-network-nu_rbfh)
+7. [Convolutional networks](#convolutional-networks)
+   - [Conv1DLayer / MaxPool1DLayer / ConvNet](#conv1dlayer--maxpool1dlayer--convnet-nu_convh--nu_convneth)
+8. [Transformer](#transformer)
+   - [MiniTransformer](#minitransformer-nu_transformerh)
+9. [Reinforcement learning](#reinforcement-learning)
+   - [Tabular Q-learning and SARSA](#tabular-q-learning-and-sarsa)
+   - [DQN — Deep Q-Network](#dqn--deep-q-network-nu_dqnh)
+10. [Scripts](#scripts)
+11. [Demos and tools](#demos-and-tools)
 
 ---
 
@@ -39,8 +48,13 @@ The library aims to be compact, readable, and practical — a codebase you can a
 - **GRU** — Gated Recurrent Unit with truncated BPTT
 - **LSTM** — Long Short-Term Memory with truncated BPTT
 - **Hopfield** — energy-based associative memory
-- **Q-learning** and **SARSA** reinforcement learning
-- 159 GoogleTest unit tests; all network classes are fully tested
+- **Autoencoder** — symmetric encoder–decoder built on MlpMatrixNN
+- **Rbf** — Radial Basis Function network (Gaussian centres + SGD output weights)
+- **Conv1DLayer / MaxPool1DLayer / ConvNet** — 1D convolutional pipeline with im2col and end-to-end backprop
+- **LayerNorm / SelfAttentionLayer / TransformerBlock / MiniTransformer** — decoder-only transformer with multi-head causal attention and autoregressive generation
+- **DQN** — Deep Q-Network with experience replay buffer and frozen target network
+- **Q-learning** and **SARSA** tabular reinforcement learning
+- 234 GoogleTest unit tests; all network classes are fully tested
 - Cross-platform: Windows, Linux, macOS
 
 ---
@@ -404,7 +418,147 @@ Storage capacity is approximately `0.138 · N` patterns before retrieval becomes
 
 ---
 
+## Unsupervised / generative
+
+### Autoencoder (`nu_autoencoder.h`)
+
+A symmetric encoder–decoder built on top of `MlpMatrixNN`. The encoder compresses the input to a low-dimensional **latent code**; the decoder reconstructs the input from that code. Training minimises MSE reconstruction loss end-to-end.
+
+```cpp
+#include "nu_autoencoder.h"
+
+nu::Autoencoder ae(
+    /*inputSize*/  16,   // also output size
+    /*latentSize*/ 4,    // bottleneck dimension
+    /*hiddenSize*/ 8,    // hidden layer width (encoder and decoder)
+    /*lr*/         0.005
+);
+
+double loss = ae.train(sample);   // forward + backward
+auto code   = ae.encode(sample);  // [latentSize] vector
+auto recon  = ae.decode(code);    // [inputSize] reconstruction
+```
+
+**Demo:** `ae_demo` — trains on sinusoid fragments; prints latent codes and reconstruction error.
+
+---
+
+### RBF Network (`nu_rbf.h`)
+
+A Radial Basis Function network. Hidden units compute Gaussian similarity to a fixed set of centres:
+
+```
+h_j(x) = exp( -‖x - c_j‖² / (2 σ_j²) )
+```
+
+Centres are placed by random sampling (`fitCenters`); the output layer is then trained with SGD. Sigma is set by the heuristic `d_max / sqrt(2 · n_centers)`.
+
+```cpp
+#include "nu_rbf.h"
+
+nu::Rbf rbf(
+    /*inputSize*/   1,
+    /*numCenters*/  12,
+    /*outputSize*/  1,
+    /*lr*/          0.01,
+    /*outMode*/     nu::RbfOutput::Linear
+);
+
+rbf.fitCenters(data);              // place centres by random sampling
+rbf.train(inputs, targets, 500);   // SGD on output weights
+auto y = rbf.forward({0.5});       // inference
+```
+
+**Demo:** `rbf_demo` — fits sin(x) over [0, 2π] with 12 RBF centres; prints train/test MSE.
+
+---
+
+## Convolutional networks
+
+### Conv1DLayer / MaxPool1DLayer / ConvNet (`nu_conv.h` / `nu_convnet.h`)
+
+A 1D convolutional pipeline with Eigen-backed im2col forward and col2im backward passes, and a builder API for stacking layers before a fully-connected head.
+
+**Conv1DLayer** — valid-padding stride-1 convolution:
+
+```
+outLen = inLen - kernelSize + 1
+Y = W · Xcol + b    (W [outCh × inCh·K], Xcol [inCh·K × outLen])
+```
+
+Initialisation: He for ReLU/LeakyReLU, Xavier otherwise.
+
+**MaxPool1DLayer** — non-overlapping max pooling; saves argmax mask for gradient routing in backward.
+
+**ConvNet** — builder that chains conv/pool layers and attaches an `MlpMatrixNN` head:
+
+```cpp
+#include "nu_convnet.h"
+
+using LC = nu::MlpMatrixNN::LayerConfig;
+nu::ConvNet cnn(1, 16);                        // 1 channel, 16 time steps
+cnn.addConv1D(8, 5, nu::Activation::Tanh, 0.005);
+cnn.addMaxPool1D(4);                           // flatFeatureSize = 8*3 = 24
+cnn.setFCHead({
+    LC(cnn.flatFeatureSize()),
+    LC(16, nu::Activation::Tanh),
+    LC(2,  nu::Activation::Sigmoid)
+}, 0.005);
+
+double loss = cnn.train(x, target);
+auto   out  = cnn.predict(x);
+```
+
+End-to-end backprop flows from the FC head via `getInputGradient()` back through the conv/pool stack.
+
+**Demo:** `cnn_seq` — classifies 1D sine signals by frequency (1 vs 2 cycles over 16 samples, Gaussian noise σ=0.15); reaches >80% test accuracy in 500 epochs.
+
+---
+
+## Transformer
+
+### MiniTransformer (`nu_transformer.h`)
+
+A decoder-only transformer for character-level (or token-level) language modelling. Architecture (Pre-LN style):
+
+```
+Token IDs → Embedding + Sinusoidal PositionalEncoding
+  → N × TransformerBlock( LN → MH-Attn(causal) → residual
+                              → LN → FFN(ReLU)   → residual )
+  → Output projection → logits [seqLen × vocabSize]
+```
+
+**LayerNorm** normalises each row of the token matrix; gamma/beta are learned with analytically-correct backward.
+
+**SelfAttentionLayer** uses `h` per-head projections `W_Q^h, W_K^h, W_V^h ∈ R^{d×dk}` where `dk = d/h`. The causal mask sets scores above the diagonal to −∞ before softmax. Full backward through the softmax Jacobian, Q·K^T, and all projections.
+
+```cpp
+#include "nu_transformer.h"
+
+nu::MiniTransformer model(
+    /*vocabSize*/ 23,   // unique chars
+    /*seqLen*/    32,   // context window
+    /*dModel*/    64,
+    /*numHeads*/  4,    // dk = 16
+    /*dFF*/       128,
+    /*numLayers*/ 2,
+    /*lr*/        0.005
+);
+
+double loss = model.train(inputs, targets);    // cross-entropy loss
+auto logits = model.forward(tokens);           // [seqLen × vocabSize]
+
+std::mt19937 rng(42);
+auto gen = model.generate(prompt, 80, /*temperature*/ 0.8, &rng);
+```
+
+**Demo:** `transformer_char` — trains on a ~300-character Shakespeare excerpt; cross-entropy drops from ~3.1 to ~0.10 in 1000 epochs, generates recognisable continuations.
+
+---
+
 ## Reinforcement learning
+
+### Tabular Q-learning and SARSA
 
 Nunn includes tabular implementations of two fundamental RL algorithms.
 
@@ -431,6 +585,38 @@ SARSA is more conservative than Q-learning in stochastic environments because it
 **Demos:**
 - [Maze](https://github.com/eantcal/nunn/blob/master/examples/maze/maze.cc) — navigate from start to goal on a grid
 - [Path finder](https://github.com/eantcal/nunn/blob/master/examples/path_finder/path_finder.cc) — find shortest paths under obstacles
+
+---
+
+### DQN — Deep Q-Network (`nu_dqn.h`)
+
+Replaces the tabular Q-table with a neural network (`MlpMatrixNN`), enabling RL in continuous or high-dimensional state spaces. Key components:
+
+- **`ExperienceReplayBuffer<State, Action>`** — fixed-capacity ring buffer; uniform random sampling of mini-batches breaks temporal correlations.
+- **`Dqn`** — maintains two networks: a main network updated every step and a **target network** whose weights are frozen and synced every `targetUpdateFreq` learn steps. The Bellman target is:
+
+```
+q[a] = r + γ · max_{a'} Q_target(s', a')
+```
+
+Gradient is computed only for the taken action; all other outputs keep `target = Q_main(s)` so their gradients are zero.
+
+```cpp
+#include "nu_dqn.h"
+
+using LC = nu::MlpMatrixNN::LayerConfig;
+nu::Dqn agent(
+    { LC(2), LC(32, nu::Activation::ReLU),
+      LC(32, nu::Activation::ReLU), LC(4, nu::Activation::Linear) },
+    /*lr*/ 0.001, /*bufferCapacity*/ 10000,
+    /*batchSize*/ 32, /*gamma*/ 0.99, /*targetUpdateFreq*/ 100
+);
+
+int action = agent.selectAction(state, epsilon);
+double loss = agent.learn(state, action, reward, nextState, done);
+```
+
+**Demo:** `dqn_maze` — 5×5 grid world; state = normalised (row, col); 4 directional actions; solves >90% of episodes after training.
 
 ---
 
@@ -534,6 +720,11 @@ bash scripts/mnist/bash/run_all.sh --quick
 | `rnn_sine` | VanillaRnn / GRU / LSTM | Sine-wave next-step prediction |
 | `rnn_char` | VanillaRnn / GRU / LSTM | Character-level language model |
 | `rnn_adding` | VanillaRnn / GRU / LSTM | Adding problem benchmark (selective memory) |
+| `ae_demo` | Autoencoder | Sinusoid fragment compression and reconstruction |
+| `rbf_demo` | Rbf | Sin(x) regression with Gaussian RBF centres |
+| `cnn_seq` | ConvNet | 1D frequency classification (1 vs 2 cycles) |
+| `dqn_maze` | Dqn | 5×5 grid world with DQN and experience replay |
+| `transformer_char` | MiniTransformer | Char-level LM on Shakespeare excerpt |
 | `tictactoe` | MlpNN | Tic Tac Toe via neural network |
 | `winttt` | MlpNN | Interactive Windows Tic Tac Toe |
 | `hopfield_test` | Hopfield | Pattern recall from noisy input |

@@ -4,6 +4,50 @@ Author - Antonino Calderone - <acaldmail@gmail.com> - (c) 2015, 2016
 Please send nunn bug reports to <acaldmail@gmail.com>.
 
 Jun 28, 2026
+* Released nunn library 2.2 — five new architectures: Autoencoder, RBF, DQN, CNN 1D, Transformer
+
+New: Autoencoder (nu_autoencoder.h / nu_autoencoder.cc)
+- Symmetric encoder-decoder built on MlpMatrixNN
+- encode() / decode() / train() returning MSE reconstruction loss
+- Configurable hidden width and latent dimension
+- 9 unit tests; ae_demo example (sinusoid fragment compression)
+
+New: Rbf (nu_rbf.h / nu_rbf.cc) — Radial Basis Function network
+- Gaussian hidden units h_j = exp(-||x-c_j||^2 / (2*sigma_j^2))
+- fitCenters(): random sampling from data; sigma heuristic d_max/sqrt(2*nc)
+- SGD on output weights (centres fixed after fitCenters)
+- Forward() / train() / reshuffleWeights(); linear and sigmoid output modes
+- 10 unit tests; rbf_demo example (sin(x) regression)
+
+New: DQN (nu_dqn.h / nu_replay_buffer.h / nu_dqn.cc) — Deep Q-Network
+- ExperienceReplayBuffer<State,Action>: fixed-capacity ring buffer,
+  uniform random mini-batch sampling
+- Dqn: main network + frozen target network (synced every targetUpdateFreq steps)
+- Bellman target q[a] = r + gamma * max Q_target(s'); gradient masked to taken action
+- selectAction() (epsilon-greedy), learn(), qValues()
+- 14 unit tests; dqn_maze example (5x5 grid world, >90% solve rate)
+
+New: Conv1DLayer / MaxPool1DLayer / ConvNet (nu_conv.h / nu_convnet.h)
+- Conv1DLayer: valid-padding stride-1 conv via im2col forward, col2im backward;
+  He init for ReLU, Xavier otherwise; configurable activation; per-layer SGD lr
+- MaxPool1DLayer: non-overlapping max pool; argmax mask for backward gradient routing
+- ConvNet: builder pattern (addConv1D / addMaxPool1D / setFCHead);
+  end-to-end backprop via MlpMatrixNN::getInputGradient() = W[0]^T * delta[0]
+- getInputGradient() added to MlpMatrixNN
+- 12 unit tests; cnn_seq example (1 vs 2 cycles sine, >80% test accuracy)
+
+New: MiniTransformer (nu_transformer.h / nu_transformer.cc) — decoder-only transformer
+- LayerNorm: per-row normalisation, learnable gamma/beta, analytically-correct backward
+- SelfAttentionLayer: multi-head scaled dot-product with per-head W_Q/K/V projections;
+  causal upper-triangular mask; full backward (softmax Jacobian, Q*K^T, projections)
+- TransformerBlock: Pre-LN style; MH-Attn + residual + FFN(ReLU) + residual;
+  correct backward through both residual branches
+- MiniTransformer: embedding + sinusoidal posenc (fixed) + N blocks + output projection;
+  train() with softmax cross-entropy and embedding backward;
+  generate() with causal autoregressive sampling and temperature scaling
+- 12 unit tests; transformer_char example (char LM, loss 3.1 -> 0.10 in 1000 epochs)
+
+Jun 28, 2026
 * Added GRU, rnn_adding benchmark, and RNN training scripts
 
 New: Gru (nu_gru.h / nu_gru.cc) — Gated Recurrent Unit with truncated BPTT
