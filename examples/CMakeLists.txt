@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 project(nunnlib)
 
 add_subdirectory(ae_demo)
+add_subdirectory(som_demo)
 add_subdirectory(cnn_seq)
 add_subdirectory(transformer_char)
 add_subdirectory(rbf_demo)
