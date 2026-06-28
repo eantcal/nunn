@@ -1,9 +1,5 @@
 # Nunn
 
-| Platform | Status |
-|---|---|
-| Linux | [![Linux Build](https://travis-ci.org/eantcal/nunn.svg?branch=master)](https://travis-ci.org/eantcal/nunn) |
-
 **Nunn** is a free and open-source machine learning library written in **C++20**, distributed under the **MIT License**.
 
 The library aims to be compact, readable, and practical — a codebase you can actually study while experimenting with neural networks and other machine learning algorithms in modern C++.
