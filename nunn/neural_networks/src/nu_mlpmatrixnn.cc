@@ -410,6 +410,33 @@ size_t MlpMatrixNN::getOutputSize() const noexcept
     return _layers.empty() ? 0 : static_cast<size_t>(_layers.back().a.size());
 }
 
+// ── Layer inspection ──────────────────────────────────────────────────────────
+
+const Eigen::VectorXd& MlpMatrixNN::getLayerOutput(size_t layer) const
+{
+    return _layers.at(layer).a;
+}
+
+Eigen::MatrixXd MlpMatrixNN::getLayerW(size_t layer) const
+{
+    return _layers.at(layer).W;
+}
+
+Eigen::VectorXd MlpMatrixNN::getLayerB(size_t layer) const
+{
+    return _layers.at(layer).b;
+}
+
+void MlpMatrixNN::setLayerW(size_t layer, const Eigen::MatrixXd& W)
+{
+    _layers.at(layer).W = W;
+}
+
+void MlpMatrixNN::setLayerB(size_t layer, const Eigen::VectorXd& b)
+{
+    _layers.at(layer).b = b;
+}
+
 // ── calcMSE ───────────────────────────────────────────────────────────────────
 
 double MlpMatrixNN::calcMSE(const std::vector<double>& target) const

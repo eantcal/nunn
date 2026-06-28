@@ -112,6 +112,17 @@ public:
     [[nodiscard]] CostFunction getCostFunction() const noexcept { return _cf; }
     [[nodiscard]] ComputeBackend getBackend() const noexcept { return _backend; }
 
+    // Number of neuron layers (not counting input).
+    [[nodiscard]] size_t numLayers() const noexcept { return _layers.size(); }
+
+    // Layer inspection — layer 0 is the first neuron layer; numLayers()-1 is output.
+    // getLayerOutput() is valid after feedForward(); setLayer*() takes effect immediately.
+    [[nodiscard]] const Eigen::VectorXd& getLayerOutput(size_t layer) const;
+    [[nodiscard]] Eigen::MatrixXd getLayerW(size_t layer) const;
+    [[nodiscard]] Eigen::VectorXd getLayerB(size_t layer) const;
+    void setLayerW(size_t layer, const Eigen::MatrixXd& W);
+    void setLayerB(size_t layer, const Eigen::VectorXd& b);
+
     void reshuffleWeights();
 
 private:
