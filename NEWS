@@ -3,6 +3,33 @@ Author - Antonino Calderone - <acaldmail@gmail.com> - (c) 2015, 2016
 
 Please send nunn bug reports to <acaldmail@gmail.com>.
 
+Jun 28, 2026
+* Added GRU, rnn_adding benchmark, and RNN training scripts
+
+New: Gru (nu_gru.h / nu_gru.cc) — Gated Recurrent Unit with truncated BPTT
+- Architecture: reset gate r_t, update gate z_t, candidate g_t; no cell state
+- ~25% fewer parameters than an equal-size LSTM
+- Input weights stacked [r;z;h] (_W [3·nh×ni]); single GEMV for r and z gates
+- Separate recurrent weight _Uh applied to r_t⊙h_{t-1} for the candidate
+- BPTT backward: three paths to dh_prev (direct, through candidate, through gates)
+- Same public API as VanillaRnn and Lstm; drop-in swap via --gru flag in examples
+- 14 unit tests: construction, reset, step, softmax, BPTT, convergence (identity/echo/binary)
+
+New example: rnn_adding — the "adding problem" selective-memory benchmark
+- Input: sequences of (value, marker) pairs; one marker in each half
+- Target: cumulative sum of marked values (many-to-many MSE formulation)
+- Trains VanillaRnn, GRU, and LSTM on identical datasets and prints a comparison
+- Positional args: [seq_len=20] [hidden=32] [epochs=500] [lr=0.005]
+
+Updated examples: rnn_sine and rnn_char now support --gru / --lstm / (default VanillaRnn)
+
+New scripts: scripts/rnn/ — ready-made run-and-compare scripts
+- powershell/: run_sine.ps1, run_char.ps1, run_adding.ps1, run_all.ps1
+- bash/:       run_sine.sh,  run_char.sh,  run_adding.sh,  run_all.sh
+- -Quick / --quick flag for fast smoke-tests
+- -Model / --model flag to select one or all architectures
+- Comparison table printed when multiple models are evaluated
+
 Jun 27, 2026
 * Added VanillaRnn and LSTM recurrent neural networks
 

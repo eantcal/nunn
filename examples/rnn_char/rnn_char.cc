@@ -5,16 +5,19 @@
 // Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-// rnn_char — character-level language model using a VanillaRnn or LSTM.
+// rnn_char — character-level language model using VanillaRnn, GRU or LSTM.
 //
 // The network learns to predict the next character given the current one,
 // accumulating context in its hidden/cell state.  After training it generates
 // text autoregressively by sampling from the softmax output.
 //
-// Usage: rnn_char [--lstm] [epochs] [hidden_size] [gen_length] [temperature]
-//   --lstm   select LSTM instead of VanillaRnn (default)
+// Usage: rnn_char [--gru|--lstm] [epochs] [hidden_size] [gen_length] [temperature]
+//   --gru    select GRU
+//   --lstm   select LSTM
+//   (default: VanillaRnn)
 //
 
+#include "nu_gru.h"
 #include "nu_lstm.h"
 #include "nu_rnn.h"
 
@@ -137,11 +140,14 @@ void run(Rnn& rnn, const std::string& corpus, const Vocab& vocab, size_t epochs,
 
 int main(int argc, char* argv[])
 {
-    bool use_lstm = false;
+    enum class Model { Vanilla, Gru, Lstm } model = Model::Vanilla;
     std::vector<char*> pos;
     for (int i = 1; i < argc; ++i) {
-        if (std::string_view(argv[i]) == "--lstm")
-            use_lstm = true;
+        std::string_view a(argv[i]);
+        if (a == "--gru")
+            model = Model::Gru;
+        else if (a == "--lstm")
+            model = Model::Lstm;
         else
             pos.push_back(argv[i]);
     }
@@ -163,12 +169,18 @@ int main(int argc, char* argv[])
     constexpr double LR = 0.005;
     constexpr double GRAD_CLIP = 5.0;
 
-    std::cout << "rnn_char  |  model=" << (use_lstm ? "LSTM" : "VanillaRnn") << "  vocab=" << V
-              << "  hidden=" << HIDDEN << "  lr=" << LR << "  epochs=" << EPOCHS << "\n\n";
+    const char* model_name = (model == Model::Lstm) ? "LSTM"
+        : (model == Model::Gru)                     ? "GRU"
+                                                    : "VanillaRnn";
+    std::cout << "rnn_char  |  model=" << model_name << "  vocab=" << V << "  hidden=" << HIDDEN
+              << "  lr=" << LR << "  epochs=" << EPOCHS << "\n\n";
 
-    if (use_lstm) {
+    if (model == Model::Lstm) {
         nu::Lstm lstm(V, HIDDEN, V, LR, GRAD_CLIP, nu::RnnOutput::Softmax);
         run(lstm, corpus, vocab, EPOCHS, GEN_LEN, TEMPERATURE);
+    } else if (model == Model::Gru) {
+        nu::Gru gru(V, HIDDEN, V, LR, GRAD_CLIP, nu::RnnOutput::Softmax);
+        run(gru, corpus, vocab, EPOCHS, GEN_LEN, TEMPERATURE);
     } else {
         nu::VanillaRnn rnn(V, HIDDEN, V, LR, GRAD_CLIP, nu::RnnOutput::Softmax);
         run(rnn, corpus, vocab, EPOCHS, GEN_LEN, TEMPERATURE);

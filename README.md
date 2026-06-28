@@ -20,11 +20,13 @@ The library aims to be compact, readable, and practical — a codebase you can a
    - [MlpMatrixNN — Eigen-backed MLP](#mlpmatrixnn--eigen-backed-mlp-nu_mlpmatrixnnh)
 4. [Recurrent networks](#recurrent-networks)
    - [VanillaRnn — Elman RNN](#vanillarnn--elman-rnn-nu_rnnh)
+   - [GRU — Gated Recurrent Unit](#gru--gated-recurrent-unit-nu_gruh)
    - [LSTM](#lstm-nu_lstmh)
 5. [Associative memory](#associative-memory)
    - [Hopfield network](#hopfield-network)
 6. [Reinforcement learning](#reinforcement-learning)
-7. [Demos and tools](#demos-and-tools)
+7. [Scripts](#scripts)
+8. [Demos and tools](#demos-and-tools)
 
 ---
 
@@ -34,6 +36,7 @@ The library aims to be compact, readable, and practical — a codebase you can a
 - **MlpNN** — classic fully connected MLP with per-layer activations
 - **MlpMatrixNN** — Eigen 3.4 backed MLP with mini-batch SGD
 - **VanillaRnn** — Elman-style RNN with truncated BPTT
+- **GRU** — Gated Recurrent Unit with truncated BPTT
 - **LSTM** — Long Short-Term Memory with truncated BPTT
 - **Hopfield** — energy-based associative memory
 - **Q-learning** and **SARSA** reinforcement learning
@@ -238,6 +241,47 @@ Gradient clipping is per-element: each gradient component is clamped to `[-gradC
 
 ---
 
+### GRU — Gated Recurrent Unit (`nu_gru.h`)
+
+Introduced by Cho et al. (2014), the GRU simplifies the LSTM by merging the input and forget gates into a single **update gate** and removing the separate cell state.  The result is a model with ~25% fewer parameters that often matches LSTM performance on short-to-medium sequences.
+
+```
+r_t = σ(Wr·x_t + Ur·h_{t-1} + b_r)            reset gate
+z_t = σ(Wz·x_t + Uz·h_{t-1} + b_z)            update gate
+g_t = tanh(Wh·x_t + Uh·(r_t ⊙ h_{t-1}) + b_h) candidate hidden state
+h_t = (1 − z_t) ⊙ h_{t-1}  +  z_t ⊙ g_t      new hidden state
+y_t = f_out(Wy·h_t + b_y)
+```
+
+**Reset gate** `r_t` controls how much of the previous hidden state leaks into the candidate: when `r_t ≈ 0` the candidate ignores history and can write a fresh value; when `r_t ≈ 1` the candidate behaves like a VanillaRnn step.
+
+**Update gate** `z_t` interpolates between the old hidden state and the candidate: `z_t ≈ 0` keeps the previous state unchanged (long-range memory); `z_t ≈ 1` replaces it entirely (fast adaptation).
+
+**Implementation detail:** input weights for all three gates are stacked as `W [3·nh × ni]`. The recurrent weights for r and z share a single GEMV via `Urz [2·nh × nh]`; the candidate recurrent weight `Uh [nh × nh]` is applied separately to `r_t ⊙ h_{t-1}`.
+
+```cpp
+#include "nu_gru.h"
+
+nu::Gru gru(
+    /*inputSize*/  2,
+    /*hiddenSize*/ 32,
+    /*outputSize*/ 1,
+    /*lr*/         0.005,
+    /*gradClip*/   5.0,
+    /*outMode*/    nu::RnnOutput::Linear
+);
+
+gru.resetState();
+double loss = gru.bptt(inputs, targets, /*truncate*/ 25);
+
+gru.step({0.7, 1.0});
+double y = gru.getOutput()[0];
+```
+
+The `Gru` API is identical to `VanillaRnn` and `Lstm`.
+
+---
+
 ### LSTM (`nu_lstm.h`)
 
 The Long Short-Term Memory adds a **cell state** `c_t` — a separate memory line that flows through time with only element-wise operations (no matrix multiply). Three sigmoid **gates** control what information enters, leaves, and is forgotten from the cell:
@@ -289,6 +333,35 @@ rnn_sine                         # VanillaRnn, 1500 epochs, hidden=32, lr=0.005
 rnn_sine --lstm                  # LSTM, same defaults
 rnn_sine --lstm 2000 64 0.003   # --lstm [epochs] [hidden] [lr]
 ```
+
+---
+
+### Demo: adding problem benchmark (`rnn_adding`)
+
+The **adding problem** (Hochreiter & Schmidhuber, 1997) is a standard benchmark for comparing recurrent architectures on long-range memory.
+
+Each input sequence has length T. Every element is a pair `(value, marker)` where `value ∈ [0, 1]` and `marker ∈ {0, 1}`. Exactly two positions are marked — one in the first half, one in the second half. The network must output the **running cumulative sum of marked values** at each step, reaching the total sum at the final step.
+
+This requires selective memory: values at unmarked positions must be ignored; values at marked positions must be remembered and accumulated, even when far apart in the sequence.
+
+All three architectures (VanillaRnn, GRU, LSTM) are trained on the same dataset and compared side-by-side:
+
+```sh
+rnn_adding                        # seq_len=20, hidden=32, epochs=500, lr=0.005
+rnn_adding 30 64 800 0.003        # seq_len hidden epochs lr
+```
+
+Example output (300 epochs, seq_len=20, hidden=32):
+
+```
+Baseline MAE (predict 0.5) = 0.5447
+
+VanillaRnn   epoch 299   train loss 0.00507   test MAE 0.143
+GRU          epoch 299   train loss 0.00088   test MAE 0.054
+LSTM         epoch 299   train loss 0.00150   test MAE 0.055
+```
+
+GRU and LSTM both significantly outperform VanillaRnn on this task, as expected for a problem that requires retaining specific values over many steps.
 
 ---
 
@@ -361,6 +434,95 @@ SARSA is more conservative than Q-learning in stochastic environments because it
 
 ---
 
+## Scripts
+
+Ready-made scripts for running and comparing all RNN architectures are provided in `scripts/rnn/`.
+
+### PowerShell (Windows)
+
+```
+scripts/rnn/powershell/
+  _common.ps1      — shared helpers (exe discovery, Run-Example function)
+  run_sine.ps1     — sine-wave prediction: train and compare models
+  run_char.ps1     — character-level language model: train and generate text
+  run_adding.ps1   — adding problem benchmark (all models, single run)
+  run_all.ps1      — run all three examples in sequence
+```
+
+**Common options** accepted by most scripts:
+
+| Flag | Description |
+|------|-------------|
+| `-Quick` | Reduce epoch count for a fast smoke-test |
+| `-Model vanilla\|gru\|lstm\|all` | Select one or all architectures (default: `all`) |
+| `-Epochs N` | Override epoch count |
+| `-Hidden N` | Hidden units (default varies per script) |
+| `-Lr F` | Learning rate |
+
+**Examples:**
+
+```powershell
+# Quick sanity check — all three models, 400 epochs
+.\scripts\rnn\powershell\run_sine.ps1 -Quick
+
+# Full sine comparison with custom params
+.\scripts\rnn\powershell\run_sine.ps1 -Epochs 2000 -Hidden 64 -Lr 0.003
+
+# Train GRU char model only
+.\scripts\rnn\powershell\run_char.ps1 -Model gru -Epochs 1200 -Hidden 128
+
+# Adding problem benchmark (longer sequences)
+.\scripts\rnn\powershell\run_adding.ps1 -SeqLen 30 -Hidden 64 -Epochs 800
+
+# Run everything (quick mode)
+.\scripts\rnn\powershell\run_all.ps1 -Quick
+```
+
+### Bash (Linux / macOS / Git Bash)
+
+Mirror of the PowerShell scripts with `--` style flags:
+
+```
+scripts/rnn/bash/
+  _common.sh       — shared helpers
+  run_sine.sh      — sine-wave prediction
+  run_char.sh      — character-level language model
+  run_adding.sh    — adding problem benchmark
+  run_all.sh       — run all examples
+```
+
+```bash
+# Quick sanity check
+bash scripts/rnn/bash/run_sine.sh --quick
+
+# Full comparison, custom params
+bash scripts/rnn/bash/run_sine.sh --epochs 2000 --hidden 64 --lr 0.003
+
+# Single model
+bash scripts/rnn/bash/run_char.sh --model gru --epochs 1200
+
+# Adding benchmark with longer sequences
+bash scripts/rnn/bash/run_adding.sh --seq-len 30 --hidden 64 --epochs 800
+
+# Run everything
+bash scripts/rnn/bash/run_all.sh --quick
+```
+
+### MNIST training scripts
+
+Training scripts for the MNIST examples are in `scripts/mnist/powershell/` and `scripts/mnist/bash/`.  
+`run_all` trains all activation/cost-function combinations and prints a comparison table with BER and throughput.
+
+```powershell
+.\scripts\mnist\powershell\run_all.ps1 -Quick
+```
+
+```bash
+bash scripts/mnist/bash/run_all.sh --quick
+```
+
+---
+
 ## Demos and tools
 
 | Demo | Model | Description |
@@ -369,8 +531,9 @@ SARSA is more conservative than Q-learning in stochastic environments because it
 | `xor_test` | MlpNN | XOR function (non-linearly separable) |
 | `mnist_test` | MlpNN / MlpMatrixNN | MNIST digit recognition (784→300→10) |
 | `ocr_test` | MlpNN | Interactive handwritten digit recognition |
-| `rnn_sine` | VanillaRnn / LSTM | Sine-wave next-step prediction |
-| `rnn_char` | VanillaRnn / LSTM | Character-level language model |
+| `rnn_sine` | VanillaRnn / GRU / LSTM | Sine-wave next-step prediction |
+| `rnn_char` | VanillaRnn / GRU / LSTM | Character-level language model |
+| `rnn_adding` | VanillaRnn / GRU / LSTM | Adding problem benchmark (selective memory) |
 | `tictactoe` | MlpNN | Tic Tac Toe via neural network |
 | `winttt` | MlpNN | Interactive Windows Tic Tac Toe |
 | `hopfield_test` | Hopfield | Pattern recall from noisy input |

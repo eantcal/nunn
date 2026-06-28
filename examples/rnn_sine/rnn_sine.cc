@@ -5,17 +5,20 @@
 // Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-// rnn_sine — predict the next value of a sine wave using a VanillaRnn or LSTM.
+// rnn_sine — predict the next value of a sine wave using VanillaRnn, GRU or LSTM.
 //
 // The network sees one sample at a time (x_t = sin(t·dt)) and must predict
 // the next sample (y_t = sin((t+1)·dt)).  After training it runs
 // autoregressively: each predicted value is fed back as the next input,
 // testing whether the learned dynamics are self-sustaining.
 //
-// Usage: rnn_sine [--lstm] [epochs] [hidden_size] [lr]
-//   --lstm   select LSTM instead of VanillaRnn (default)
+// Usage: rnn_sine [--gru|--lstm] [epochs] [hidden_size] [lr]
+//   --gru    select GRU
+//   --lstm   select LSTM
+//   (default: VanillaRnn)
 //
 
+#include "nu_gru.h"
 #include "nu_lstm.h"
 #include "nu_rnn.h"
 
@@ -96,11 +99,14 @@ template <typename Rnn> void run(Rnn& rnn, size_t epochs, size_t numSeq, size_t 
 
 int main(int argc, char* argv[])
 {
-    bool use_lstm = false;
+    enum class Model { Vanilla, Gru, Lstm } model = Model::Vanilla;
     std::vector<char*> pos;
     for (int i = 1; i < argc; ++i) {
-        if (std::string_view(argv[i]) == "--lstm")
-            use_lstm = true;
+        std::string_view a(argv[i]);
+        if (a == "--gru")
+            model = Model::Gru;
+        else if (a == "--lstm")
+            model = Model::Lstm;
         else
             pos.push_back(argv[i]);
     }
@@ -113,12 +119,18 @@ int main(int argc, char* argv[])
     constexpr size_t SEQ_LEN = 40;
     constexpr size_t NUM_SEQ = 24;
 
-    std::cout << "rnn_sine  |  model=" << (use_lstm ? "LSTM" : "VanillaRnn")
-              << "  hidden=" << HIDDEN << "  lr=" << LR << "  epochs=" << EPOCHS << "\n\n";
+    const char* model_name = (model == Model::Lstm) ? "LSTM"
+        : (model == Model::Gru)                     ? "GRU"
+                                                    : "VanillaRnn";
+    std::cout << "rnn_sine  |  model=" << model_name << "  hidden=" << HIDDEN << "  lr=" << LR
+              << "  epochs=" << EPOCHS << "\n\n";
 
-    if (use_lstm) {
+    if (model == Model::Lstm) {
         nu::Lstm lstm(1, HIDDEN, 1, LR, 5.0, nu::RnnOutput::Linear);
         run(lstm, EPOCHS, NUM_SEQ, SEQ_LEN, DT);
+    } else if (model == Model::Gru) {
+        nu::Gru gru(1, HIDDEN, 1, LR, 5.0, nu::RnnOutput::Linear);
+        run(gru, EPOCHS, NUM_SEQ, SEQ_LEN, DT);
     } else {
         nu::VanillaRnn rnn(1, HIDDEN, 1, LR, 5.0, nu::RnnOutput::Linear);
         run(rnn, EPOCHS, NUM_SEQ, SEQ_LEN, DT);

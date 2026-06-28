@@ -1,122 +1,121 @@
 //
-// Unit tests for nu::Lstm (nu_lstm.h / nu_lstm.cc).
+// Unit tests for nu::Gru (nu_gru.h / nu_gru.cc).
 //
 
-#include "nu_lstm.h"
+#include "nu_gru.h"
 
 #include <gtest/gtest.h>
 
 #include <cmath>
 #include <vector>
 
-using nu::Lstm;
+using nu::Gru;
 using nu::RnnOutput;
 
 // ── Construction & getters ────────────────────────────────────────────────────
 
-TEST(LstmTest, DimensionsMatchConstruction)
+TEST(GruTest, DimensionsMatchConstruction)
 {
-    Lstm lstm(4, 16, 3);
-    EXPECT_EQ(lstm.getInputSize(), 4u);
-    EXPECT_EQ(lstm.getHiddenSize(), 16u);
-    EXPECT_EQ(lstm.getOutputSize(), 3u);
-    EXPECT_EQ(lstm.getOutput().size(), 3u);
-    EXPECT_EQ(lstm.getHidden().size(), 16u);
+    Gru gru(4, 16, 3);
+    EXPECT_EQ(gru.getInputSize(), 4u);
+    EXPECT_EQ(gru.getHiddenSize(), 16u);
+    EXPECT_EQ(gru.getOutputSize(), 3u);
+    EXPECT_EQ(gru.getOutput().size(), 3u);
+    EXPECT_EQ(gru.getHidden().size(), 16u);
 }
 
-TEST(LstmTest, DefaultOutputModeIsLinear)
+TEST(GruTest, DefaultOutputModeIsLinear)
 {
-    Lstm lstm(1, 4, 1);
-    EXPECT_EQ(lstm.getOutputMode(), RnnOutput::Linear);
+    Gru gru(1, 4, 1);
+    EXPECT_EQ(gru.getOutputMode(), RnnOutput::Linear);
 }
 
 // ── resetState ────────────────────────────────────────────────────────────────
 
-TEST(LstmTest, ResetStateZerosHidden)
+TEST(GruTest, ResetStateZerosHidden)
 {
-    Lstm lstm(2, 8, 1);
-    lstm.step({ 1.0, 1.0 });
+    Gru gru(2, 8, 1);
+    gru.step({ 1.0, 1.0 });
 
     bool any_nonzero = false;
-    for (double v : lstm.getHidden())
+    for (double v : gru.getHidden())
         if (v != 0.0) {
             any_nonzero = true;
             break;
         }
     EXPECT_TRUE(any_nonzero);
 
-    lstm.resetState();
-    for (double v : lstm.getHidden())
+    gru.resetState();
+    for (double v : gru.getHidden())
         EXPECT_DOUBLE_EQ(v, 0.0);
 }
 
 // ── step ──────────────────────────────────────────────────────────────────────
 
-TEST(LstmTest, StepChangesHiddenState)
+TEST(GruTest, StepChangesHiddenState)
 {
-    Lstm lstm(2, 8, 1);
-    const auto h0 = lstm.getHidden();
-    lstm.step({ 1.0, 0.5 });
-    EXPECT_NE(lstm.getHidden(), h0);
+    Gru gru(2, 8, 1);
+    const auto h0 = gru.getHidden();
+    gru.step({ 1.0, 0.5 });
+    EXPECT_NE(gru.getHidden(), h0);
 }
 
-TEST(LstmTest, StepOutputSizeMatches)
+TEST(GruTest, StepOutputSizeMatches)
 {
-    Lstm lstm(3, 10, 5, 0.01, 5.0, RnnOutput::Softmax);
-    lstm.step({ 1.0, 0.0, -1.0 });
-    EXPECT_EQ(lstm.getOutput().size(), 5u);
+    Gru gru(3, 10, 5, 0.01, 5.0, RnnOutput::Softmax);
+    gru.step({ 1.0, 0.0, -1.0 });
+    EXPECT_EQ(gru.getOutput().size(), 5u);
 }
 
-TEST(LstmTest, SoftmaxOutputSumsToOne)
+TEST(GruTest, SoftmaxOutputSumsToOne)
 {
-    Lstm lstm(2, 8, 4, 0.01, 5.0, RnnOutput::Softmax);
-    lstm.step({ 0.3, -0.7 });
+    Gru gru(2, 8, 4, 0.01, 5.0, RnnOutput::Softmax);
+    gru.step({ 0.3, -0.7 });
     double sum = 0.0;
-    for (double v : lstm.getOutput())
+    for (double v : gru.getOutput())
         sum += v;
     EXPECT_NEAR(sum, 1.0, 1e-10);
 }
 
-TEST(LstmTest, SoftmaxOutputAllPositive)
+TEST(GruTest, SoftmaxOutputAllPositive)
 {
-    Lstm lstm(2, 8, 4, 0.01, 5.0, RnnOutput::Softmax);
-    lstm.step({ 1.0, 2.0 });
-    for (double v : lstm.getOutput())
+    Gru gru(2, 8, 4, 0.01, 5.0, RnnOutput::Softmax);
+    gru.step({ 1.0, 2.0 });
+    for (double v : gru.getOutput())
         EXPECT_GT(v, 0.0);
 }
 
 // ── BPTT ──────────────────────────────────────────────────────────────────────
 
-TEST(LstmTest, BpttReturnsNonNegativeLoss)
+TEST(GruTest, BpttReturnsNonNegativeLoss)
 {
-    Lstm lstm(1, 8, 1);
+    Gru gru(1, 8, 1);
     const std::vector<std::vector<double>> xs = { { 0.5 }, { -0.3 }, { 0.7 } };
     const std::vector<std::vector<double>> ys = { { 0.2 }, { -0.1 }, { 0.5 } };
-    EXPECT_GE(lstm.bptt(xs, ys), 0.0);
+    EXPECT_GE(gru.bptt(xs, ys), 0.0);
 }
 
-TEST(LstmTest, BpttEmptySequenceReturnsZero)
+TEST(GruTest, BpttEmptySequenceReturnsZero)
 {
-    Lstm lstm(1, 4, 1);
-    EXPECT_DOUBLE_EQ(lstm.bptt({}, {}), 0.0);
+    Gru gru(1, 4, 1);
+    EXPECT_DOUBLE_EQ(gru.bptt({}, {}), 0.0);
 }
 
-TEST(LstmTest, BpttAdvancesHiddenState)
+TEST(GruTest, BpttAdvancesHiddenState)
 {
-    Lstm lstm(1, 8, 1);
-    const auto h_before = lstm.getHidden();
+    Gru gru(1, 8, 1);
+    const auto h_before = gru.getHidden();
     const std::vector<std::vector<double>> xs = { { 1.0 }, { -1.0 } };
     const std::vector<std::vector<double>> ys = { { 0.5 }, { -0.5 } };
-    lstm.bptt(xs, ys);
-    EXPECT_NE(lstm.getHidden(), h_before);
+    gru.bptt(xs, ys);
+    EXPECT_NE(gru.getHidden(), h_before);
 }
 
 // ── Convergence ───────────────────────────────────────────────────────────────
 
-// LSTM should learn the identity mapping (y_t = x_t) faster than a vanilla RNN.
-TEST(LstmTest, ConvergesOnIdentityMapping)
+TEST(GruTest, ConvergesOnIdentityMapping)
 {
-    Lstm lstm(1, 16, 1, 0.01, 5.0, RnnOutput::Linear);
+    Gru gru(1, 16, 1, 0.01, 5.0, RnnOutput::Linear);
 
     const size_t T = 20;
     std::vector<std::vector<double>> xs(T), ys(T);
@@ -127,18 +126,16 @@ TEST(LstmTest, ConvergesOnIdentityMapping)
     }
 
     double loss = 1e9;
-    for (int ep = 0; ep < 3000; ++ep) {
-        lstm.resetState();
-        loss = lstm.bptt(xs, ys);
+    for (int ep = 0; ep < 2000; ++ep) {
+        gru.resetState();
+        loss = gru.bptt(xs, ys);
     }
     EXPECT_LT(loss, 0.01);
 }
 
-// Delayed echo: predict x_{t-1} (requires one step of memory).
-// The LSTM's cell state makes this trivial; fewer epochs than VanillaRnn.
-TEST(LstmTest, ConvergesOnDelayedEcho)
+TEST(GruTest, ConvergesOnDelayedEcho)
 {
-    Lstm lstm(1, 16, 1, 0.01, 5.0, RnnOutput::Linear);
+    Gru gru(1, 16, 1, 0.01, 5.0, RnnOutput::Linear);
 
     const size_t T = 20;
     std::vector<std::vector<double>> xs(T), ys(T);
@@ -149,16 +146,15 @@ TEST(LstmTest, ConvergesOnDelayedEcho)
 
     double loss = 1e9;
     for (int ep = 0; ep < 3000; ++ep) {
-        lstm.resetState();
-        loss = lstm.bptt(xs, ys);
+        gru.resetState();
+        loss = gru.bptt(xs, ys);
     }
     EXPECT_LT(loss, 0.05);
 }
 
-// Softmax binary sequence: "ab ab ab…" next-char prediction.
-TEST(LstmTest, ConvergesOnSoftmaxBinarySequence)
+TEST(GruTest, ConvergesOnSoftmaxBinarySequence)
 {
-    Lstm lstm(2, 16, 2, 0.01, 5.0, RnnOutput::Softmax);
+    Gru gru(2, 16, 2, 0.01, 5.0, RnnOutput::Softmax);
 
     const size_t T = 20;
     std::vector<std::vector<double>> xs(T), ys(T);
@@ -171,19 +167,19 @@ TEST(LstmTest, ConvergesOnSoftmaxBinarySequence)
 
     double loss = 1e9;
     for (int ep = 0; ep < 3000; ++ep) {
-        lstm.resetState();
-        loss = lstm.bptt(xs, ys);
+        gru.resetState();
+        loss = gru.bptt(xs, ys);
     }
     EXPECT_LT(loss, 0.1);
 }
 
 // ── reshuffleWeights ──────────────────────────────────────────────────────────
 
-TEST(LstmTest, ReshuffleResetsHiddenToZero)
+TEST(GruTest, ReshuffleResetsHiddenToZero)
 {
-    Lstm lstm(2, 8, 1);
-    lstm.step({ 1.0, -1.0 });
-    lstm.reshuffleWeights();
-    for (double v : lstm.getHidden())
+    Gru gru(2, 8, 1);
+    gru.step({ 1.0, -1.0 });
+    gru.reshuffleWeights();
+    for (double v : gru.getHidden())
         EXPECT_DOUBLE_EQ(v, 0.0);
 }
