@@ -88,6 +88,10 @@ MlpMatrixNN::MlpMatrixNN(const std::vector<LayerConfig>& layers, double learning
         l.delta = Eigen::VectorXd::Zero(outSz);
         l.dW = Eigen::MatrixXd::Zero(outSz, inSz);
         l.db = Eigen::VectorXd::Zero(outSz);
+        l.mW = Eigen::MatrixXd::Zero(outSz, inSz);
+        l.vW = Eigen::MatrixXd::Zero(outSz, inSz);
+        l.mb = Eigen::VectorXd::Zero(outSz);
+        l.vb = Eigen::VectorXd::Zero(outSz);
         l.act = layers[i].activation;
         _layers.push_back(std::move(l));
     }
@@ -123,7 +127,12 @@ void MlpMatrixNN::reshuffleWeights()
 
         l.dW.setZero();
         l.db.setZero();
+        l.mW.setZero();
+        l.vW.setZero();
+        l.mb.setZero();
+        l.vb.setZero();
     }
+    _adamT = 0;
 
 #ifdef NUNN_HAS_ARRAYFIRE
     if (_backend == ComputeBackend::OpenCL) {
@@ -137,6 +146,24 @@ void MlpMatrixNN::reshuffleWeights()
         }
     }
 #endif
+}
+
+// ── setOptimizer ──────────────────────────────────────────────────────────────
+
+void MlpMatrixNN::setOptimizer(Optimizer opt, double beta1, double beta2, double eps) noexcept
+{
+    _optimizer = opt;
+    _beta1 = beta1;
+    _beta2 = beta2;
+    _adamEps = eps;
+    // Reset Adam state so moments from a previous run don't bleed in.
+    for (auto& l : _layers) {
+        l.mW.setZero();
+        l.vW.setZero();
+        l.mb.setZero();
+        l.vb.setZero();
+    }
+    _adamT = 0;
 }
 
 // ── setInputVector ────────────────────────────────────────────────────────────
@@ -202,27 +229,59 @@ void MlpMatrixNN::backPropagate(const std::vector<double>& target)
             out.delta = d.cwiseProduct(t - out.a);
         }
         const size_t outIdx = _layers.size() - 1;
-        out.dW = _lr * out.delta * prevA[outIdx]->transpose() + _momentum * out.dW;
-        out.db = _lr * out.delta + _momentum * out.db;
-        out.W += out.dW;
-        out.b += out.db;
 
-        // Hidden layers: propagate delta through already-updated output weights,
-        // mirroring MlpNN's immediate-update order.
-        for (int l = static_cast<int>(_layers.size()) - 2; l >= 0; --l) {
-            const auto& next = _layers[static_cast<size_t>(l + 1)];
-            auto& cur = _layers[static_cast<size_t>(l)];
-
-            const Eigen::VectorXd prop = next.W.transpose() * next.delta;
-            const Eigen::VectorXd d
-                = cur.a.unaryExpr([a = cur.act](double y) { return act::backward(a, y); });
-            cur.delta = prop.cwiseProduct(d);
-
-            cur.dW
-                = _lr * cur.delta * prevA[static_cast<size_t>(l)]->transpose() + _momentum * cur.dW;
-            cur.db = _lr * cur.delta + _momentum * cur.db;
-            cur.W += cur.dW;
-            cur.b += cur.db;
+        if (_optimizer == Optimizer::Adam) {
+            // Adam: compute all deltas with original weights, then update all layers.
+            for (int l = static_cast<int>(_layers.size()) - 2; l >= 0; --l) {
+                const auto& next = _layers[static_cast<size_t>(l + 1)];
+                auto& cur = _layers[static_cast<size_t>(l)];
+                const Eigen::VectorXd prop = next.W.transpose() * next.delta;
+                const Eigen::VectorXd d
+                    = cur.a.unaryExpr([a = cur.act](double y) { return act::backward(a, y); });
+                cur.delta = prop.cwiseProduct(d);
+            }
+            ++_adamT;
+            const double bc1 = 1.0 - std::pow(_beta1, static_cast<double>(_adamT));
+            const double bc2 = 1.0 - std::pow(_beta2, static_cast<double>(_adamT));
+            for (size_t l = 0; l < _layers.size(); ++l) {
+                auto& lay = _layers[l];
+                const Eigen::MatrixXd gW = lay.delta * prevA[l]->transpose();
+                const Eigen::VectorXd gb = lay.delta;
+                lay.mW = _beta1 * lay.mW + (1.0 - _beta1) * gW;
+                lay.vW = _beta2 * lay.vW + (1.0 - _beta2) * gW.cwiseProduct(gW);
+                lay.mb = _beta1 * lay.mb + (1.0 - _beta1) * gb;
+                lay.vb = _beta2 * lay.vb + (1.0 - _beta2) * gb.cwiseProduct(gb);
+                const Eigen::MatrixXd mWhat = lay.mW / bc1;
+                const Eigen::MatrixXd vWhat = lay.vW / bc2;
+                const Eigen::VectorXd mbhat = lay.mb / bc1;
+                const Eigen::VectorXd vbhat = lay.vb / bc2;
+                lay.W += _lr
+                    * mWhat.cwiseQuotient(vWhat.cwiseSqrt()
+                        + Eigen::MatrixXd::Constant(vWhat.rows(), vWhat.cols(), _adamEps));
+                lay.b += _lr
+                    * mbhat.cwiseQuotient(
+                        vbhat.cwiseSqrt() + Eigen::VectorXd::Constant(vbhat.size(), _adamEps));
+            }
+        } else {
+            // SGD + momentum: update output layer first, then propagate delta through
+            // already-updated weights (mirrors MlpNN's immediate-update order).
+            out.dW = _lr * out.delta * prevA[outIdx]->transpose() + _momentum * out.dW;
+            out.db = _lr * out.delta + _momentum * out.db;
+            out.W += out.dW;
+            out.b += out.db;
+            for (int l = static_cast<int>(_layers.size()) - 2; l >= 0; --l) {
+                const auto& next = _layers[static_cast<size_t>(l + 1)];
+                auto& cur = _layers[static_cast<size_t>(l)];
+                const Eigen::VectorXd prop = next.W.transpose() * next.delta;
+                const Eigen::VectorXd d
+                    = cur.a.unaryExpr([a = cur.act](double y) { return act::backward(a, y); });
+                cur.delta = prop.cwiseProduct(d);
+                cur.dW = _lr * cur.delta * prevA[static_cast<size_t>(l)]->transpose()
+                    + _momentum * cur.dW;
+                cur.db = _lr * cur.delta + _momentum * cur.db;
+                cur.W += cur.dW;
+                cur.b += cur.db;
+            }
         }
         return;
     }
@@ -321,14 +380,41 @@ void MlpMatrixNN::trainBatch(
             D[lu] = prop.cwiseProduct(actD);
         }
 
-        // Weight update: mean gradient over batch + momentum.
-        const double lrB = _lr / static_cast<double>(B);
-        for (size_t l = 0; l < _layers.size(); ++l) {
-            const Eigen::MatrixXd& prevA = (l == 0) ? X : A[l - 1];
-            _layers[l].dW = lrB * D[l] * prevA.transpose() + _momentum * _layers[l].dW;
-            _layers[l].db = lrB * D[l].rowwise().sum() + _momentum * _layers[l].db;
-            _layers[l].W += _layers[l].dW;
-            _layers[l].b += _layers[l].db;
+        // Weight update: mean gradient over batch.
+        const double invB = 1.0 / static_cast<double>(B);
+        if (_optimizer == Optimizer::Adam) {
+            ++_adamT;
+            const double bc1 = 1.0 - std::pow(_beta1, static_cast<double>(_adamT));
+            const double bc2 = 1.0 - std::pow(_beta2, static_cast<double>(_adamT));
+            for (size_t l = 0; l < _layers.size(); ++l) {
+                const Eigen::MatrixXd& prevA = (l == 0) ? X : A[l - 1];
+                auto& lay = _layers[l];
+                const Eigen::MatrixXd gW = invB * D[l] * prevA.transpose();
+                const Eigen::VectorXd gb = invB * D[l].rowwise().sum();
+                lay.mW = _beta1 * lay.mW + (1.0 - _beta1) * gW;
+                lay.vW = _beta2 * lay.vW + (1.0 - _beta2) * gW.cwiseProduct(gW);
+                lay.mb = _beta1 * lay.mb + (1.0 - _beta1) * gb;
+                lay.vb = _beta2 * lay.vb + (1.0 - _beta2) * gb.cwiseProduct(gb);
+                const Eigen::MatrixXd mWhat = lay.mW / bc1;
+                const Eigen::MatrixXd vWhat = lay.vW / bc2;
+                const Eigen::VectorXd mbhat = lay.mb / bc1;
+                const Eigen::VectorXd vbhat = lay.vb / bc2;
+                lay.W += _lr
+                    * mWhat.cwiseQuotient(vWhat.cwiseSqrt()
+                        + Eigen::MatrixXd::Constant(vWhat.rows(), vWhat.cols(), _adamEps));
+                lay.b += _lr
+                    * mbhat.cwiseQuotient(
+                        vbhat.cwiseSqrt() + Eigen::VectorXd::Constant(vbhat.size(), _adamEps));
+            }
+        } else {
+            const double lrB = _lr * invB;
+            for (size_t l = 0; l < _layers.size(); ++l) {
+                const Eigen::MatrixXd& prevA = (l == 0) ? X : A[l - 1];
+                _layers[l].dW = lrB * D[l] * prevA.transpose() + _momentum * _layers[l].dW;
+                _layers[l].db = lrB * D[l].rowwise().sum() + _momentum * _layers[l].db;
+                _layers[l].W += _layers[l].dW;
+                _layers[l].b += _layers[l].db;
+            }
         }
         return;
     }

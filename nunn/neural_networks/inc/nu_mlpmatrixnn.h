@@ -57,6 +57,13 @@ public:
         OpenCL, // GPU path via ArrayFire/OpenCL (requires NUNN_HAS_ARRAYFIRE)
     };
 
+    // ── Optimizer ─────────────────────────────────────────────────────────────
+
+    enum class Optimizer {
+        SGD, // stochastic gradient descent (+ optional momentum)
+        Adam, // adaptive moment estimation (Kingma & Ba, 2015)
+    };
+
     // ── Exceptions ────────────────────────────────────────────────────────────
 
     class InvalidCostFunctionCombinationException : public std::runtime_error {
@@ -111,6 +118,13 @@ public:
     [[nodiscard]] double getMomentum() const noexcept { return _momentum; }
     [[nodiscard]] CostFunction getCostFunction() const noexcept { return _cf; }
     [[nodiscard]] ComputeBackend getBackend() const noexcept { return _backend; }
+    [[nodiscard]] Optimizer getOptimizer() const noexcept { return _optimizer; }
+
+    // Switch optimizer. Adam hyperparameters use standard defaults when omitted.
+    // Resets Adam state (moments and step counter) on every call.
+    // The OpenCL backend always uses SGD regardless of this setting.
+    void setOptimizer(
+        Optimizer opt, double beta1 = 0.9, double beta2 = 0.999, double eps = 1e-8) noexcept;
 
     // Number of neuron layers (not counting input).
     [[nodiscard]] size_t numLayers() const noexcept { return _layers.size(); }
@@ -135,8 +149,11 @@ private:
         Eigen::VectorXd b; // [out_size]             bias vector
         Eigen::VectorXd a; // [out_size]             activation output (host mirror)
         Eigen::VectorXd delta; // [out_size]             error signal (Eigen path)
-        Eigen::MatrixXd dW; // [out_size × in_size]   momentum accumulator for W
-        Eigen::VectorXd db; // [out_size]             momentum accumulator for b
+        Eigen::MatrixXd dW; // [out_size × in_size]   SGD/momentum accumulator for W
+        Eigen::VectorXd db; // [out_size]             SGD/momentum accumulator for b
+        // Adam first-moment (mean) and second-moment (uncentred variance) accumulators
+        Eigen::MatrixXd mW, vW; // same shape as W
+        Eigen::VectorXd mb, vb; // same shape as b
         Activation act;
 
 #ifdef NUNN_HAS_ARRAYFIRE
@@ -158,6 +175,12 @@ private:
     double _momentum = 0.0;
     CostFunction _cf = CostFunction::MSE;
     ComputeBackend _backend = ComputeBackend::Eigen;
+    Optimizer _optimizer = Optimizer::SGD;
+    // Adam hyperparameters
+    double _beta1 = 0.9;
+    double _beta2 = 0.999;
+    double _adamEps = 1e-8;
+    size_t _adamT = 0; // step counter (incremented on each weight update)
 
     static void _validateCostFunction(CostFunction cf, Activation outAct)
     {

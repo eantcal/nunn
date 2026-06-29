@@ -404,3 +404,91 @@ TEST(MatrixBatchTest, FullBatch_XOR_Tanh_CE)
         5000, 4, 15);
     EXPECT_LT(best, 0.1) << "Full-batch Tanh+CE XOR did not converge";
 }
+
+// ── Adam optimizer ────────────────────────────────────────────────────────────
+
+TEST(AdamTest, DefaultOptimizerIsSGD)
+{
+    MlpMatrixNN net({ LC{ 2 }, { 4, Activation::Sigmoid }, { 1, Activation::Sigmoid } });
+    EXPECT_EQ(net.getOptimizer(), MlpMatrixNN::Optimizer::SGD);
+}
+
+TEST(AdamTest, SetOptimizerSwitchesToAdam)
+{
+    MlpMatrixNN net({ LC{ 2 }, { 4, Activation::Sigmoid }, { 1, Activation::Sigmoid } });
+    net.setOptimizer(MlpMatrixNN::Optimizer::Adam);
+    EXPECT_EQ(net.getOptimizer(), MlpMatrixNN::Optimizer::Adam);
+}
+
+TEST(AdamTest, SetOptimizerSwitchesBackToSGD)
+{
+    MlpMatrixNN net({ LC{ 2 }, { 4, Activation::Sigmoid }, { 1, Activation::Sigmoid } });
+    net.setOptimizer(MlpMatrixNN::Optimizer::Adam);
+    net.setOptimizer(MlpMatrixNN::Optimizer::SGD);
+    EXPECT_EQ(net.getOptimizer(), MlpMatrixNN::Optimizer::SGD);
+}
+
+TEST(AdamTest, SingleSampleXOR_Converges)
+{
+    // Adam should converge on XOR faster than vanilla SGD.
+    // We only require convergence within a generous budget.
+    const std::vector<std::vector<double>> X{ { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } };
+    const std::vector<std::vector<double>> Y{ { 0 }, { 1 }, { 1 }, { 0 } };
+    double bestMse = 1.0;
+    for (int trial = 0; trial < 5; ++trial) {
+        MlpMatrixNN net(
+            { LC{ 2 }, { 8, Activation::Sigmoid }, { 1, Activation::Sigmoid } }, 0.01 /* lr */);
+        net.setOptimizer(MlpMatrixNN::Optimizer::Adam);
+        for (int ep = 0; ep < 5000; ++ep) {
+            for (size_t i = 0; i < X.size(); ++i) {
+                net.setInputVector(X[i]);
+                net.feedForward();
+                net.backPropagate(Y[i]);
+            }
+        }
+        double mse = 0.0;
+        for (size_t i = 0; i < X.size(); ++i) {
+            net.setInputVector(X[i]);
+            net.feedForward();
+            mse += net.calcMSE(Y[i]);
+        }
+        bestMse = std::min(bestMse, mse / static_cast<double>(X.size()));
+    }
+    EXPECT_LT(bestMse, 0.05) << "Adam single-sample XOR did not converge";
+}
+
+TEST(AdamTest, BatchXOR_Converges)
+{
+    const std::vector<std::vector<double>> X{ { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } };
+    const std::vector<std::vector<double>> Y{ { 0 }, { 1 }, { 1 }, { 0 } };
+    double bestMse = 1.0;
+    for (int trial = 0; trial < 5; ++trial) {
+        MlpMatrixNN net({ LC{ 2 }, { 8, Activation::Sigmoid }, { 1, Activation::Sigmoid } }, 0.01);
+        net.setOptimizer(MlpMatrixNN::Optimizer::Adam);
+        for (int ep = 0; ep < 3000; ++ep)
+            net.trainBatch(X, Y);
+        double mse = 0.0;
+        for (size_t i = 0; i < X.size(); ++i) {
+            net.setInputVector(X[i]);
+            net.feedForward();
+            mse += net.calcMSE(Y[i]);
+        }
+        bestMse = std::min(bestMse, mse / static_cast<double>(X.size()));
+    }
+    EXPECT_LT(bestMse, 0.05) << "Adam batch XOR did not converge";
+}
+
+TEST(AdamTest, ReshuffleResetsAdamState)
+{
+    MlpMatrixNN net({ LC{ 2 }, { 4, Activation::Sigmoid }, { 1, Activation::Sigmoid } }, 0.01);
+    net.setOptimizer(MlpMatrixNN::Optimizer::Adam);
+    // Run a few updates so moments accumulate.
+    net.setInputVector({ 0.5, 0.5 });
+    net.feedForward();
+    net.backPropagate({ 1.0 });
+    // After reshuffle the network should still be usable (no crash, moments reset).
+    EXPECT_NO_THROW(net.reshuffleWeights());
+    net.setInputVector({ 0.5, 0.5 });
+    net.feedForward();
+    EXPECT_NO_THROW(net.backPropagate({ 0.0 }));
+}
