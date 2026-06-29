@@ -22,6 +22,8 @@ add_subdirectory(tictactoe)
 add_subdirectory(xor_test)
 add_subdirectory(titanic)
 add_subdirectory(linear_regression_demo)
+add_subdirectory(kmeans_demo)
+add_subdirectory(pca_demo)
 
 if(WIN32)
     add_subdirectory(ocr_test)
