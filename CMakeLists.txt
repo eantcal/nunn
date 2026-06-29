@@ -85,6 +85,7 @@ endif()
 install(TARGETS
         and_test counter_test hopfield_test maze path_finder
         tictactoe xor_test titanic nunn_topo mnist_test
+        linear_regression_demo
     RUNTIME DESTINATION bin
     COMPONENT runtime
 )

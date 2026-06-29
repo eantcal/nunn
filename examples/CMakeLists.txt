@@ -21,6 +21,7 @@ add_subdirectory(path_finder)
 add_subdirectory(tictactoe)
 add_subdirectory(xor_test)
 add_subdirectory(titanic)
+add_subdirectory(linear_regression_demo)
 
 if(WIN32)
     add_subdirectory(ocr_test)
