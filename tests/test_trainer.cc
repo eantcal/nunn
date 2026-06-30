@@ -78,3 +78,56 @@ TEST(TrainerTest, PartialTrainingIndependentOfCallbackPresence)
     const int withoutCbk = countTrainedSamples(/*withProgressCallback=*/false, 0.5);
     EXPECT_EQ(withCbk, withoutCbk);
 }
+
+TEST(TrainerTest, ZeroPartialTrainingSkipsAllSamples)
+{
+    EXPECT_EQ(countTrainedSamples(/*withProgressCallback=*/false, 0.0), 0);
+    EXPECT_EQ(countTrainedSamples(/*withProgressCallback=*/true, 0.0), 0);
+}
+
+TEST(TrainerTest, ProgressCallbackReceivesCurrentSampleError)
+{
+    Perceptron p(2, 0.1);
+    PerceptronTrainer trainer(p, /*epochs=*/1, /*minErr=*/-1.0);
+
+    std::vector<double> errors;
+    int trained = 0;
+
+    auto cost = [&trained](Perceptron&, const double&) {
+        ++trained;
+        return double(trained);
+    };
+
+    auto callback
+        = [&errors](Perceptron&, const Vector&, const double&, size_t, size_t, double err) {
+              errors.push_back(err);
+              return false;
+          };
+
+    trainer.runTraining(andSet(), cost, callback);
+
+    ASSERT_EQ(errors.size(), andSet().size());
+    EXPECT_DOUBLE_EQ(errors[0], 1.0);
+    EXPECT_DOUBLE_EQ(errors[1], 2.0);
+    EXPECT_DOUBLE_EQ(errors[2], 3.0);
+    EXPECT_DOUBLE_EQ(errors[3], 4.0);
+}
+
+TEST(TrainerTest, ProgressCallbackStopsAfterCurrentSample)
+{
+    Perceptron p(2, 0.1);
+    PerceptronTrainer trainer(p, /*epochs=*/1, /*minErr=*/-1.0);
+
+    int trained = 0;
+    auto cost = [&trained](Perceptron&, const double&) {
+        ++trained;
+        return 1.0;
+    };
+
+    auto stopAfterFirstSample
+        = [](Perceptron&, const Vector&, const double&, size_t, size_t, double) { return true; };
+
+    trainer.runTraining(andSet(), cost, stopAfterFirstSample);
+
+    EXPECT_EQ(trained, 1);
+}

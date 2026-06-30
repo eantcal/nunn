@@ -108,6 +108,9 @@ Bug fixes (committed separately):
 - Perceptron: save/load/JSON round-trip preserves momentum and cost function
 - NNTrainer::runTraining(): early stopping now checks epoch-average cost
   (textbook convention) instead of stopping on any single-sample threshold
+- MlpNNTrainer is deprecated in favor of the clearer MlpTrainer name. Existing
+  code remains source-compatible, but new examples and documentation use
+  MlpTrainer.
 - NNTrainer::end(): fixed iterator off-by-one (_epochs+1 corrected to _epochs)
 - run_all.ps1: replaced UTF-8 em-dash with ASCII -- to fix PS 5.1 parse error
 

@@ -126,11 +126,11 @@ nn.feedForward();
 nn.backPropagate(target);
 ```
 
-`MlpNNTrainer` wraps the epoch loop with an early-stopping criterion:
+`MlpTrainer` wraps the epoch loop with an early-stopping criterion:
 
 ```cpp
-nu::MlpNNTrainer trainer(nn, /*max_epochs*/ 30, /*min_err*/ 0.01);
-trainer.train<TrainingSet>(dataset, costCallback);
+nu::MlpTrainer trainer(nn, /*max_epochs*/ 30, /*min_err*/ 0.01);
+trainer.runTraining(dataset, costCallback);
 ```
 
 Model states can be saved and reloaded:
@@ -159,8 +159,8 @@ x1 | x2 | y
 ```cpp
 nu::MlpNN nn({2, 2, 1}, 0.4, 0.9);
 
-nu::MlpNNTrainer trainer(nn, 20000, 0.01);
-trainer.train<TrainingSet>(
+nu::MlpTrainer trainer(nn, 20000, 0.01);
+trainer.runTraining<TrainingSet>(
     {{{0,0},{0}}, {{0,1},{1}}, {{1,0},{1}}, {{1,1},{0}}},
     [](nu::MlpNN& net, const auto& target) {
         return net.calcMSE(target);

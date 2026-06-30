@@ -22,7 +22,7 @@ using DataSet = std::map<std::vector<double>, std::vector<double>>;
 using TrainingSet = DataSet; // Represents a set of training data.
 using TestSet = DataSet; // Represents a set of test data.
 using NN = nu::MlpNN; // Shorthand for a Multi-Layer Perceptron Neural Network.
-using Trainer = nu::MlpNNTrainer; // Shorthand for the MLP Neural Network Trainer.
+using Trainer = nu::MlpTrainer; // Shorthand for the MLP trainer.
 
 // Represents data about a passenger, for use in machine learning models.
 struct Passenger {

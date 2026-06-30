@@ -7,6 +7,12 @@
 //
 
 #pragma once
+
+#include <algorithm>
+#include <cmath>
+#include <functional>
+#include <utility>
+
 namespace nu {
 
 //! The trainer class is a helper class for neural networks training
@@ -126,7 +132,7 @@ public:
     size_t getEpochs() const noexcept { return _epochs; }
 
     //! Return the expected min error value at which to stop training
-    //! on sample basis.
+    //! on epoch-average basis.
     //! If negative it will be ignored
     double getMinErr() const noexcept { return _minError; }
 
@@ -155,7 +161,14 @@ public:
     size_t runTraining(const TSet& trainingSet, costFunction_t errCost,
         progressCallback_t progressCbk = nullptr, double p2use = 1.0)
     {
-        const size_t end_idx = size_t(double(trainingSet.size()) * p2use);
+        const auto sampleCount = trainingSet.size();
+        const double useRatio = std::isfinite(p2use) ? std::clamp(p2use, 0.0, 1.0) : 0.0;
+        const size_t samplesToUse
+            = useRatio <= 0.0 ? 0 : static_cast<size_t>(std::ceil(double(sampleCount) * useRatio));
+
+        if (_epochs == 0 || sampleCount == 0 || samplesToUse == 0)
+            return 0;
+
         size_t epoch = 0;
 
         for (; epoch < _epochs; ++epoch) {
@@ -164,21 +177,17 @@ public:
             bool bContinue = true;
 
             for (const auto& [input, target] : trainingSet) {
-                if (progressCbk) {
-                    bContinue = !progressCbk(_nn, input, target, epoch, sampleIdx, _err);
-                }
-
-                // Advance the sample index regardless of whether a progress
-                // callback is supplied, otherwise the partial-set early stop
-                // (p2use < 1.0) would never trigger without a callback.
-                ++sampleIdx;
-
                 _nn.setInputVector(input);
                 _nn.backPropagate(target);
                 _err = errCost(_nn, target);
                 epochErrSum += _err;
 
-                if (!bContinue || (p2use < 1.0 && sampleIdx >= end_idx)) {
+                if (progressCbk)
+                    bContinue = !progressCbk(_nn, input, target, epoch, sampleIdx, _err);
+
+                ++sampleIdx;
+
+                if (!bContinue || sampleIdx >= samplesToUse) {
                     break;
                 }
             }

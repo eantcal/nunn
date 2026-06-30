@@ -226,9 +226,17 @@ private:
 };
 
 //! Trainer helper for MLP networks.
-struct MlpNNTrainer : public NNTrainer<MlpNN, MlpNN::FpVector, MlpNN::FpVector> {
-    MlpNNTrainer(MlpNN& nn, size_t epochs, double minErr = -1) noexcept
+struct MlpTrainer : public NNTrainer<MlpNN, MlpNN::FpVector, MlpNN::FpVector> {
+    MlpTrainer(MlpNN& nn, size_t epochs, double minErr = -1) noexcept
         : NNTrainer<MlpNN, MlpNN::FpVector, MlpNN::FpVector>(nn, epochs, minErr)
+    {
+    }
+};
+
+//! Deprecated compatibility name. Use MlpTrainer instead.
+struct [[deprecated("Use nu::MlpTrainer instead")]] MlpNNTrainer : public MlpTrainer {
+    MlpNNTrainer(MlpNN& nn, size_t epochs, double minErr = -1) noexcept
+        : MlpTrainer(nn, epochs, minErr)
     {
     }
 };

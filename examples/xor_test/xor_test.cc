@@ -39,7 +39,7 @@
 
 
 using NeuralNet = nu::MlpNN;
-using Trainer = nu::MlpNNTrainer;
+using Trainer = nu::MlpTrainer;
 
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
