@@ -417,6 +417,9 @@ std::vector<int> MiniTransformer::generate(
     std::mt19937 localRng(42);
     std::mt19937& gen = rng ? *rng : localRng;
 
+    if (temperature <= 0.0)
+        throw std::invalid_argument("MiniTransformer::generate: temperature must be > 0");
+
     for (size_t i = 0; i < nTokens; ++i) {
         // Build a seqLen-sized context window.
         std::vector<int> window;

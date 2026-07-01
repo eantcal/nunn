@@ -82,9 +82,14 @@ double VanillaRnn::bptt(const std::vector<std::vector<double>>& inputs,
         y_stored[t] = std::move(y);
     }
 
-    // ── Loss ──────────────────────────────────────────────────────────────────
+    // ── Loss and backward window ──────────────────────────────────────────────
+    // Compute t_start here so both loss and gradient use the same window.
+    const size_t t_start = (T > truncate) ? T - truncate : 0;
+    const size_t window = T - t_start; // == min(T, truncate)
+    const double inv_window = 1.0 / static_cast<double>(window);
+
     double loss = 0.0;
-    for (size_t t = 0; t < T; ++t) {
+    for (size_t t = t_start; t < T; ++t) {
         const Eigen::VectorXd tv
             = Eigen::Map<const Eigen::VectorXd>(targets[t].data(), static_cast<Eigen::Index>(_no));
         if (_outMode == RnnOutput::Softmax) {
@@ -94,7 +99,7 @@ double VanillaRnn::bptt(const std::vector<std::vector<double>>& inputs,
             loss += 0.5 * (y_stored[t] - tv).squaredNorm();
         }
     }
-    loss /= static_cast<double>(T);
+    loss /= static_cast<double>(window);
 
     // ── Backward pass (truncated BPTT) ────────────────────────────────────────
     Eigen::MatrixXd dWx = Eigen::MatrixXd::Zero(_nh, _ni);
@@ -105,16 +110,13 @@ double VanillaRnn::bptt(const std::vector<std::vector<double>>& inputs,
 
     Eigen::VectorXd dh_next = Eigen::VectorXd::Zero(_nh);
 
-    const size_t t_start = (T > truncate) ? T - truncate : 0;
-    const double inv_T = 1.0 / static_cast<double>(T);
-
     for (size_t t = T; t-- > t_start;) {
         const Eigen::VectorXd tv
             = Eigen::Map<const Eigen::VectorXd>(targets[t].data(), static_cast<Eigen::Index>(_no));
 
-        // Gradient of loss w.r.t. net_y (pre-activation of output layer).
-        // For both MSE+Linear and CE+Softmax this simplifies to (y - target)/T.
-        const Eigen::VectorXd dy = (y_stored[t] - tv) * inv_T;
+        // Gradient of mean loss over the backward window w.r.t. net_y.
+        // For both MSE+Linear and CE+Softmax this simplifies to (y - target)/window.
+        const Eigen::VectorXd dy = (y_stored[t] - tv) * inv_window;
 
         dWy += dy * h_stored[t + 1].transpose();
         dby += dy;

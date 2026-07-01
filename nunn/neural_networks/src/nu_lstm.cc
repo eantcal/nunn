@@ -117,9 +117,13 @@ double Lstm::bptt(const std::vector<std::vector<double>>& inputs,
         y_s[t] = std::move(r.y);
     }
 
-    // ── Loss ──────────────────────────────────────────────────────────────────
+    // ── Loss and backward window ──────────────────────────────────────────────
+    const size_t t_start = (T > truncate) ? T - truncate : 0;
+    const size_t window = T - t_start;
+    const double inv_window = 1.0 / static_cast<double>(window);
+
     double loss = 0.0;
-    for (size_t t = 0; t < T; ++t) {
+    for (size_t t = t_start; t < T; ++t) {
         const Eigen::VectorXd tv = Eigen::Map<const Eigen::VectorXd>(targets[t].data(), no);
         if (_outMode == RnnOutput::Softmax) {
             for (Eigen::Index k = 0; k < no; ++k)
@@ -128,7 +132,7 @@ double Lstm::bptt(const std::vector<std::vector<double>>& inputs,
             loss += 0.5 * (y_s[t] - tv).squaredNorm();
         }
     }
-    loss /= static_cast<double>(T);
+    loss /= static_cast<double>(window);
 
     // ── Backward pass (truncated BPTT) ────────────────────────────────────────
     Eigen::MatrixXd dW = Eigen::MatrixXd::Zero(nh4, ni);
@@ -140,15 +144,12 @@ double Lstm::bptt(const std::vector<std::vector<double>>& inputs,
     Eigen::VectorXd dh_next = Eigen::VectorXd::Zero(nh);
     Eigen::VectorXd dc_next = Eigen::VectorXd::Zero(nh);
 
-    const size_t t_start = (T > truncate) ? T - truncate : 0;
-    const double inv_T = 1.0 / static_cast<double>(T);
-
     for (size_t t = T; t-- > t_start;) {
         const Eigen::VectorXd tv = Eigen::Map<const Eigen::VectorXd>(targets[t].data(), no);
 
         // ── Output layer ──────────────────────────────────────────────────────
-        // Gradient: (y - target)/T  (same form for MSE+Linear and CE+Softmax)
-        const Eigen::VectorXd dy = (y_s[t] - tv) * inv_T;
+        // Gradient: (y - target)/window (MSE+Linear and CE+Softmax same form)
+        const Eigen::VectorXd dy = (y_s[t] - tv) * inv_window;
         dWy += dy * h_s[t + 1].transpose();
         dby += dy;
 

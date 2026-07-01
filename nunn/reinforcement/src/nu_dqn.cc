@@ -30,6 +30,8 @@ Dqn::Dqn(const std::vector<MlpMatrixNN::LayerConfig>& netLayers, double lr, size
         throw std::invalid_argument("Dqn: netLayers must have at least input and output");
     if (batchSize == 0)
         throw std::invalid_argument("Dqn: batchSize must be > 0");
+    if (targetUpdateFreq == 0)
+        throw std::invalid_argument("Dqn: targetUpdateFreq must be > 0");
     _syncTarget();
 }
 
