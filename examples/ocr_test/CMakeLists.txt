@@ -23,7 +23,7 @@ target_compile_definitions(ocr_test PRIVATE
     _WINDOWS
 )
 
-target_link_libraries(ocr_test PRIVATE nunn mnist Comctl32)
+target_link_libraries(ocr_test PRIVATE nunn mnist Comctl32 Shell32)
 
 if(MSVC)
     target_compile_options(ocr_test PRIVATE /W3 /permissive-)

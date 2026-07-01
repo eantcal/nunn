@@ -24,12 +24,17 @@
 
 #include "mnist.h"
 #include "nu_nn_model.h"
+#include "nu_mlpnn.h"
+#include "nu_mlpmatrixnn.h"
 
 #include <algorithm>
+#include <atomic>
 #include <fstream>
 #include <memory>
+#include <shlobj.h>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #define PROG_VERSION "1.56"
@@ -105,6 +110,32 @@ static std::vector<ModelProfile> g_profiles;
 static HMENU g_modelsMenu = nullptr;
 static int g_activeProfile = -1;
 
+// ── MNIST training state ──────────────────────────────────────────────────────
+
+#define WM_TRAIN_PROGRESS (WM_APP + 10) // wParam=epoch, lParam=totalEpochs
+#define WM_TRAIN_DONE (WM_APP + 11)
+#define WM_TRAIN_ERROR (WM_APP + 12) // lParam=heap-allocated char* message
+
+static std::atomic<bool> g_trainRunning{ false };
+static std::thread g_trainThread;
+static std::string s_trainedModelPath; // set by WM_TRAIN_DONE handler
+static std::string s_lastMnistPath;
+static std::string s_lastSavePath;
+
+struct TrainConfig {
+    HWND hDlg;
+    bool useMatrix;
+    std::vector<size_t> hidden;
+    nu::Activation activation;
+    nu::CostFunction cf;
+    double lr;
+    double momentum;
+    int epochs;
+    size_t batchSize;
+    std::string mnistPath;
+    std::string savePath;
+};
+
 
 // Toolbar
 static toolbar_t* gtb = nullptr;
@@ -135,6 +166,416 @@ ATOM MyRegisterClass(HINSTANCE hInstance);
 BOOL InitInstance(HINSTANCE, int);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK TrainDlgProc(HWND, UINT, WPARAM, LPARAM);
+
+// ── Training helpers ──────────────────────────────────────────────────────────
+
+static std::vector<size_t> ParseHiddenLayers(const std::string& s)
+{
+    std::vector<size_t> result;
+    std::istringstream ss(s);
+    std::string tok;
+    while (std::getline(ss, tok, ',')) {
+        try {
+            result.push_back(static_cast<size_t>(std::stoul(tok)));
+        } catch (...) {
+        }
+    }
+    return result.empty() ? std::vector<size_t>{ 300 } : result;
+}
+
+// Enable or disable all configuration controls while training is running.
+static void SetTrainControlsEnabled(HWND hDlg, bool enabled)
+{
+    const int ids[]
+        = { IDC_RADIO_MLP, IDC_RADIO_MATRIX, IDC_EDIT_HIDDEN, IDC_COMBO_ACT, IDC_RADIO_MSE,
+              IDC_RADIO_CE, IDC_EDIT_LR, IDC_EDIT_MOMENTUM, IDC_EDIT_EPOCHS, IDC_EDIT_BATCH,
+              IDC_EDIT_MNIST_PATH, IDC_BTN_BROWSE_MNIST, IDC_EDIT_SAVE_PATH, IDC_BTN_BROWSE_SAVE };
+    for (int id : ids)
+        EnableWindow(GetDlgItem(hDlg, id), enabled ? TRUE : FALSE);
+}
+
+// ── MNIST training worker (runs on a background thread) ───────────────────────
+
+static void TrainWorkerFn(TrainConfig cfg)
+{
+    try {
+        const std::string lblFile = cfg.mnistPath + "\\train-labels.idx1-ubyte";
+        const std::string imgFile = cfg.mnistPath + "\\train-images.idx3-ubyte";
+
+        TrainingData trainingSet(lblFile, imgFile);
+        trainingSet.load();
+
+        const auto& data = trainingSet.data();
+        if (data.empty())
+            throw std::runtime_error("No training samples loaded from the MNIST path");
+
+        const size_t inputSize = data.front()->get_dx() * data.front()->get_dy();
+
+        if (!cfg.useMatrix) {
+            // ── MlpNN path ───────────────────────────────────────────────────
+            std::vector<nu::MlpNN::LayerConfig> layers;
+            layers.emplace_back(inputSize);
+            for (size_t h : cfg.hidden)
+                layers.emplace_back(h, cfg.activation);
+            layers.emplace_back(size_t(10), nu::Activation::Sigmoid);
+
+            auto net = std::make_unique<nu::MlpNN>(layers, cfg.lr, cfg.momentum, cfg.cf);
+
+            for (int ep = 0; ep < cfg.epochs && g_trainRunning; ++ep) {
+                trainingSet.reshuffle();
+                for (const auto& item : trainingSet.data()) {
+                    if (!g_trainRunning)
+                        break;
+                    nu::Vector inp, tgt;
+                    item->toVect(inp);
+                    item->labelToTarget(tgt);
+                    net->setInputVector(inp);
+                    net->backPropagate(tgt);
+                }
+                PostMessage(cfg.hDlg, WM_TRAIN_PROGRESS, ep + 1, cfg.epochs);
+            }
+
+            if (g_trainRunning && !cfg.savePath.empty()) {
+                std::ofstream f(cfg.savePath);
+                if (!f.is_open())
+                    throw std::runtime_error("Cannot open save path: " + cfg.savePath);
+                net->toJson(f);
+            }
+        } else {
+            // ── MlpMatrixNN path ─────────────────────────────────────────────
+            std::vector<nu::MlpMatrixNN::LayerConfig> layers;
+            layers.emplace_back(inputSize);
+            for (size_t h : cfg.hidden)
+                layers.emplace_back(h, cfg.activation);
+            layers.emplace_back(size_t(10), nu::Activation::Sigmoid);
+
+            auto net = std::make_unique<nu::MlpMatrixNN>(layers, cfg.lr, cfg.momentum, cfg.cf);
+
+            const size_t bsz = cfg.batchSize < 1 ? 1 : cfg.batchSize;
+
+            for (int ep = 0; ep < cfg.epochs && g_trainRunning; ++ep) {
+                trainingSet.reshuffle();
+
+                if (bsz == 1) {
+                    for (const auto& item : trainingSet.data()) {
+                        if (!g_trainRunning)
+                            break;
+                        nu::Vector inp, tgt;
+                        item->toVect(inp);
+                        item->labelToTarget(tgt);
+                        std::vector<double> inpv(inp.begin(), inp.end());
+                        std::vector<double> tgtv(tgt.begin(), tgt.end());
+                        net->setInputVector(inpv);
+                        net->feedForward();
+                        net->backPropagate(tgtv);
+                    }
+                } else {
+                    std::vector<std::vector<double>> bIn, bTgt;
+                    bIn.reserve(bsz);
+                    bTgt.reserve(bsz);
+                    for (const auto& item : trainingSet.data()) {
+                        if (!g_trainRunning)
+                            break;
+                        nu::Vector inp, tgt;
+                        item->toVect(inp);
+                        item->labelToTarget(tgt);
+                        bIn.push_back(std::vector<double>(inp.begin(), inp.end()));
+                        bTgt.push_back(std::vector<double>(tgt.begin(), tgt.end()));
+                        if (bIn.size() == bsz) {
+                            net->trainBatch(bIn, bTgt);
+                            bIn.clear();
+                            bTgt.clear();
+                        }
+                    }
+                    if (!bIn.empty() && g_trainRunning)
+                        net->trainBatch(bIn, bTgt);
+                }
+
+                PostMessage(cfg.hDlg, WM_TRAIN_PROGRESS, ep + 1, cfg.epochs);
+            }
+
+            if (g_trainRunning && !cfg.savePath.empty()) {
+                std::ofstream f(cfg.savePath);
+                if (!f.is_open())
+                    throw std::runtime_error("Cannot open save path: " + cfg.savePath);
+                net->toJson(f);
+            }
+        }
+
+        g_trainRunning = false;
+        PostMessage(cfg.hDlg, WM_TRAIN_DONE, 0, 0);
+    } catch (const std::exception& e) {
+        g_trainRunning = false;
+        char* msg = _strdup(e.what());
+        PostMessage(cfg.hDlg, WM_TRAIN_ERROR, 0, reinterpret_cast<LPARAM>(msg));
+    }
+}
+
+// ── Training dialog procedure ─────────────────────────────────────────────────
+
+INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg) {
+
+    case WM_INITDIALOG: {
+        CheckRadioButton(hDlg, IDC_RADIO_MLP, IDC_RADIO_MATRIX, IDC_RADIO_MLP);
+
+        HWND hCombo = GetDlgItem(hDlg, IDC_COMBO_ACT);
+        SendMessage(hCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Sigmoid"));
+        SendMessage(hCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Tanh"));
+        SendMessage(hCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("ReLU"));
+        SendMessage(hCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("LeakyReLU"));
+        SendMessage(hCombo, CB_SETCURSEL, 0, 0);
+
+        CheckRadioButton(hDlg, IDC_RADIO_MSE, IDC_RADIO_CE, IDC_RADIO_MSE);
+
+        SetDlgItemText(hDlg, IDC_EDIT_HIDDEN, "300");
+        SetDlgItemText(hDlg, IDC_EDIT_LR, "0.025");
+        SetDlgItemText(hDlg, IDC_EDIT_MOMENTUM, "0.5");
+        SetDlgItemText(hDlg, IDC_EDIT_EPOCHS, "30");
+        SetDlgItemText(hDlg, IDC_EDIT_BATCH, "1");
+
+        if (!s_lastMnistPath.empty())
+            SetDlgItemText(hDlg, IDC_EDIT_MNIST_PATH, s_lastMnistPath.c_str());
+        if (!s_lastSavePath.empty())
+            SetDlgItemText(hDlg, IDC_EDIT_SAVE_PATH, s_lastSavePath.c_str());
+
+        SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
+        SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETPOS, 0, 0);
+        return TRUE;
+    }
+
+    case WM_COMMAND: {
+        const int id = LOWORD(wParam);
+
+        if (id == IDC_BTN_BROWSE_MNIST) {
+            char buf[MAX_PATH] = {};
+            BROWSEINFOA bi = {};
+            bi.hwndOwner = hDlg;
+            bi.pszDisplayName = buf;
+            bi.lpszTitle = "Select MNIST data directory";
+            bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+            LPITEMIDLIST pidl = SHBrowseForFolderA(&bi);
+            if (pidl) {
+                char path[MAX_PATH] = {};
+                SHGetPathFromIDListA(pidl, path);
+                CoTaskMemFree(pidl);
+                SetDlgItemText(hDlg, IDC_EDIT_MNIST_PATH, path);
+            }
+            return TRUE;
+        }
+
+        if (id == IDC_BTN_BROWSE_SAVE) {
+            char path[MAX_PATH] = {};
+            OPENFILENAMEA ofn = {};
+            ofn.lStructSize = sizeof(ofn);
+            ofn.hwndOwner = hDlg;
+            ofn.lpstrFile = path;
+            ofn.nMaxFile = MAX_PATH;
+            ofn.lpstrFilter = "nunn JSON\0*.json\0All Files\0*.*\0\0";
+            ofn.lpstrDefExt = "json";
+            ofn.lpstrTitle = "Save Trained Network";
+            ofn.Flags = OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
+            if (GetSaveFileNameA(&ofn))
+                SetDlgItemText(hDlg, IDC_EDIT_SAVE_PATH, path);
+            return TRUE;
+        }
+
+        if (id == IDC_BTN_TRAIN) {
+            if (g_trainRunning) {
+                // Become a Cancel button while training
+                g_trainRunning = false;
+                SetDlgItemText(hDlg, IDC_STATUS_TEXT, "Cancelling...");
+                EnableWindow(GetDlgItem(hDlg, IDC_BTN_TRAIN), FALSE);
+                return TRUE;
+            }
+
+            char buf[MAX_PATH] = {};
+
+            TrainConfig cfg;
+            cfg.hDlg = hDlg;
+            cfg.useMatrix = (IsDlgButtonChecked(hDlg, IDC_RADIO_MATRIX) == BST_CHECKED);
+
+            GetDlgItemText(hDlg, IDC_EDIT_HIDDEN, buf, MAX_PATH);
+            cfg.hidden = ParseHiddenLayers(buf);
+
+            static const nu::Activation kActs[] = { nu::Activation::Sigmoid, nu::Activation::Tanh,
+                nu::Activation::ReLU, nu::Activation::LeakyReLU };
+            int actIdx
+                = static_cast<int>(SendDlgItemMessage(hDlg, IDC_COMBO_ACT, CB_GETCURSEL, 0, 0));
+            cfg.activation = (actIdx >= 0 && actIdx < 4) ? kActs[actIdx] : nu::Activation::Sigmoid;
+
+            cfg.cf = (IsDlgButtonChecked(hDlg, IDC_RADIO_CE) == BST_CHECKED)
+                ? nu::CostFunction::CrossEntropy
+                : nu::CostFunction::MSE;
+
+            GetDlgItemText(hDlg, IDC_EDIT_LR, buf, sizeof(buf));
+            try {
+                cfg.lr = std::stod(buf);
+            } catch (...) {
+                cfg.lr = 0.025;
+            }
+
+            GetDlgItemText(hDlg, IDC_EDIT_MOMENTUM, buf, sizeof(buf));
+            try {
+                cfg.momentum = std::stod(buf);
+            } catch (...) {
+                cfg.momentum = 0.5;
+            }
+
+            cfg.epochs = static_cast<int>(GetDlgItemInt(hDlg, IDC_EDIT_EPOCHS, nullptr, FALSE));
+            if (cfg.epochs < 1)
+                cfg.epochs = 1;
+
+            cfg.batchSize
+                = static_cast<size_t>(GetDlgItemInt(hDlg, IDC_EDIT_BATCH, nullptr, FALSE));
+            if (cfg.batchSize < 1)
+                cfg.batchSize = 1;
+
+            GetDlgItemText(hDlg, IDC_EDIT_MNIST_PATH, buf, MAX_PATH);
+            cfg.mnistPath = buf;
+            s_lastMnistPath = cfg.mnistPath;
+
+            GetDlgItemText(hDlg, IDC_EDIT_SAVE_PATH, buf, MAX_PATH);
+            cfg.savePath = buf;
+            s_lastSavePath = cfg.savePath;
+
+            if (cfg.mnistPath.empty()) {
+                MessageBox(hDlg, "Please specify the MNIST data directory.", "Missing path",
+                    MB_ICONWARNING);
+                return TRUE;
+            }
+
+            // Start worker thread
+            if (g_trainThread.joinable())
+                g_trainThread.join();
+
+            g_trainRunning = true;
+            SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETPOS, 0, 0);
+            SetDlgItemText(hDlg, IDC_STATUS_TEXT, "Training...");
+            SetDlgItemText(hDlg, IDC_BTN_TRAIN, "Cancel");
+            SetTrainControlsEnabled(hDlg, false);
+
+            g_trainThread = std::thread(TrainWorkerFn, cfg);
+            return TRUE;
+        }
+
+        if (id == IDCANCEL) {
+            if (g_trainRunning) {
+                if (MessageBox(hDlg, "Training is in progress. Stop it?", "Confirm",
+                        MB_YESNO | MB_ICONQUESTION)
+                    != IDYES)
+                    return TRUE;
+                g_trainRunning = false;
+                SetDlgItemText(hDlg, IDC_STATUS_TEXT, "Stopping...");
+                EnableWindow(GetDlgItem(hDlg, IDCANCEL), FALSE);
+            }
+            if (g_trainThread.joinable())
+                g_trainThread.join();
+            EndDialog(hDlg, IDCANCEL);
+            return TRUE;
+        }
+        break;
+    }
+
+    case WM_TRAIN_PROGRESS: {
+        const int ep = static_cast<int>(wParam);
+        const int total = static_cast<int>(lParam);
+        const int pct = (total > 0) ? (ep * 100 / total) : 0;
+        SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETPOS, pct, 0);
+        char buf[64];
+        sprintf_s(buf, "Epoch %d / %d", ep, total);
+        SetDlgItemText(hDlg, IDC_STATUS_TEXT, buf);
+        return TRUE;
+    }
+
+    case WM_TRAIN_DONE: {
+        if (g_trainThread.joinable())
+            g_trainThread.join();
+        SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETPOS, 100, 0);
+        SetDlgItemText(hDlg, IDC_BTN_TRAIN, "Train");
+        SetTrainControlsEnabled(hDlg, true);
+        EnableWindow(GetDlgItem(hDlg, IDC_BTN_TRAIN), TRUE);
+
+        char savePath[MAX_PATH] = {};
+        GetDlgItemText(hDlg, IDC_EDIT_SAVE_PATH, savePath, MAX_PATH);
+
+        std::string doneMsg = "Training complete!";
+        if (savePath[0])
+            doneMsg += std::string("\nModel saved to:\n") + savePath;
+
+        if (savePath[0]) {
+            doneMsg += "\n\nLoad this model into the OCR tool now?";
+            if (MessageBox(hDlg, doneMsg.c_str(), "Done", MB_YESNO | MB_ICONINFORMATION) == IDYES) {
+                s_trainedModelPath = savePath;
+                EndDialog(hDlg, IDOK);
+                return TRUE;
+            }
+        } else {
+            MessageBox(hDlg, doneMsg.c_str(), "Done", MB_ICONINFORMATION);
+        }
+        SetDlgItemText(hDlg, IDC_STATUS_TEXT, "Training complete. Ready for another run.");
+        return TRUE;
+    }
+
+    case WM_TRAIN_ERROR: {
+        if (g_trainThread.joinable())
+            g_trainThread.join();
+        char* errMsg = reinterpret_cast<char*>(lParam);
+        std::string msg = "Training failed:\n";
+        msg += errMsg ? errMsg : "(unknown error)";
+        free(errMsg);
+        MessageBox(hDlg, msg.c_str(), "Error", MB_ICONERROR);
+        SetDlgItemText(hDlg, IDC_STATUS_TEXT, "Error. Check parameters and paths.");
+        SetDlgItemText(hDlg, IDC_BTN_TRAIN, "Train");
+        SetTrainControlsEnabled(hDlg, true);
+        EnableWindow(GetDlgItem(hDlg, IDC_BTN_TRAIN), TRUE);
+        return TRUE;
+    }
+    }
+    return FALSE;
+}
+
+// Launch the training dialog; if the user accepts a trained model, load it.
+static void ShowTrainMnistDialog(HWND hWnd)
+{
+    s_trainedModelPath.clear();
+    const bool comInit = SUCCEEDED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED));
+    const INT_PTR result
+        = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_TRAIN_DLG), hWnd, TrainDlgProc, 0);
+
+    if (comInit)
+        CoUninitialize();
+
+    if (result == IDOK && !s_trainedModelPath.empty()) {
+        try {
+            auto nn = nu::NnModel::load(s_trainedModelPath);
+            if (!nn || nn->getInputSize() != NN_INPUTS || nn->getOutputSize() != NN_OUTPUTS) {
+                MessageBox(hWnd,
+                    "Trained model has unexpected topology (need 784 inputs, 10 outputs).",
+                    "Load error", MB_ICONERROR);
+                return;
+            }
+            neuralNet = std::move(nn);
+            currentFileName = s_trainedModelPath;
+            SetWindowText(hWnd, s_trainedModelPath.c_str());
+
+            const auto topo = neuralNet->getTopology();
+            std::string hl;
+            for (size_t i = 1; i + 1 < topo.size(); ++i)
+                hl += std::to_string(topo[i]) + (i + 2 < topo.size() ? "-" : "");
+            netDescription = "[trained]  hidden: " + hl
+                + "  lr: " + std::to_string(neuralNet->getLearningRate());
+
+            RECT r = { 0, PROG_WINYRES - 100, PROG_WINXRES, PROG_WINYRES };
+            InvalidateRect(hWnd, &r, TRUE);
+            UpdateWindow(hWnd);
+        } catch (...) {
+            MessageBox(hWnd, "Failed to load trained model.", "Load error", MB_ICONERROR);
+        }
+    }
+}
 
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
@@ -888,6 +1329,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case IDM_SAVE:
             SaveFileAs(hWnd, hInst);
+            break;
+
+        case IDM_TRAIN_MNIST:
+            ShowTrainMnistDialog(hWnd);
             break;
 
         case IDM_RECOGNIZE:
