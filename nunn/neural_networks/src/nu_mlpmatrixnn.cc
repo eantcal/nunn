@@ -10,12 +10,15 @@
 #define NOMINMAX
 
 #include "nu_mlpmatrixnn.h"
+#include "nu_activation.h"
 #include "nu_random_gen.h"
 
 #include <cassert>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+
+#include <nlohmann/json.hpp>
 
 // ── ArrayFire activation helpers (compiled only when NUNN_HAS_ARRAYFIRE) ──────
 
@@ -557,6 +560,142 @@ double MlpMatrixNN::calcCrossEntropy(const std::vector<double>& target) const
         ce -= ti * std::log(std::max(y, eps)) + (1.0 - ti) * std::log(std::max(1.0 - y, eps));
     }
     return ce / static_cast<double>(a.size());
+}
+
+// ── Topology ──────────────────────────────────────────────────────────────────
+
+std::vector<size_t> MlpMatrixNN::getTopology() const
+{
+    std::vector<size_t> topo;
+    topo.reserve(_layers.size() + 1);
+    topo.push_back(_inputSize);
+    for (const auto& l : _layers)
+        topo.push_back(static_cast<size_t>(l.W.rows()));
+    return topo;
+}
+
+// ── JSON persistence ──────────────────────────────────────────────────────────
+
+namespace {
+    static std::string_view cfName(CostFunction cf) noexcept
+    {
+        return cf == CostFunction::CrossEntropy ? "cross_entropy" : "mse";
+    }
+    static CostFunction cfFromString(std::string_view s) noexcept
+    {
+        return s == "cross_entropy" ? CostFunction::CrossEntropy : CostFunction::MSE;
+    }
+    static std::string_view optName(MlpMatrixNN::Optimizer opt) noexcept
+    {
+        return opt == MlpMatrixNN::Optimizer::Adam ? "adam" : "sgd";
+    }
+    static MlpMatrixNN::Optimizer optFromString(std::string_view s) noexcept
+    {
+        return s == "adam" ? MlpMatrixNN::Optimizer::Adam : MlpMatrixNN::Optimizer::SGD;
+    }
+} // namespace
+
+std::ostream& MlpMatrixNN::toJson(std::ostream& os) const
+{
+    using json = nlohmann::json;
+
+    json j;
+    j["model_type"] = "mlp_matrix";
+    j["version"] = 1;
+    j["learningRate"] = _lr;
+    j["momentum"] = _momentum;
+    j["optimizer"] = std::string(optName(_optimizer));
+    j["costFunction"] = std::string(cfName(_cf));
+
+    json jlayers = json::array();
+    // First entry: input descriptor (size only, no weights)
+    {
+        json entry;
+        entry["size"] = _inputSize;
+        entry["activation"] = "none";
+        jlayers.push_back(std::move(entry));
+    }
+    for (const auto& l : _layers) {
+        json entry;
+        entry["size"] = static_cast<size_t>(l.W.rows());
+        entry["activation"] = std::string(act::name(l.act));
+        // W as array of rows
+        json jW = json::array();
+        for (Eigen::Index r = 0; r < l.W.rows(); ++r) {
+            json row = json::array();
+            for (Eigen::Index c = 0; c < l.W.cols(); ++c)
+                row.push_back(l.W(r, c));
+            jW.push_back(std::move(row));
+        }
+        entry["W"] = std::move(jW);
+        // b as flat array
+        json jb = json::array();
+        for (Eigen::Index i = 0; i < l.b.size(); ++i)
+            jb.push_back(l.b(i));
+        entry["b"] = std::move(jb);
+        jlayers.push_back(std::move(entry));
+    }
+    j["layers"] = std::move(jlayers);
+
+    os << j.dump(2);
+    return os;
+}
+
+std::istream& MlpMatrixNN::loadJson(std::istream& is)
+{
+    using json = nlohmann::json;
+
+    const json j = json::parse(is);
+
+    if (j.value("model_type", "") != "mlp_matrix")
+        throw std::runtime_error("MlpMatrixNN::loadJson: unexpected model_type");
+
+    const double lr = j.at("learningRate").get<double>();
+    const double momentum = j.at("momentum").get<double>();
+    const auto cf = cfFromString(j.value("costFunction", "mse"));
+    const auto opt = optFromString(j.value("optimizer", "sgd"));
+
+    const auto& jlayers = j.at("layers");
+    if (jlayers.size() < 2)
+        throw std::runtime_error("MlpMatrixNN::loadJson: need at least input + one neuron layer");
+
+    // Reconstruct LayerConfig from JSON
+    std::vector<LayerConfig> configs;
+    configs.reserve(jlayers.size());
+    for (size_t li = 0; li < jlayers.size(); ++li) {
+        const auto& entry = jlayers[li];
+        const size_t sz = entry.at("size").get<size_t>();
+        const std::string actStr = entry.value("activation", "sigmoid");
+        const Activation act = (actStr == "none") ? Activation::Sigmoid : act::fromString(actStr);
+        configs.emplace_back(sz, act);
+    }
+
+    // Reconstruct the network (this replaces *this)
+    *this = MlpMatrixNN(configs, lr, momentum, cf);
+    setOptimizer(opt);
+
+    // Restore weights
+    for (size_t li = 1; li < jlayers.size(); ++li) {
+        const auto& entry = jlayers[li];
+        const auto& jW = entry.at("W");
+        const auto& jb = entry.at("b");
+
+        const size_t nrows = jW.size();
+        const size_t ncols = jW.at(0).size();
+        Eigen::MatrixXd W(static_cast<Eigen::Index>(nrows), static_cast<Eigen::Index>(ncols));
+        for (size_t r = 0; r < nrows; ++r)
+            for (size_t c = 0; c < ncols; ++c)
+                W(static_cast<Eigen::Index>(r), static_cast<Eigen::Index>(c))
+                    = jW[r][c].get<double>();
+        setLayerW(li - 1, W);
+
+        Eigen::VectorXd b(static_cast<Eigen::Index>(jb.size()));
+        for (size_t i = 0; i < jb.size(); ++i)
+            b(static_cast<Eigen::Index>(i)) = jb[i].get<double>();
+        setLayerB(li - 1, b);
+    }
+
+    return is;
 }
 
 } // namespace nu

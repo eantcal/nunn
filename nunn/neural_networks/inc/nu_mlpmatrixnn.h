@@ -139,6 +139,13 @@ public:
 
     void reshuffleWeights();
 
+    // Topology as [inputSize, layer0_out, layer1_out, ...]
+    [[nodiscard]] std::vector<size_t> getTopology() const;
+
+    // JSON persistence — model_type discriminator is "mlp_matrix"
+    std::ostream& toJson(std::ostream& os) const;
+    std::istream& loadJson(std::istream& is);
+
     // Returns dL/d_input = W[0]^T * delta[0] after backPropagate() (Eigen path only).
     // Used by ConvNet to propagate gradients back through conv/pool layers.
     [[nodiscard]] Eigen::VectorXd getInputGradient() const;

@@ -23,8 +23,9 @@
 #include "stdafx.h"
 
 #include "mnist.h"
-#include "nu_mlpnn.h"
+#include "nu_nn_model.h"
 
+#include <algorithm>
 #include <fstream>
 #include <memory>
 #include <sstream>
@@ -95,10 +96,10 @@ TCHAR szWindowClass[MAX_LOADSTRING]; // the main window class name
 
 static HFONT g_hfFont = nullptr;
 
-std::unique_ptr<nu::MlpNN> neuralNet;
+std::unique_ptr<nu::NnModel> neuralNet;
 std::string currentFileName;
 std::string netDescription = "Load a net description file (File->Load or Models menu)";
-nu::Vector g_hwdigit;
+std::vector<double> g_hwdigit;
 
 static std::vector<ModelProfile> g_profiles;
 static HMENU g_modelsMenu = nullptr;
@@ -230,21 +231,10 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
     ofn.Flags = OFN_HIDEREADONLY;
 
     if (::GetOpenFileName(&ofn)) {
-        std::ifstream nf(open_file_name.data());
-
-        if (!nf.is_open()) {
-            MessageBox(hWnd, "Cannot open the file", open_file_name.data(), MB_ICONERROR);
-
-            return false;
-        }
-
         currentFileName = open_file_name.data();
 
-        auto nn = std::make_unique<nu::MlpNN>();
-
         try {
-            if (nn)
-                nn->loadJson(nf);
+            auto nn = nu::NnModel::load(currentFileName);
 
             if (!nn || nn->getInputSize() != NN_INPUTS || nn->getOutputSize() != NN_OUTPUTS) {
                 MessageBox(hWnd,
@@ -255,21 +245,19 @@ bool LoadNetData(HWND hWnd, HINSTANCE hInst)
                 return false;
             }
 
-
+            neuralNet = std::move(nn);
         } catch (...) {
             MessageBox(hWnd, "Error loading data from file", open_file_name.data(), MB_ICONERROR);
 
             return false;
         }
-
-        neuralNet = std::move(nn);
     }
 
     if (!neuralNet)
         return false;
 
     const double learningRate = neuralNet->getLearningRate();
-    const auto& topology = neuralNet->getTopology();
+    const auto topology = neuralNet->getTopology();
 
     std::string inputs;
     std::string outputs;
@@ -390,32 +378,25 @@ static void LoadModelFromProfile(HWND hWnd, int idx)
         return;
 
     const auto& prof = g_profiles[idx];
-    std::ifstream nf(prof.path);
-    if (!nf.is_open()) {
-        MessageBox(hWnd, "Cannot open model file", prof.path.c_str(), MB_ICONERROR);
-        return;
-    }
 
-    auto nn = std::make_unique<nu::MlpNN>();
     try {
-        nn->loadJson(nf);
+        auto nn = nu::NnModel::load(prof.path);
+        if (!nn || nn->getInputSize() != NN_INPUTS || nn->getOutputSize() != NN_OUTPUTS) {
+            MessageBox(hWnd, "Invalid topology (expected 784 inputs, 10 outputs)",
+                prof.path.c_str(), MB_ICONERROR);
+            return;
+        }
+        neuralNet = std::move(nn);
     } catch (...) {
-        MessageBox(hWnd, "Error parsing model file", prof.path.c_str(), MB_ICONERROR);
+        MessageBox(hWnd, "Error loading model file", prof.path.c_str(), MB_ICONERROR);
         return;
     }
 
-    if (!nn || nn->getInputSize() != NN_INPUTS || nn->getOutputSize() != NN_OUTPUTS) {
-        MessageBox(hWnd, "Invalid topology (expected 784 inputs, 10 outputs)", prof.path.c_str(),
-            MB_ICONERROR);
-        return;
-    }
-
-    neuralNet = std::move(nn);
     currentFileName = prof.path;
     g_activeProfile = idx;
 
     // Build status description
-    const auto& topo = neuralNet->getTopology();
+    const auto topo = neuralNet->getTopology();
     std::string hl;
     for (size_t i = 1; i + 1 < topo.size(); ++i)
         hl += std::to_string(topo[i]) + (i + 2 < topo.size() ? "-" : "");
@@ -464,8 +445,8 @@ bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
     SendMessage(hwndPB, PBM_SETSTEP, (WPARAM)1, 0);
 
     for (int i = 0; i < TRAINING_NET_EPOCHS; ++i) {
-        nu::Vector target(10, 0.0);
-        nu::Vector output(10, 0.0);
+        std::vector<double> target(10, 0.0);
+        std::vector<double> output(10, 0.0);
         target[digit] = 1.0;
 
         neuralNet->setInputVector(g_hwdigit);
@@ -681,7 +662,7 @@ int ReadCellValue(
 }
 
 
-void PrintGrayscaleDigit(int xo, int yo, HDC hdc, const nu::Vector& hwdigit)
+void PrintGrayscaleDigit(int xo, int yo, HDC hdc, const std::vector<double>& hwdigit)
 {
     size_t idx = 0;
     const int zoom = 3;
@@ -704,7 +685,7 @@ void PrintGrayscaleDigit(int xo, int yo, HDC hdc, const nu::Vector& hwdigit)
 }
 
 
-bool GetDigitInfo(HDC hdc, nu::Vector& hwdigit, const RECT& r, bmpImage& image)
+bool GetDigitInfo(HDC hdc, std::vector<double>& hwdigit, const RECT& r, bmpImage& image)
 {
     size_t vec_idx = 0;
     double sum = 0.0;
@@ -726,7 +707,7 @@ bool GetDigitInfo(HDC hdc, nu::Vector& hwdigit, const RECT& r, bmpImage& image)
 }
 
 
-void WriteBars(int xo, int yo, HDC hdc, nu::Vector& results)
+void WriteBars(int xo, int yo, HDC hdc, std::vector<double>& results)
 {
     int digit = 0;
 
@@ -757,7 +738,7 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
     InvalidateRect(hWnd, &ri, TRUE);
     UpdateWindow(hWnd);
 
-    nu::Vector hwdigit(neuralNet->getInputSize());
+    std::vector<double> hwdigit(neuralNet->getInputSize());
 
     HDC hdc = GetDC(hWnd);
 
@@ -776,13 +757,15 @@ void RecognizeHandwrittenDigit(int xo, int yo, HWND hWnd)
         neuralNet->setInputVector(hwdigit);
         neuralNet->feedForward();
 
-        nu::Vector outputs;
+        std::vector<double> outputs;
         neuralNet->copyOutputVector(outputs);
 
         WriteBars(530, 90, hdc, outputs);
 
-        int percent = int(outputs[outputs.maxarg()] * 100);
-        std::string net_answer = std::to_string(outputs.maxarg());
+        const size_t bestIdx = static_cast<size_t>(
+            std::max_element(outputs.begin(), outputs.end()) - outputs.begin());
+        int percent = int(outputs[bestIdx] * 100);
+        std::string net_answer = std::to_string(bestIdx);
 
         if (percent < 1)
             net_answer = "?";

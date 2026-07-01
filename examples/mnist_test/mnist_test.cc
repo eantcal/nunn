@@ -327,9 +327,9 @@ static double test_net_mat(std::unique_ptr<nu::MlpMatrixNN>& net,
     return static_cast<double>(err_cnt) / static_cast<double>(cnt);
 }
 
-// ── Save (MlpNN only) ─────────────────────────────────────────────────────────
+// ── Save ─────────────────────────────────────────────────────────────────────
 
-static bool save_the_net(const std::string& filename, nu::MlpNN& net)
+template <typename Net> static bool save_the_net(const std::string& filename, Net& net)
 {
     if (filename.empty())
         return true;
@@ -379,8 +379,6 @@ int main(int argc, char* argv[])
         std::cerr << "Warning: --batch requires --matrix; ignoring --batch.\n";
         batch_size = 1;
     }
-    if (use_matrix && (!load_file_name.empty() || !save_file_name.empty()))
-        std::cerr << "Notice: --load/--save are not supported in --matrix mode; ignoring.\n";
 
 #ifdef _WIN32
     ::system("cls");
@@ -649,11 +647,24 @@ int main(int argc, char* argv[])
                     if (err_rate < best_ber) {
                         best_ber = err_rate;
                         best_epoch = epoch;
+                        save_the_net(save_file_name, *net);
                     }
 
                     std::cout << "BER          : " << best_ber * 100.0 << "%    \n"
                               << "Epoch BER    : " << best_epoch + 1 << "    \n\n";
                 }
+            }
+
+            if (!load_file_name.empty()) {
+                std::ifstream nf(load_file_name);
+                if (!nf.is_open()) {
+                    std::cerr << "Cannot open '" << load_file_name << "'\n";
+                    return 1;
+                }
+                net = std::make_unique<nu::MlpMatrixNN>(std::vector<nu::MlpMatrixNN::LayerConfig>{
+                    nu::MlpMatrixNN::LayerConfig(static_cast<size_t>(1)),
+                    nu::MlpMatrixNN::LayerConfig(static_cast<size_t>(1)) });
+                net->loadJson(nf);
             }
 
             if (!net) {
