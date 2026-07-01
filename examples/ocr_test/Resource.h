@@ -31,6 +31,8 @@
 
 #define IDM_ABOUT 125
 
+#define IDM_MODEL_BASE 200
+
 #define IDC_MYICON 2
 #ifndef IDC_STATIC
 #define IDC_STATIC -1

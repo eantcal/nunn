@@ -52,6 +52,13 @@
 
 #define FILE_FILTER "nunn JSON (.json)\0*.json;\0All Files (*.*)\0*.*\0\0";
 
+// ── Model registry ───────────────────────────────────────────────────────────
+
+struct ModelProfile {
+    std::string name; // display name (filename stem)
+    std::string path; // full path to the .json file
+};
+
 
 // Loading a new NN we check for the following values
 #define NN_INPUTS 784
@@ -90,8 +97,12 @@ static HFONT g_hfFont = nullptr;
 
 std::unique_ptr<nu::MlpNN> neuralNet;
 std::string currentFileName;
-std::string netDescription = "Load a net description file (File->Load)";
+std::string netDescription = "Load a net description file (File->Load or Models menu)";
 nu::Vector g_hwdigit;
+
+static std::vector<ModelProfile> g_profiles;
+static HMENU g_modelsMenu = nullptr;
+static int g_activeProfile = -1;
 
 
 // Toolbar
@@ -324,6 +335,108 @@ void SaveFileAs(HWND hWnd, HINSTANCE hInst)
         SaveNetData(hWnd, hInst, openName);
 }
 
+
+// ── Model profile helpers ─────────────────────────────────────────────────────
+
+static std::string GetExeDir()
+{
+    char buf[MAX_PATH] = {};
+    GetModuleFileNameA(nullptr, buf, MAX_PATH);
+    std::string p(buf);
+    auto pos = p.find_last_of("\\/");
+    return (pos != std::string::npos) ? p.substr(0, pos) : ".";
+}
+
+static void ScanModelProfiles(const std::string& dir)
+{
+    std::string pattern = dir + "\\*.json";
+    WIN32_FIND_DATAA fd = {};
+    HANDLE h = FindFirstFileA(pattern.c_str(), &fd);
+    if (h == INVALID_HANDLE_VALUE)
+        return;
+    do {
+        if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            continue;
+        std::string fn(fd.cFileName);
+        std::string stem = fn.substr(0, fn.rfind('.'));
+        g_profiles.push_back({ stem, dir + "\\" + fn });
+    } while (FindNextFileA(h, &fd));
+    FindClose(h);
+}
+
+static void BuildModelsMenu(HWND hWnd)
+{
+    HMENU mainMenu = GetMenu(hWnd);
+    if (!mainMenu)
+        return;
+    g_modelsMenu = CreatePopupMenu();
+    if (!g_modelsMenu)
+        return;
+    if (g_profiles.empty()) {
+        AppendMenuA(g_modelsMenu, MF_STRING | MF_GRAYED, 0, "(no models found in models/)");
+    } else {
+        for (size_t i = 0; i < g_profiles.size(); ++i)
+            AppendMenuA(
+                g_modelsMenu, MF_STRING, IDM_MODEL_BASE + (UINT)i, g_profiles[i].name.c_str());
+    }
+    // Insert after &File (position 0) and before &Edit
+    InsertMenuA(mainMenu, 1, MF_BYPOSITION | MF_POPUP, (UINT_PTR)g_modelsMenu, "&Models");
+    DrawMenuBar(hWnd);
+}
+
+static void LoadModelFromProfile(HWND hWnd, int idx)
+{
+    if (idx < 0 || idx >= static_cast<int>(g_profiles.size()))
+        return;
+
+    const auto& prof = g_profiles[idx];
+    std::ifstream nf(prof.path);
+    if (!nf.is_open()) {
+        MessageBox(hWnd, "Cannot open model file", prof.path.c_str(), MB_ICONERROR);
+        return;
+    }
+
+    auto nn = std::make_unique<nu::MlpNN>();
+    try {
+        nn->loadJson(nf);
+    } catch (...) {
+        MessageBox(hWnd, "Error parsing model file", prof.path.c_str(), MB_ICONERROR);
+        return;
+    }
+
+    if (!nn || nn->getInputSize() != NN_INPUTS || nn->getOutputSize() != NN_OUTPUTS) {
+        MessageBox(hWnd, "Invalid topology (expected 784 inputs, 10 outputs)", prof.path.c_str(),
+            MB_ICONERROR);
+        return;
+    }
+
+    neuralNet = std::move(nn);
+    currentFileName = prof.path;
+    g_activeProfile = idx;
+
+    // Build status description
+    const auto& topo = neuralNet->getTopology();
+    std::string hl;
+    for (size_t i = 1; i + 1 < topo.size(); ++i)
+        hl += std::to_string(topo[i]) + (i + 2 < topo.size() ? "-" : "");
+    netDescription = "[" + prof.name + "]  hidden: " + hl
+        + "  lr: " + std::to_string(neuralNet->getLearningRate());
+
+    SetWindowText(hWnd, prof.name.c_str());
+
+    // Update checkmark
+    if (g_modelsMenu) {
+        for (int j = 0; j < static_cast<int>(g_profiles.size()); ++j)
+            CheckMenuItem(g_modelsMenu, IDM_MODEL_BASE + j, MF_UNCHECKED);
+        CheckMenuItem(g_modelsMenu, IDM_MODEL_BASE + idx, MF_CHECKED);
+    }
+
+    RECT r = { 0, PROG_WINYRES - 100, PROG_WINXRES, PROG_WINYRES };
+    InvalidateRect(hWnd, &r, TRUE);
+    UpdateWindow(hWnd);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 bool TrainNet(HWND hWnd, HINSTANCE hinstance, int digit)
 {
@@ -758,11 +871,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         gtb = new toolbar_t(
             hWnd, hInst, IDI_TOOLBAR, IDI_TOOLBAR, gtb_n_of_bmps, gtb_buttons, gtb_n_of_buttons);
+
+        // Scan for pre-trained models and build the Models menu
+        {
+            std::string exeDir = GetExeDir();
+            ScanModelProfiles(exeDir + "\\models");
+            if (g_profiles.empty())
+                ScanModelProfiles(exeDir); // fallback: json files next to exe
+            BuildModelsMenu(hWnd);
+        }
         break;
 
     case WM_COMMAND:
         wmId = LOWORD(wParam);
         wmEvent = HIWORD(wParam);
+
+        // Model profile selection
+        if (static_cast<UINT>(wmId) >= IDM_MODEL_BASE
+            && static_cast<UINT>(wmId) < IDM_MODEL_BASE + static_cast<UINT>(g_profiles.size())) {
+            LoadModelFromProfile(hWnd, static_cast<int>(wmId - IDM_MODEL_BASE));
+            break;
+        }
 
         // Parse the menu selections:
         switch (wmId) {
