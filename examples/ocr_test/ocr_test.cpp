@@ -212,18 +212,11 @@ static void TrainWorkerFn(TrainConfig cfg)
 
         const size_t inputSize = data.front()->get_dx() * data.front()->get_dy();
 
-        // Progress tracking: post WM_TRAIN_PROGRESS whenever the integer
-        // percentage (0–100) changes — at most 101 PostMessage calls total.
-        const long long totalIters = (long long)cfg.epochs * (long long)data.size();
-        long long doneIters = 0;
-        int lastPct = -1;
-
-        auto reportProgress = [&](int ep) {
-            const int pct = (totalIters > 0) ? (int)(doneIters * 100LL / totalIters) : 0;
-            if (pct != lastPct) {
-                PostMessage(cfg.hDlg, WM_TRAIN_PROGRESS, (WPARAM)pct, (LPARAM)(ep + 1));
-                lastPct = pct;
-            }
+        // Post epoch-level progress after every complete epoch.
+        // The timer in the dialog proc handles sub-epoch animation.
+        auto postEpochProgress = [&](int ep) {
+            const int pct = (cfg.epochs > 0) ? (ep + 1) * 100 / cfg.epochs : 100;
+            PostMessage(cfg.hDlg, WM_TRAIN_PROGRESS, (WPARAM)pct, (LPARAM)(ep + 1));
         };
 
         if (!cfg.useMatrix) {
@@ -246,9 +239,8 @@ static void TrainWorkerFn(TrainConfig cfg)
                     item->labelToTarget(tgt);
                     net->setInputVector(inp);
                     net->backPropagate(tgt);
-                    ++doneIters;
-                    reportProgress(ep);
                 }
+                postEpochProgress(ep);
             }
 
             if (g_trainRunning && !cfg.savePath.empty()) {
@@ -284,8 +276,6 @@ static void TrainWorkerFn(TrainConfig cfg)
                         net->setInputVector(inpv);
                         net->feedForward();
                         net->backPropagate(tgtv);
-                        ++doneIters;
-                        reportProgress(ep);
                     }
                 } else {
                     std::vector<std::vector<double>> bIn, bTgt;
@@ -299,8 +289,6 @@ static void TrainWorkerFn(TrainConfig cfg)
                         item->labelToTarget(tgt);
                         bIn.push_back(std::vector<double>(inp.begin(), inp.end()));
                         bTgt.push_back(std::vector<double>(tgt.begin(), tgt.end()));
-                        ++doneIters;
-                        reportProgress(ep);
                         if (bIn.size() == bsz) {
                             net->trainBatch(bIn, bTgt);
                             bIn.clear();
@@ -310,6 +298,7 @@ static void TrainWorkerFn(TrainConfig cfg)
                     if (!bIn.empty() && g_trainRunning)
                         net->trainBatch(bIn, bTgt);
                 }
+                postEpochProgress(ep);
             }
 
             if (g_trainRunning && !cfg.savePath.empty()) {
@@ -333,9 +322,16 @@ static void TrainWorkerFn(TrainConfig cfg)
 
 INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    static int s_trainPct = 0; // last epoch-level percentage (0-100)
+    static int s_trainEp = 0; // last completed epoch (1-based; 0 = not started)
+    static bool s_blinkOn = false;
+
     switch (msg) {
 
     case WM_INITDIALOG: {
+        s_trainPct = 0;
+        s_trainEp = 0;
+        s_blinkOn = false;
         CheckRadioButton(hDlg, IDC_RADIO_MLP, IDC_RADIO_MATRIX, IDC_RADIO_MLP);
 
         HWND hCombo = GetDlgItem(hDlg, IDC_COMBO_ACT);
@@ -474,6 +470,11 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             SetDlgItemText(hDlg, IDC_BTN_TRAIN, "Cancel");
             SetTrainControlsEnabled(hDlg, false);
 
+            s_trainPct = 0;
+            s_trainEp = 0;
+            s_blinkOn = false;
+            SetTimer(hDlg, 1, 500, nullptr);
+
             g_trainThread = std::thread(TrainWorkerFn, cfg);
             return TRUE;
         }
@@ -485,6 +486,7 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                     != IDYES)
                     return TRUE;
                 g_trainRunning = false;
+                KillTimer(hDlg, 1);
                 SetDlgItemText(hDlg, IDC_STATUS_TEXT, "Stopping...");
                 EnableWindow(GetDlgItem(hDlg, IDCANCEL), FALSE);
             }
@@ -496,18 +498,41 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
     }
 
-    case WM_TRAIN_PROGRESS: {
-        const int pct = static_cast<int>(wParam); // 0-100
-        const int ep = static_cast<int>(lParam); // current epoch (1-based)
-        SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETPOS, pct, 0);
-        char buf[80];
+    case WM_TIMER: {
+        if (wParam != 1)
+            break;
+        if (!g_trainRunning) {
+            KillTimer(hDlg, 1);
+            break;
+        }
+        // Blink the frontier: alternate bar between s_trainPct and s_trainPct-1
+        s_blinkOn = !s_blinkOn;
+        const int blinkPos = (s_blinkOn || s_trainPct == 0) ? s_trainPct : s_trainPct - 1;
+        SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETPOS, blinkPos, 0);
+        // Spinner + status text
+        static const char kSpinner[] = { '-', '\\', '|', '/' };
+        static int spinIdx = 0;
+        spinIdx = (spinIdx + 1) % 4;
         const int totalEp = (int)GetDlgItemInt(hDlg, IDC_EDIT_EPOCHS, nullptr, FALSE);
-        sprintf_s(buf, "Epoch %d / %d  (%d%%)", ep, totalEp, pct);
+        char buf[80];
+        if (s_trainEp == 0)
+            sprintf_s(buf, "%c  Training ...  (0%%)", kSpinner[spinIdx]);
+        else
+            sprintf_s(buf, "%c  Epoch %d / %d  (%d%%)", kSpinner[spinIdx], s_trainEp, totalEp,
+                s_trainPct);
         SetDlgItemText(hDlg, IDC_STATUS_TEXT, buf);
         return TRUE;
     }
 
+    case WM_TRAIN_PROGRESS: {
+        s_trainPct = static_cast<int>(wParam); // epoch-level pct (0-100)
+        s_trainEp = static_cast<int>(lParam); // completed epoch (1-based)
+        SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETPOS, s_trainPct, 0);
+        return TRUE;
+    }
+
     case WM_TRAIN_DONE: {
+        KillTimer(hDlg, 1);
         if (g_trainThread.joinable())
             g_trainThread.join();
         SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETPOS, 100, 0);
@@ -537,6 +562,7 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_TRAIN_ERROR: {
+        KillTimer(hDlg, 1);
         if (g_trainThread.joinable())
             g_trainThread.join();
         char* errMsg = reinterpret_cast<char*>(lParam);
