@@ -112,7 +112,7 @@ static int g_activeProfile = -1;
 
 // ── MNIST training state ──────────────────────────────────────────────────────
 
-#define WM_TRAIN_PROGRESS (WM_APP + 10) // wParam=epoch, lParam=totalEpochs
+#define WM_TRAIN_PROGRESS (WM_APP + 10) // wParam=pct(0-100), lParam=epoch(1-based)
 #define WM_TRAIN_DONE (WM_APP + 11)
 #define WM_TRAIN_ERROR (WM_APP + 12) // lParam=heap-allocated char* message
 
@@ -212,6 +212,20 @@ static void TrainWorkerFn(TrainConfig cfg)
 
         const size_t inputSize = data.front()->get_dx() * data.front()->get_dy();
 
+        // Progress tracking: post WM_TRAIN_PROGRESS whenever the integer
+        // percentage (0–100) changes — at most 101 PostMessage calls total.
+        const long long totalIters = (long long)cfg.epochs * (long long)data.size();
+        long long doneIters = 0;
+        int lastPct = -1;
+
+        auto reportProgress = [&](int ep) {
+            const int pct = (totalIters > 0) ? (int)(doneIters * 100LL / totalIters) : 0;
+            if (pct != lastPct) {
+                PostMessage(cfg.hDlg, WM_TRAIN_PROGRESS, (WPARAM)pct, (LPARAM)(ep + 1));
+                lastPct = pct;
+            }
+        };
+
         if (!cfg.useMatrix) {
             // ── MlpNN path ───────────────────────────────────────────────────
             std::vector<nu::MlpNN::LayerConfig> layers;
@@ -232,8 +246,9 @@ static void TrainWorkerFn(TrainConfig cfg)
                     item->labelToTarget(tgt);
                     net->setInputVector(inp);
                     net->backPropagate(tgt);
+                    ++doneIters;
+                    reportProgress(ep);
                 }
-                PostMessage(cfg.hDlg, WM_TRAIN_PROGRESS, ep + 1, cfg.epochs);
             }
 
             if (g_trainRunning && !cfg.savePath.empty()) {
@@ -269,6 +284,8 @@ static void TrainWorkerFn(TrainConfig cfg)
                         net->setInputVector(inpv);
                         net->feedForward();
                         net->backPropagate(tgtv);
+                        ++doneIters;
+                        reportProgress(ep);
                     }
                 } else {
                     std::vector<std::vector<double>> bIn, bTgt;
@@ -282,6 +299,8 @@ static void TrainWorkerFn(TrainConfig cfg)
                         item->labelToTarget(tgt);
                         bIn.push_back(std::vector<double>(inp.begin(), inp.end()));
                         bTgt.push_back(std::vector<double>(tgt.begin(), tgt.end()));
+                        ++doneIters;
+                        reportProgress(ep);
                         if (bIn.size() == bsz) {
                             net->trainBatch(bIn, bTgt);
                             bIn.clear();
@@ -291,8 +310,6 @@ static void TrainWorkerFn(TrainConfig cfg)
                     if (!bIn.empty() && g_trainRunning)
                         net->trainBatch(bIn, bTgt);
                 }
-
-                PostMessage(cfg.hDlg, WM_TRAIN_PROGRESS, ep + 1, cfg.epochs);
             }
 
             if (g_trainRunning && !cfg.savePath.empty()) {
@@ -480,12 +497,12 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_TRAIN_PROGRESS: {
-        const int ep = static_cast<int>(wParam);
-        const int total = static_cast<int>(lParam);
-        const int pct = (total > 0) ? (ep * 100 / total) : 0;
+        const int pct = static_cast<int>(wParam); // 0-100
+        const int ep = static_cast<int>(lParam); // current epoch (1-based)
         SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETPOS, pct, 0);
-        char buf[64];
-        sprintf_s(buf, "Epoch %d / %d", ep, total);
+        char buf[80];
+        const int totalEp = (int)GetDlgItemInt(hDlg, IDC_EDIT_EPOCHS, nullptr, FALSE);
+        sprintf_s(buf, "Epoch %d / %d  (%d%%)", ep, totalEp, pct);
         SetDlgItemText(hDlg, IDC_STATUS_TEXT, buf);
         return TRUE;
     }
