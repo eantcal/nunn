@@ -29,6 +29,8 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cmath>
+#include <cstring>
 #include <fstream>
 #include <memory>
 #include <shlobj.h>
@@ -115,16 +117,23 @@ static int g_activeProfile = -1;
 #define WM_TRAIN_PROGRESS (WM_APP + 10) // wParam=pct(0-100), lParam=epoch(1-based)
 #define WM_TRAIN_DONE (WM_APP + 11)
 #define WM_TRAIN_ERROR (WM_APP + 12) // lParam=heap-allocated char* message
+#define WM_TRAIN_LOSS (WM_APP + 13) // lParam=heap-allocated double* loss
 
 static std::atomic<bool> g_trainRunning{ false };
 static std::thread g_trainThread;
 static std::string s_trainedModelPath; // set by WM_TRAIN_DONE handler
 static std::string s_lastMnistPath;
 static std::string s_lastSavePath;
+static std::vector<double> s_lossHistory;
+
+static const char* kTrainRegistryKey = "Software\\nunn\\ocr_test\\TrainFromMnist";
+static const char* kMnistPathValue = "MnistPath";
+static const char* kSavePathValue = "SavePath";
 
 struct TrainConfig {
     HWND hDlg;
     bool useMatrix;
+    nu::MlpMatrixNN::ComputeBackend backend;
     std::vector<size_t> hidden;
     nu::Activation activation;
     nu::CostFunction cf;
@@ -184,13 +193,235 @@ static std::vector<size_t> ParseHiddenLayers(const std::string& s)
     return result.empty() ? std::vector<size_t>{ 300 } : result;
 }
 
+static double CalcSampleLoss(nu::MlpNN& net, const DigitData& item, nu::CostFunction cf)
+{
+    nu::Vector inp, tgt;
+    item.toVect(inp);
+    item.labelToTarget(tgt);
+    net.setInputVector(inp);
+    net.feedForward();
+    return cf == nu::CostFunction::CrossEntropy ? net.calcCrossEntropy(tgt) : net.calcMSE(tgt);
+}
+
+static double CalcSampleLoss(nu::MlpMatrixNN& net, const DigitData& item, nu::CostFunction cf)
+{
+    nu::Vector inp, tgt;
+    item.toVect(inp);
+    item.labelToTarget(tgt);
+    std::vector<double> inpv(inp.begin(), inp.end());
+    std::vector<double> tgtv(tgt.begin(), tgt.end());
+    net.setInputVector(inpv);
+    net.feedForward();
+    return cf == nu::CostFunction::CrossEntropy ? net.calcCrossEntropy(tgtv) : net.calcMSE(tgtv);
+}
+
+template <typename Net>
+static double EstimateTrainingLoss(Net& net, const TrainingData& trainingSet, nu::CostFunction cf)
+{
+    constexpr size_t kMaxLossSamples = 1000;
+    double total = 0.0;
+    size_t count = 0;
+
+    for (const auto& item : trainingSet.data()) {
+        if (count >= kMaxLossSamples)
+            break;
+        total += CalcSampleLoss(net, *item, cf);
+        ++count;
+    }
+
+    return count > 0 ? total / static_cast<double>(count) : 0.0;
+}
+
+static void PostTrainingLoss(HWND hDlg, double loss)
+{
+    double* msgLoss = new double(loss);
+    if (!PostMessage(hDlg, WM_TRAIN_LOSS, 0, reinterpret_cast<LPARAM>(msgLoss)))
+        delete msgLoss;
+}
+
+static void DrawLossChart(const DRAWITEMSTRUCT* dis, const std::vector<double>& losses)
+{
+    HDC hdc = dis->hDC;
+    RECT rc = dis->rcItem;
+
+    HBRUSH bg = CreateSolidBrush(RGB(255, 255, 255));
+    FillRect(hdc, &rc, bg);
+    DeleteObject(bg);
+
+    HPEN border = CreatePen(PS_SOLID, 1, RGB(160, 160, 160));
+    HPEN oldPen = (HPEN)SelectObject(hdc, border);
+    Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
+    SelectObject(hdc, oldPen);
+    DeleteObject(border);
+
+    SetBkMode(hdc, TRANSPARENT);
+    SetTextColor(hdc, RGB(50, 50, 50));
+
+    const char* title = "Cost convergence";
+    RECT titleRect = { rc.left + 8, rc.top + 4, rc.right - 8, rc.top + 20 };
+    DrawTextA(hdc, title, -1, &titleRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+
+    RECT plot = rc;
+    plot.left += 54;
+    plot.top += 26;
+    plot.right -= 14;
+    plot.bottom -= 26;
+
+    if (plot.right <= plot.left || plot.bottom <= plot.top)
+        return;
+
+    if (losses.empty()) {
+        const char* empty = "Waiting for first epoch...";
+        RECT emptyRect = plot;
+        DrawTextA(hdc, empty, -1, &emptyRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+
+        const char* yAxis = "Cost";
+        TextOutA(hdc, rc.left + 8, plot.top - 2, yAxis, static_cast<int>(strlen(yAxis)));
+
+        const char* xAxis = "Epoch";
+        RECT xAxisRect = { plot.left, plot.bottom + 6, plot.right, rc.bottom - 4 };
+        DrawTextA(hdc, xAxis, -1, &xAxisRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+        return;
+    }
+
+    auto minmax = std::minmax_element(losses.begin(), losses.end());
+    double minLoss = *minmax.first;
+    double maxLoss = *minmax.second;
+    if (!std::isfinite(minLoss) || !std::isfinite(maxLoss))
+        return;
+    if (maxLoss <= minLoss)
+        maxLoss = minLoss + 1.0;
+
+    char label[80] = {};
+    sprintf_s(label, "latest %.6g", losses.back());
+    RECT latestRect = { rc.left + 8, rc.top + 4, rc.right - 8, rc.top + 20 };
+    DrawTextA(hdc, label, -1, &latestRect, DT_SINGLELINE | DT_RIGHT | DT_VCENTER);
+
+    char maxLabel[80] = {};
+    sprintf_s(maxLabel, "%.4g", maxLoss);
+    TextOutA(hdc, rc.left + 8, plot.top - 6, maxLabel, static_cast<int>(strlen(maxLabel)));
+
+    char minLabel[80] = {};
+    sprintf_s(minLabel, "%.4g", minLoss);
+    TextOutA(hdc, rc.left + 8, plot.bottom - 6, minLabel, static_cast<int>(strlen(minLabel)));
+
+    const char* yAxis = "Cost";
+    TextOutA(hdc, rc.left + 8, plot.top + 14, yAxis, static_cast<int>(strlen(yAxis)));
+
+    const char* xAxis = "Epoch";
+    RECT xAxisRect = { plot.left, plot.bottom + 6, plot.right, rc.bottom - 4 };
+    DrawTextA(hdc, xAxis, -1, &xAxisRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+
+    char epochEnd[32] = {};
+    sprintf_s(epochEnd, "%zu", losses.size());
+    RECT epochEndRect = { plot.right - 60, plot.bottom + 6, plot.right, rc.bottom - 4 };
+    DrawTextA(hdc, epochEnd, -1, &epochEndRect, DT_SINGLELINE | DT_RIGHT | DT_VCENTER);
+
+    const char* epochStart = "1";
+    TextOutA(hdc, plot.left, plot.bottom + 8, epochStart, static_cast<int>(strlen(epochStart)));
+
+    HPEN gridPen = CreatePen(PS_DOT, 1, RGB(225, 225, 225));
+    oldPen = (HPEN)SelectObject(hdc, gridPen);
+    for (int i = 1; i < 4; ++i) {
+        const int y = plot.top + ((plot.bottom - plot.top) * i) / 4;
+        MoveToEx(hdc, plot.left, y, nullptr);
+        LineTo(hdc, plot.right, y);
+    }
+    SelectObject(hdc, oldPen);
+    DeleteObject(gridPen);
+
+    HPEN axisPen = CreatePen(PS_SOLID, 1, RGB(130, 130, 130));
+    oldPen = (HPEN)SelectObject(hdc, axisPen);
+    MoveToEx(hdc, plot.left, plot.top, nullptr);
+    LineTo(hdc, plot.left, plot.bottom);
+    LineTo(hdc, plot.right, plot.bottom);
+    SelectObject(hdc, oldPen);
+    DeleteObject(axisPen);
+
+    HPEN linePen = CreatePen(PS_SOLID, 2, RGB(40, 110, 200));
+    oldPen = (HPEN)SelectObject(hdc, linePen);
+
+    const int width = (std::max)(1, static_cast<int>(plot.right - plot.left));
+    const int height = (std::max)(1, static_cast<int>(plot.bottom - plot.top));
+    const auto pointFor = [&](size_t i) {
+        const double xNorm = losses.size() > 1 ? double(i) / double(losses.size() - 1) : 0.0;
+        const double yNorm = (losses[i] - minLoss) / (maxLoss - minLoss);
+        POINT pt = { plot.left + int(xNorm * width),
+            plot.bottom - int(std::clamp(yNorm, 0.0, 1.0) * height) };
+        return pt;
+    };
+
+    POINT first = pointFor(0);
+    MoveToEx(hdc, first.x, first.y, nullptr);
+    for (size_t i = 1; i < losses.size(); ++i) {
+        POINT pt = pointFor(i);
+        LineTo(hdc, pt.x, pt.y);
+    }
+
+    SelectObject(hdc, oldPen);
+    DeleteObject(linePen);
+}
+
+static bool ReadRegistryString(HKEY key, const char* valueName, std::string& value)
+{
+    char buf[4096] = {};
+    DWORD type = REG_SZ;
+    DWORD size = sizeof(buf);
+    const LONG res
+        = RegQueryValueExA(key, valueName, nullptr, &type, reinterpret_cast<LPBYTE>(buf), &size);
+    if (res != ERROR_SUCCESS || type != REG_SZ)
+        return false;
+
+    value.assign(buf);
+    return true;
+}
+
+static void LoadTrainPathsFromRegistry()
+{
+    HKEY key = nullptr;
+    if (RegOpenKeyExA(HKEY_CURRENT_USER, kTrainRegistryKey, 0, KEY_READ, &key) != ERROR_SUCCESS)
+        return;
+
+    ReadRegistryString(key, kMnistPathValue, s_lastMnistPath);
+    ReadRegistryString(key, kSavePathValue, s_lastSavePath);
+    RegCloseKey(key);
+}
+
+static void SaveTrainPathsToRegistry(const std::string& mnistPath, const std::string& savePath)
+{
+    HKEY key = nullptr;
+    DWORD disposition = 0;
+    if (RegCreateKeyExA(HKEY_CURRENT_USER, kTrainRegistryKey, 0, nullptr, 0, KEY_WRITE, nullptr,
+            &key, &disposition)
+        != ERROR_SUCCESS)
+        return;
+
+    RegSetValueExA(key, kMnistPathValue, 0, REG_SZ,
+        reinterpret_cast<const BYTE*>(mnistPath.c_str()), static_cast<DWORD>(mnistPath.size() + 1));
+    RegSetValueExA(key, kSavePathValue, 0, REG_SZ, reinterpret_cast<const BYTE*>(savePath.c_str()),
+        static_cast<DWORD>(savePath.size() + 1));
+    RegCloseKey(key);
+}
+
+static void SaveTrainPathsFromDialog(HWND hDlg)
+{
+    char buf[MAX_PATH] = {};
+    GetDlgItemText(hDlg, IDC_EDIT_MNIST_PATH, buf, MAX_PATH);
+    s_lastMnistPath = buf;
+
+    GetDlgItemText(hDlg, IDC_EDIT_SAVE_PATH, buf, MAX_PATH);
+    s_lastSavePath = buf;
+
+    SaveTrainPathsToRegistry(s_lastMnistPath, s_lastSavePath);
+}
+
 // Enable or disable all configuration controls while training is running.
 static void SetTrainControlsEnabled(HWND hDlg, bool enabled)
 {
-    const int ids[]
-        = { IDC_RADIO_MLP, IDC_RADIO_MATRIX, IDC_EDIT_HIDDEN, IDC_COMBO_ACT, IDC_RADIO_MSE,
-              IDC_RADIO_CE, IDC_EDIT_LR, IDC_EDIT_MOMENTUM, IDC_EDIT_EPOCHS, IDC_EDIT_BATCH,
-              IDC_EDIT_MNIST_PATH, IDC_BTN_BROWSE_MNIST, IDC_EDIT_SAVE_PATH, IDC_BTN_BROWSE_SAVE };
+    const int ids[] = { IDC_RADIO_MLP, IDC_RADIO_MATRIX, IDC_COMBO_BACKEND, IDC_EDIT_HIDDEN,
+        IDC_COMBO_ACT, IDC_RADIO_MSE, IDC_RADIO_CE, IDC_EDIT_LR, IDC_EDIT_MOMENTUM, IDC_EDIT_EPOCHS,
+        IDC_EDIT_BATCH, IDC_EDIT_MNIST_PATH, IDC_BTN_BROWSE_MNIST, IDC_EDIT_SAVE_PATH,
+        IDC_BTN_BROWSE_SAVE };
     for (int id : ids)
         EnableWindow(GetDlgItem(hDlg, id), enabled ? TRUE : FALSE);
 }
@@ -240,6 +471,7 @@ static void TrainWorkerFn(TrainConfig cfg)
                     net->setInputVector(inp);
                     net->backPropagate(tgt);
                 }
+                PostTrainingLoss(cfg.hDlg, EstimateTrainingLoss(*net, trainingSet, cfg.cf));
                 postEpochProgress(ep);
             }
 
@@ -257,7 +489,8 @@ static void TrainWorkerFn(TrainConfig cfg)
                 layers.emplace_back(h, cfg.activation);
             layers.emplace_back(size_t(10), nu::Activation::Sigmoid);
 
-            auto net = std::make_unique<nu::MlpMatrixNN>(layers, cfg.lr, cfg.momentum, cfg.cf);
+            auto net = std::make_unique<nu::MlpMatrixNN>(
+                layers, cfg.lr, cfg.momentum, cfg.cf, cfg.backend);
 
             const size_t bsz = cfg.batchSize < 1 ? 1 : cfg.batchSize;
 
@@ -298,6 +531,7 @@ static void TrainWorkerFn(TrainConfig cfg)
                     if (!bIn.empty() && g_trainRunning)
                         net->trainBatch(bIn, bTgt);
                 }
+                PostTrainingLoss(cfg.hDlg, EstimateTrainingLoss(*net, trainingSet, cfg.cf));
                 postEpochProgress(ep);
             }
 
@@ -332,7 +566,14 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
         s_trainPct = 0;
         s_trainEp = 0;
         s_blinkOn = false;
+        s_lossHistory.clear();
         CheckRadioButton(hDlg, IDC_RADIO_MLP, IDC_RADIO_MATRIX, IDC_RADIO_MLP);
+
+        HWND hBackendCombo = GetDlgItem(hDlg, IDC_COMBO_BACKEND);
+        SendMessage(hBackendCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Auto"));
+        SendMessage(hBackendCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("CPU"));
+        SendMessage(hBackendCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("OpenCL"));
+        SendMessage(hBackendCombo, CB_SETCURSEL, 0, 0);
 
         HWND hCombo = GetDlgItem(hDlg, IDC_COMBO_ACT);
         SendMessage(hCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Sigmoid"));
@@ -349,6 +590,7 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
         SetDlgItemText(hDlg, IDC_EDIT_EPOCHS, "30");
         SetDlgItemText(hDlg, IDC_EDIT_BATCH, "1");
 
+        LoadTrainPathsFromRegistry();
         if (!s_lastMnistPath.empty())
             SetDlgItemText(hDlg, IDC_EDIT_MNIST_PATH, s_lastMnistPath.c_str());
         if (!s_lastSavePath.empty())
@@ -356,7 +598,17 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 
         SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
         SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETPOS, 0, 0);
+        InvalidateRect(GetDlgItem(hDlg, IDC_LOSS_CHART), nullptr, TRUE);
         return TRUE;
+    }
+
+    case WM_DRAWITEM: {
+        const auto* dis = reinterpret_cast<DRAWITEMSTRUCT*>(lParam);
+        if (dis && dis->CtlID == IDC_LOSS_CHART) {
+            DrawLossChart(dis, s_lossHistory);
+            return TRUE;
+        }
+        break;
     }
 
     case WM_COMMAND: {
@@ -375,6 +627,7 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                 SHGetPathFromIDListA(pidl, path);
                 CoTaskMemFree(pidl);
                 SetDlgItemText(hDlg, IDC_EDIT_MNIST_PATH, path);
+                SaveTrainPathsFromDialog(hDlg);
             }
             return TRUE;
         }
@@ -390,8 +643,10 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             ofn.lpstrDefExt = "json";
             ofn.lpstrTitle = "Save Trained Network";
             ofn.Flags = OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
-            if (GetSaveFileNameA(&ofn))
+            if (GetSaveFileNameA(&ofn)) {
                 SetDlgItemText(hDlg, IDC_EDIT_SAVE_PATH, path);
+                SaveTrainPathsFromDialog(hDlg);
+            }
             return TRUE;
         }
 
@@ -409,6 +664,17 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             TrainConfig cfg;
             cfg.hDlg = hDlg;
             cfg.useMatrix = (IsDlgButtonChecked(hDlg, IDC_RADIO_MATRIX) == BST_CHECKED);
+
+            static const nu::MlpMatrixNN::ComputeBackend kBackends[] = {
+                nu::MlpMatrixNN::ComputeBackend::Auto,
+                nu::MlpMatrixNN::ComputeBackend::Eigen,
+                nu::MlpMatrixNN::ComputeBackend::OpenCL,
+            };
+            int backendIdx
+                = static_cast<int>(SendDlgItemMessage(hDlg, IDC_COMBO_BACKEND, CB_GETCURSEL, 0, 0));
+            cfg.backend = (backendIdx >= 0 && backendIdx < 3)
+                ? kBackends[backendIdx]
+                : nu::MlpMatrixNN::ComputeBackend::Auto;
 
             GetDlgItemText(hDlg, IDC_EDIT_HIDDEN, buf, MAX_PATH);
             cfg.hidden = ParseHiddenLayers(buf);
@@ -453,6 +719,7 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             GetDlgItemText(hDlg, IDC_EDIT_SAVE_PATH, buf, MAX_PATH);
             cfg.savePath = buf;
             s_lastSavePath = cfg.savePath;
+            SaveTrainPathsToRegistry(s_lastMnistPath, s_lastSavePath);
 
             if (cfg.mnistPath.empty()) {
                 MessageBox(hDlg, "Please specify the MNIST data directory.", "Missing path",
@@ -473,6 +740,8 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             s_trainPct = 0;
             s_trainEp = 0;
             s_blinkOn = false;
+            s_lossHistory.clear();
+            InvalidateRect(GetDlgItem(hDlg, IDC_LOSS_CHART), nullptr, TRUE);
             SetTimer(hDlg, 1, 500, nullptr);
 
             g_trainThread = std::thread(TrainWorkerFn, cfg);
@@ -492,6 +761,7 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             if (g_trainThread.joinable())
                 g_trainThread.join();
+            SaveTrainPathsFromDialog(hDlg);
             EndDialog(hDlg, IDCANCEL);
             return TRUE;
         }
@@ -528,6 +798,17 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
         s_trainPct = static_cast<int>(wParam); // epoch-level pct (0-100)
         s_trainEp = static_cast<int>(lParam); // completed epoch (1-based)
         SendDlgItemMessage(hDlg, IDC_TRAIN_PROGRESS, PBM_SETPOS, s_trainPct, 0);
+        return TRUE;
+    }
+
+    case WM_TRAIN_LOSS: {
+        double* loss = reinterpret_cast<double*>(lParam);
+        if (loss) {
+            if (std::isfinite(*loss))
+                s_lossHistory.push_back(*loss);
+            delete loss;
+        }
+        InvalidateRect(GetDlgItem(hDlg, IDC_LOSS_CHART), nullptr, TRUE);
         return TRUE;
     }
 

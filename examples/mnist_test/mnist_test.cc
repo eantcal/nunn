@@ -19,8 +19,9 @@ The output is a 10-dimensional vector (one neuron per digit class).
 See also http://yann.lecun.com/exdb/mnist/
 
 Extra flags vs. the classic build:
-  --matrix / -M        Use MlpMatrixNN (Eigen-backed) instead of MlpNN
-  --batch  / -b <N>    Mini-batch size (requires --matrix; default 1 = online SGD)
+  --matrix / -M        Use MlpMatrixNN (Auto GPU/CPU) instead of MlpNN
+  --batch  / -b <N>
+Mini-batch size (requires --matrix; default 1 = online SGD)
 */
 
 #include "mnist.h"
@@ -65,7 +66,7 @@ static bool process_cl(int argc, char* argv[], std::string& files_path, std::str
     std::string& save_file_name, bool& skip_training, double& learningRate, bool& change_lr,
     double& momentum, bool& change_m, int& epoch, std::vector<size_t>& hidden_layer,
     bool& use_cross_entropy, nu::Activation& activation, bool& use_matrix, size_t& batch_size,
-    bool& use_opencl)
+    nu::MlpMatrixNN::ComputeBackend& matrix_backend)
 {
     for (int pidx = 1; pidx < argc; ++pidx) {
         const std::string arg = argv[pidx];
@@ -178,8 +179,22 @@ static bool process_cl(int argc, char* argv[], std::string& files_path, std::str
             continue;
         }
         if (arg == "--opencl" || arg == "-g") {
-            use_opencl = true;
+            matrix_backend = nu::MlpMatrixNN::ComputeBackend::OpenCL;
             use_matrix = true; // OpenCL requires --matrix
+            continue;
+        }
+        if ((arg == "--backend" || arg == "-B") && (pidx + 1) < argc) {
+            const std::string backend = argv[++pidx];
+            if (backend == "auto") {
+                matrix_backend = nu::MlpMatrixNN::ComputeBackend::Auto;
+            } else if (backend == "cpu" || backend == "eigen") {
+                matrix_backend = nu::MlpMatrixNN::ComputeBackend::Eigen;
+            } else if (backend == "opencl" || backend == "gpu") {
+                matrix_backend = nu::MlpMatrixNN::ComputeBackend::OpenCL;
+            } else {
+                return false;
+            }
+            use_matrix = true;
             continue;
         }
 
@@ -236,16 +251,33 @@ static void usage(const char* appname)
         << "\t[--hidden_layer|-hl <size>] ...      (default: " << HIDDEN_LAYER_SIZE << ")\n"
         << "\t[--activation|-a <name>]             (sigmoid|tanh|relu|leaky_relu|linear,"
            " default: sigmoid)\n"
-        << "\t[--matrix|-M]                        Use MlpMatrixNN (Eigen) instead of MlpNN\n"
-        << "\t[--opencl|-g]                        Use MlpMatrixNN with ArrayFire/OpenCL GPU\n"
+        << "\t[--matrix|-M]                        Use MlpMatrixNN (Auto GPU/CPU) instead of "
+           "MlpNN\n"
+        << "\t[--backend|-B <name>]                Matrix backend: auto|cpu|opencl (default: "
+           "auto)\n"
+        << "\t[--opencl|-g]                        Require MlpMatrixNN with ArrayFire/OpenCL GPU\n"
         << "\t[--batch|-b <size>]                  Mini-batch size for --matrix (default: 1)\n"
         << "\n"
         << "Notes:\n"
         << "  --activation applies to all hidden layers; output layer is always Sigmoid.\n"
         << "  --use_cross_entropy is recommended together with Sigmoid hidden/output layers.\n"
         << "  --batch requires --matrix; batch=1 is online SGD (same as no --batch).\n"
-        << "  --opencl implies --matrix; requires a build with NUNN_HAS_ARRAYFIRE.\n"
+        << "  --backend auto uses GPU/OpenCL when available and falls back to Eigen/CPU.\n"
+        << "  --opencl implies --matrix and fails if ArrayFire/OpenCL is unavailable.\n"
         << "  --save/--load are not available in --matrix mode.\n";
+}
+
+static const char* backend_name(nu::MlpMatrixNN::ComputeBackend backend)
+{
+    switch (backend) {
+    case nu::MlpMatrixNN::ComputeBackend::Auto:
+        return "Auto GPU/CPU";
+    case nu::MlpMatrixNN::ComputeBackend::Eigen:
+        return "Eigen/CPU";
+    case nu::MlpMatrixNN::ComputeBackend::OpenCL:
+        return "ArrayFire/OpenCL";
+    }
+    return "unknown";
 }
 
 // ── Test functions ────────────────────────────────────────────────────────────
@@ -355,7 +387,7 @@ int main(int argc, char* argv[])
     int epoch_cnt = TRAINING_EPOCH_NUMBER;
     bool use_ce = false;
     bool use_matrix = false;
-    bool use_opencl = false;
+    nu::MlpMatrixNN::ComputeBackend matrix_backend = nu::MlpMatrixNN::ComputeBackend::Auto;
     size_t batch_size = 1;
     bool change_lr = false;
     bool change_m = false;
@@ -366,7 +398,7 @@ int main(int argc, char* argv[])
     if (argc > 1) {
         if (!process_cl(argc, argv, files_path, load_file_name, save_file_name, skip_training,
                 learningRate, change_lr, momentum, change_m, epoch_cnt, hidden_layer, use_ce,
-                hidden_activation, use_matrix, batch_size, use_opencl)) {
+                hidden_activation, use_matrix, batch_size, matrix_backend)) {
             usage(argv[0]);
             return 1;
         }
@@ -392,14 +424,12 @@ int main(int argc, char* argv[])
     for (int i = 0; const auto& hl : hidden_layer)
         std::cout << "NN hidden neurons L" << ++i << "       : " << hl << "\n";
 
-    const char* backend_name = use_opencl ? "MlpMatrixNN (ArrayFire/OpenCL)"
-        : use_matrix                      ? "MlpMatrixNN (Eigen)"
-                                          : "MlpNN";
+    const char* requested_backend_name = use_matrix ? backend_name(matrix_backend) : "MlpNN";
     std::cout << "Hidden activation          : " << nu::act::name(hidden_activation) << "\n"
               << "Cost function              : " << (use_ce ? "cross-entropy" : "MSE") << "\n"
               << "Net Learning rate  ( LR )  : " << learningRate << "\n"
               << "Net Momentum       ( M )   : " << momentum << "\n"
-              << "Backend                    : " << backend_name << "\n";
+              << "Backend                    : " << requested_backend_name << "\n";
     if (use_matrix)
         std::cout << "Mini-batch size            : " << batch_size
                   << (batch_size == 1 ? " (online SGD)" : "") << "\n";
@@ -552,10 +582,10 @@ int main(int argc, char* argv[])
                     layers.push_back({ hl, hidden_activation });
                 layers.push_back({ OUTPUT_LAYER_SIZE, nu::Activation::Sigmoid });
 
-                const auto backend = use_opencl ? nu::MlpMatrixNN::ComputeBackend::OpenCL
-                                                : nu::MlpMatrixNN::ComputeBackend::Eigen;
                 net = std::make_unique<nu::MlpMatrixNN>(
-                    layers, learningRate, momentum, cf, backend);
+                    layers, learningRate, momentum, cf, matrix_backend);
+                std::cout << "Resolved backend           : " << backend_name(net->getBackend())
+                          << "\n";
 
                 double prev_loss = -1.0;
                 double best_ber = 100.0;

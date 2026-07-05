@@ -65,7 +65,10 @@ cmake --build build --config Release
 ctest --test-dir build -C Release
 ```
 
-Pass `-DNUNN_BUILD_TESTS=OFF` to skip the test suite.
+Pass `-DNUNN_BUILD_TESTS=OFF` to skip the test suite. OpenCL support is attempted
+by default through ArrayFire (`-DNUNN_ENABLE_OPENCL=ON`); if ArrayFire/OpenCL is
+not installed, `MlpMatrixNN::ComputeBackend::Auto` falls back to Eigen/CPU. Use
+`-DNUNN_ENABLE_OPENCL=OFF` to build a CPU-only library.
 
 ---
 
@@ -193,8 +196,10 @@ nn.trainBatch(batch);
 
 ```sh
 mnist_test                           # classic MlpNN, online SGD
-mnist_test --matrix                  # MlpMatrixNN, online SGD
-mnist_test --matrix --batch 32       # MlpMatrixNN, mini-batch SGD
+mnist_test --matrix                  # MlpMatrixNN, Auto GPU/CPU, online SGD
+mnist_test --matrix --backend cpu    # MlpMatrixNN, force Eigen/CPU
+mnist_test --matrix --backend opencl # MlpMatrixNN, require ArrayFire/OpenCL
+mnist_test --matrix --batch 32       # MlpMatrixNN, Auto GPU/CPU, mini-batch SGD
 ```
 
 ---
@@ -734,8 +739,10 @@ The MNIST dataset contains 60,000 training and 10,000 test images of handwritten
 
 ```sh
 mnist_test -p /path/to/mnist              # MlpNN, online SGD
-mnist_test -p /path/to/mnist --matrix     # MlpMatrixNN, online SGD
-mnist_test -p /path/to/mnist --matrix --batch 32   # MlpMatrixNN, mini-batch SGD
+mnist_test -p /path/to/mnist --matrix     # MlpMatrixNN, Auto GPU/CPU, online SGD
+mnist_test -p /path/to/mnist --matrix --backend cpu     # force Eigen/CPU
+mnist_test -p /path/to/mnist --matrix --backend opencl  # require ArrayFire/OpenCL
+mnist_test -p /path/to/mnist --matrix --batch 32   # MlpMatrixNN, Auto GPU/CPU, mini-batch SGD
 ```
 
 More information: http://yann.lecun.com/exdb/mnist/

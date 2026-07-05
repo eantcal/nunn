@@ -55,14 +55,19 @@ set(BUILD_TESTING         OFF CACHE BOOL "" FORCE)
 set(EIGEN_BUILD_PKGCONFIG OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(Eigen3)
 
-# Optional: ArrayFire for GPU/OpenCL backend in MlpMatrixNN
-find_package(ArrayFire QUIET)
-if(ArrayFire_OpenCL_FOUND)
-    message(STATUS "ArrayFire ${ArrayFire_VERSION} found (OpenCL backend) — GPU path enabled")
-elseif(ArrayFire_FOUND)
-    message(STATUS "ArrayFire ${ArrayFire_VERSION} found (unified) — GPU path enabled")
+option(NUNN_ENABLE_OPENCL "Try to compile the ArrayFire/OpenCL backend" ON)
+
+if(NUNN_ENABLE_OPENCL)
+    # Optional: ArrayFire/OpenCL backend for MlpMatrixNN.
+    # Missing ArrayFire/OpenCL is not fatal: MlpMatrixNN::ComputeBackend::Auto falls back to Eigen/CPU.
+    find_package(ArrayFire QUIET COMPONENTS OpenCL)
+    if(ArrayFire_OpenCL_FOUND)
+        message(STATUS "ArrayFire ${ArrayFire_VERSION} found (OpenCL backend) — GPU path enabled")
+    else()
+        message(STATUS "ArrayFire OpenCL backend not found — MlpMatrixNN will use Eigen/CPU fallback")
+    endif()
 else()
-    message(STATUS "ArrayFire not found — MlpMatrixNN will use Eigen-only build")
+    message(STATUS "NUNN_ENABLE_OPENCL=OFF — MlpMatrixNN will use Eigen/CPU")
 endif()
 
 # Add subdirectories

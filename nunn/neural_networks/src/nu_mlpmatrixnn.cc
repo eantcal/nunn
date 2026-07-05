@@ -17,6 +17,7 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+#include <string>
 
 #include <nlohmann/json.hpp>
 
@@ -24,6 +25,13 @@
 
 #ifdef NUNN_HAS_ARRAYFIRE
 namespace {
+
+void initialize_opencl_backend()
+{
+    af::setBackend(AF_BACKEND_OPENCL);
+    af::setDevice(0);
+    af::sync();
+}
 
 af::array af_activate(nu::Activation act, const af::array& z)
 {
@@ -105,9 +113,36 @@ MlpMatrixNN::MlpMatrixNN(const std::vector<LayerConfig>& layers, double learning
     if (_backend == ComputeBackend::OpenCL)
         throw std::runtime_error("MlpMatrixNN: ArrayFire/OpenCL backend not available; "
                                  "rebuild with NUNN_HAS_ARRAYFIRE defined");
+    _backend = ComputeBackend::Eigen;
+#else
+    const bool requestedAuto = (_backend == ComputeBackend::Auto);
+    if (_backend == ComputeBackend::Auto || _backend == ComputeBackend::OpenCL) {
+        try {
+            initialize_opencl_backend();
+            _backend = ComputeBackend::OpenCL;
+        } catch (const std::exception& e) {
+            if (!requestedAuto)
+                throw std::runtime_error(
+                    std::string("MlpMatrixNN: cannot initialize ArrayFire/OpenCL backend: ")
+                    + e.what());
+            _backend = ComputeBackend::Eigen;
+        }
+    }
 #endif
 
-    reshuffleWeights();
+    try {
+        reshuffleWeights();
+    } catch (const std::exception&) {
+#ifdef NUNN_HAS_ARRAYFIRE
+        if (backend == ComputeBackend::Auto && _backend == ComputeBackend::OpenCL) {
+            _backend = ComputeBackend::Eigen;
+            reshuffleWeights();
+        } else
+#endif
+        {
+            throw;
+        }
+    }
 }
 
 // ── reshuffleWeights ──────────────────────────────────────────────────────────

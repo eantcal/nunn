@@ -53,6 +53,7 @@ public:
     // ── Compute backend ────────────────────────────────────────────────────────
 
     enum class ComputeBackend {
+        Auto, // Try GPU/OpenCL when available, otherwise fall back to Eigen/CPU
         Eigen, // CPU path via Eigen (default)
         OpenCL, // GPU path via ArrayFire/OpenCL (requires NUNN_HAS_ARRAYFIRE)
     };
@@ -81,11 +82,13 @@ public:
     // layers[1..N] are the neuron layers.
     // Throws InvalidCostFunctionCombinationException if CrossEntropy is
     // paired with a non-Sigmoid output activation.
-    // Throws std::runtime_error if backend == OpenCL but NUNN_HAS_ARRAYFIRE is
-    // not defined at compile time.
+    // Auto is the default: it uses OpenCL when ArrayFire and an OpenCL device are
+    // available, otherwise it falls back to Eigen/CPU.
+    // Throws std::runtime_error only when backend == OpenCL explicitly but GPU
+    // support is not available or cannot be initialized.
     explicit MlpMatrixNN(const std::vector<LayerConfig>& layers, double learningRate = 0.1,
         double momentum = 0.0, CostFunction cf = CostFunction::MSE,
-        ComputeBackend backend = ComputeBackend::Eigen);
+        ComputeBackend backend = ComputeBackend::Auto);
 
     // ── Forward / backward — single sample ───────────────────────────────────
 
@@ -181,7 +184,7 @@ private:
     double _lr = 0.1;
     double _momentum = 0.0;
     CostFunction _cf = CostFunction::MSE;
-    ComputeBackend _backend = ComputeBackend::Eigen;
+    ComputeBackend _backend = ComputeBackend::Auto;
     Optimizer _optimizer = Optimizer::SGD;
     // Adam hyperparameters
     double _beta1 = 0.9;

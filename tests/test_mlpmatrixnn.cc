@@ -89,6 +89,12 @@ TEST(MatrixApiTest, DefaultsAreMSEAndSigmoid)
     EXPECT_EQ(nn.getCostFunction(), CostFunction::MSE);
 }
 
+TEST(MatrixApiTest, DefaultBackendAutoResolvesToAvailableBackend)
+{
+    MlpMatrixNN nn({ LC{ 2 }, { 4, Activation::Sigmoid }, { 1, Activation::Sigmoid } });
+    EXPECT_NE(nn.getBackend(), MlpMatrixNN::ComputeBackend::Auto);
+}
+
 TEST(MatrixApiTest, LearningRateAndMomentumStored)
 {
     MlpMatrixNN nn({ LC{ 2 }, { 4, Activation::Sigmoid }, { 1, Activation::Sigmoid } }, 0.37, 0.82);
