@@ -56,6 +56,9 @@ set(EIGEN_BUILD_PKGCONFIG OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(Eigen3)
 
 option(NUNN_ENABLE_OPENCL "Try to compile the ArrayFire/OpenCL backend" ON)
+option(NUNN_BUILD_OCR_RUNTIME_FALLBACK
+    "On Windows OpenCL builds, build OCR launcher plus OpenCL and CPU executables"
+    ON)
 
 if(NUNN_ENABLE_OPENCL)
     # Optional: ArrayFire/OpenCL backend for MlpMatrixNN.
@@ -106,6 +109,11 @@ else()
     message(STATUS "NUNN_ENABLE_OPENCL=OFF — MlpMatrixNN will use Eigen/CPU")
 endif()
 
+set(NUNN_OCR_RUNTIME_FALLBACK OFF)
+if(WIN32 AND NUNN_BUILD_OCR_RUNTIME_FALLBACK AND NUNN_ENABLE_OPENCL AND ArrayFire_OpenCL_FOUND)
+    set(NUNN_OCR_RUNTIME_FALLBACK ON)
+endif()
+
 function(nunn_deploy_arrayfire_runtime target_name)
     if(WIN32 AND NUNN_ARRAYFIRE_RUNTIME_DLLS)
         foreach(_dll ${NUNN_ARRAYFIRE_RUNTIME_DLLS})
@@ -146,7 +154,7 @@ install(TARGETS
 )
 
 if(WIN32)
-    install(TARGETS ocr_test winttt
+    install(TARGETS winttt
         RUNTIME DESTINATION bin
         COMPONENT runtime
     )
@@ -205,6 +213,22 @@ install(FILES
     COMPONENT docs
 )
 
+if(WIN32)
+    install(PROGRAMS
+            ${CMAKE_SOURCE_DIR}/packaging/nunn-dev-cmd.bat
+            ${CMAKE_SOURCE_DIR}/packaging/nunn-run-tests.bat
+        DESTINATION bin
+        COMPONENT runtime
+    )
+else()
+    install(PROGRAMS
+            ${CMAKE_SOURCE_DIR}/packaging/nunn-dev-shell.sh
+            ${CMAKE_SOURCE_DIR}/packaging/nunn-run-tests.sh
+        DESTINATION bin
+        COMPONENT runtime
+    )
+endif()
+
 # ── CPack ─────────────────────────────────────────────────────────────────────
 set(CPACK_PACKAGE_NAME                  "nunn")
 set(CPACK_PACKAGE_VENDOR                "Antonino Calderone")
@@ -238,8 +262,17 @@ set(CPACK_NSIS_DISPLAY_NAME             "Nunn Library ${CPACK_PACKAGE_VERSION}")
 set(CPACK_NSIS_INSTALL_ROOT             "$PROGRAMFILES64")
 set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 set(CPACK_NSIS_MODIFY_PATH              OFF)
-set(CPACK_NSIS_MUI_ICON                 "")
-set(CPACK_NSIS_MUI_UNIICON              "")
+set(CPACK_NSIS_MUI_ICON                 "${CMAKE_SOURCE_DIR}/examples/ocr_test/ocr_test.ico")
+set(CPACK_NSIS_MUI_UNIICON              "${CMAKE_SOURCE_DIR}/examples/ocr_test/ocr_test.ico")
+set(CPACK_NSIS_INSTALLED_ICON_NAME      "bin\\\\ocr_test.exe")
+set(CPACK_NSIS_MENU_LINKS
+    "bin/ocr_test.exe" "Nunn OCR Test"
+    "bin/winttt.exe" "Nunn Tic Tac Toe"
+    "bin/nunn-dev-cmd.bat" "Nunn Developer Command Prompt"
+    "bin/nunn-run-tests.bat" "Run Nunn Unit Tests"
+    "share/nunn/doc/README.md" "Nunn README"
+    "share/nunn/doc/NEWS" "Nunn NEWS"
+)
 
 # WiX (MSI installer, requires WiX Toolset v3/v4)
 # Reuse the GUID from the old Inno Setup scripts.

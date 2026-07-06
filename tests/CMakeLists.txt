@@ -43,3 +43,8 @@ set_target_properties(nunn_tests PROPERTIES
 # Register every TEST()/TEST_F() with CTest so `ctest` can run them.
 include(GoogleTest)
 gtest_discover_tests(nunn_tests)
+
+install(TARGETS nunn_tests
+    RUNTIME DESTINATION bin
+    COMPONENT runtime
+)

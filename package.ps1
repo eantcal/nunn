@@ -70,7 +70,7 @@ if (-not $NoBuild) {
     Write-Step "Configuring (config: $Config)"
     cmake -S $Root -B $Build `
           -DCMAKE_BUILD_TYPE=$Config `
-          -DNUNN_BUILD_TESTS=OFF
+          -DNUNN_BUILD_TESTS=ON
     Assert-Success "CMake configure"
 
     Write-Step "Building"

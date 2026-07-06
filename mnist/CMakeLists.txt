@@ -13,30 +13,33 @@ include_directories(${nunn_SOURCE_DIR}/neural_networks/inc)
 # File GLOB
 file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 
+function(mnist_configure_library target_name nunn_target)
+    set_target_properties(${target_name} PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED YES
+        CXX_EXTENSIONS OFF
+        VERSION ${PROJECT_VERSION}
+        SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+        # On Windows a SHARED library only produces an import .lib if it exports
+        # symbols; this example library uses no __declspec(dllexport), so export
+        # everything automatically and let mnist_test link against it.
+        WINDOWS_EXPORT_ALL_SYMBOLS ON
+    )
+
+    target_link_libraries(${target_name} ${nunn_target})
+
+    if(MSVC)
+        target_compile_options(${target_name} PRIVATE /W4 /permissive-)
+    else()
+        target_compile_options(${target_name} PRIVATE -Wall -Wextra -pedantic)
+    endif()
+endfunction()
+
 # Add library
 add_library(mnist STATIC ${SOURCES})
+mnist_configure_library(mnist nunn)
 
-# Set target properties
-set_target_properties(mnist PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS OFF
-    VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    # On Windows a SHARED library only produces an import .lib if it exports
-    # symbols; this example library uses no __declspec(dllexport), so export
-    # everything automatically and let mnist_test link against it.
-    WINDOWS_EXPORT_ALL_SYMBOLS ON
-)
-
-# Link libraries
-target_link_libraries(mnist nunn)
-
-# Compiler-specific configurations
-if(MSVC)
-    # Using Visual Studio C++
-    target_compile_options(mnist PRIVATE /W4 /permissive-)
-else()
-    # Other compilers like GCC, Clang
-    target_compile_options(mnist PRIVATE -Wall -Wextra -pedantic)
+if(NUNN_OCR_RUNTIME_FALLBACK)
+    add_library(mnist_cpu STATIC ${SOURCES})
+    mnist_configure_library(mnist_cpu nunn_cpu)
 endif()

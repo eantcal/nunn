@@ -83,6 +83,14 @@ When ArrayFire/OpenCL is found, the build deploys the required runtime DLLs besi
 OpenCL-enabled executables so `ocr_test`, `mnist_test`, and `nunn_tests` can run
 without manually editing `PATH`.
 
+Packages install all command-line demos and tools under `<install-root>\bin`.
+On Windows, the Start menu contains shortcuts for the graphical demos, the test
+runner, documentation, and `Nunn Developer Command Prompt`, which opens a console
+with the nunn `bin` directory already on `PATH`. On Linux/macOS, the package
+installs `nunn-dev-shell.sh` and `nunn-run-tests.sh` in `bin` for the same
+workflow. From that shell, examples such as `mnist_test`, `xor_test`,
+`nunn_tests`, and `net2json` can be launched directly.
+
 ---
 
 ## Feedforward networks
