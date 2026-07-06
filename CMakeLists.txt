@@ -63,12 +63,62 @@ if(NUNN_ENABLE_OPENCL)
     find_package(ArrayFire QUIET COMPONENTS OpenCL)
     if(ArrayFire_OpenCL_FOUND)
         message(STATUS "ArrayFire ${ArrayFire_VERSION} found (OpenCL backend) — GPU path enabled")
+
+        get_target_property(_NUNN_AFOPENCL_DLL ArrayFire::afopencl IMPORTED_LOCATION_RELEASE)
+        if(NOT _NUNN_AFOPENCL_DLL)
+            get_target_property(_NUNN_AFOPENCL_DLL ArrayFire::afopencl IMPORTED_LOCATION_RELWITHDEBINFO)
+        endif()
+        if(NOT _NUNN_AFOPENCL_DLL)
+            get_target_property(_NUNN_AFOPENCL_DLL ArrayFire::afopencl IMPORTED_LOCATION_MINSIZEREL)
+        endif()
+        if(NOT _NUNN_AFOPENCL_DLL)
+            get_target_property(_NUNN_AFOPENCL_DLL ArrayFire::afopencl IMPORTED_LOCATION_DEBUG)
+        endif()
+        if(NOT _NUNN_AFOPENCL_DLL)
+            get_target_property(_NUNN_AFOPENCL_DLL ArrayFire::afopencl IMPORTED_LOCATION)
+        endif()
+
+        if(WIN32 AND _NUNN_AFOPENCL_DLL)
+            get_filename_component(_NUNN_ARRAYFIRE_RUNTIME_DIR "${_NUNN_AFOPENCL_DLL}" DIRECTORY)
+            foreach(_dll
+                    afopencl.dll
+                    mkl_rt.2.dll
+                    clblast.dll
+                    clFFT.dll
+                    fmt.dll
+                    spdlog.dll
+                    OpenCL.dll
+                    af.dll
+                    forge.dll
+                    FreeImage.dll
+                    glfw3.dll)
+                if(EXISTS "${_NUNN_ARRAYFIRE_RUNTIME_DIR}/${_dll}")
+                    list(APPEND NUNN_ARRAYFIRE_RUNTIME_DLLS "${_NUNN_ARRAYFIRE_RUNTIME_DIR}/${_dll}")
+                endif()
+            endforeach()
+            list(REMOVE_DUPLICATES NUNN_ARRAYFIRE_RUNTIME_DLLS)
+            message(STATUS "ArrayFire runtime DLLs will be deployed from ${_NUNN_ARRAYFIRE_RUNTIME_DIR}")
+        endif()
     else()
         message(STATUS "ArrayFire OpenCL backend not found — MlpMatrixNN will use Eigen/CPU fallback")
     endif()
 else()
     message(STATUS "NUNN_ENABLE_OPENCL=OFF — MlpMatrixNN will use Eigen/CPU")
 endif()
+
+function(nunn_deploy_arrayfire_runtime target_name)
+    if(WIN32 AND NUNN_ARRAYFIRE_RUNTIME_DLLS)
+        foreach(_dll ${NUNN_ARRAYFIRE_RUNTIME_DLLS})
+            add_custom_command(TARGET ${target_name} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${_dll}"
+                    "$<TARGET_FILE_DIR:${target_name}>"
+                COMMENT "Deploying ArrayFire runtime ${_dll}"
+                VERBATIM
+            )
+        endforeach()
+    endif()
+endfunction()
 
 # Add subdirectories
 add_subdirectory(nunn)
@@ -100,6 +150,13 @@ if(WIN32)
         RUNTIME DESTINATION bin
         COMPONENT runtime
     )
+
+    if(NUNN_ARRAYFIRE_RUNTIME_DLLS)
+        install(FILES ${NUNN_ARRAYFIRE_RUNTIME_DLLS}
+            DESTINATION bin
+            COMPONENT runtime
+        )
+    endif()
 endif()
 
 # mnist helper DLL (runtime) / import lib (devel)

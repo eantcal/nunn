@@ -32,6 +32,7 @@ target_include_directories(nunn_tests PRIVATE
 )
 
 target_link_libraries(nunn_tests PRIVATE nunn GTest::gtest_main)
+nunn_deploy_arrayfire_runtime(nunn_tests)
 
 set_target_properties(nunn_tests PROPERTIES
     CXX_STANDARD 20

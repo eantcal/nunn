@@ -24,6 +24,7 @@ target_compile_definitions(ocr_test PRIVATE
 )
 
 target_link_libraries(ocr_test PRIVATE nunn mnist Comctl32 Shell32 Advapi32)
+nunn_deploy_arrayfire_runtime(ocr_test)
 
 if(MSVC)
     target_compile_options(ocr_test PRIVATE /W3 /permissive-)

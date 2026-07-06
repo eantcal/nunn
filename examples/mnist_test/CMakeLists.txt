@@ -19,6 +19,7 @@ add_executable(mnist_test ${SOURCES})
 
 # Link libraries
 target_link_libraries(mnist_test nunn mnist)
+nunn_deploy_arrayfire_runtime(mnist_test)
 
 # Compiler-specific configurations
 if(MSVC)
