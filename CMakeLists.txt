@@ -197,6 +197,21 @@ foreach(_dir common/inc neural_networks/inc reinforcement/inc)
 endforeach()
 
 # Pre-trained JSON model files
+set(NUNN_OCR_MODEL_FILES
+    ${CMAKE_SOURCE_DIR}/examples/ocr_test/nn_125hl.json
+    ${CMAKE_SOURCE_DIR}/scripts/mnist/models/leaky_relu_ce.json
+    ${CMAKE_SOURCE_DIR}/scripts/mnist/models/sigmoid_mse.json
+    ${CMAKE_SOURCE_DIR}/scripts/mnist/models/tanh_ce.json
+)
+foreach(_model_file ${NUNN_OCR_MODEL_FILES})
+    if(EXISTS "${_model_file}")
+        install(FILES ${_model_file}
+            DESTINATION bin/models
+            COMPONENT runtime
+        )
+    endif()
+endforeach()
+
 install(FILES
         ${CMAKE_SOURCE_DIR}/examples/ocr_test/nn_125hl.json
         ${CMAKE_SOURCE_DIR}/examples/tictactoe/tictactoe.json

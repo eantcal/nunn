@@ -567,7 +567,7 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
         s_trainEp = 0;
         s_blinkOn = false;
         s_lossHistory.clear();
-        CheckRadioButton(hDlg, IDC_RADIO_MLP, IDC_RADIO_MATRIX, IDC_RADIO_MLP);
+        CheckRadioButton(hDlg, IDC_RADIO_MLP, IDC_RADIO_MATRIX, IDC_RADIO_MATRIX);
 
         HWND hBackendCombo = GetDlgItem(hDlg, IDC_COMBO_BACKEND);
         SendMessage(hBackendCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Auto"));
@@ -588,7 +588,7 @@ INT_PTR CALLBACK TrainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
         SetDlgItemText(hDlg, IDC_EDIT_LR, "0.025");
         SetDlgItemText(hDlg, IDC_EDIT_MOMENTUM, "0.5");
         SetDlgItemText(hDlg, IDC_EDIT_EPOCHS, "30");
-        SetDlgItemText(hDlg, IDC_EDIT_BATCH, "1");
+        SetDlgItemText(hDlg, IDC_EDIT_BATCH, "100");
 
         LoadTrainPathsFromRegistry();
         if (!s_lastMnistPath.empty())
@@ -1117,6 +1117,22 @@ static void ScanModelProfiles(const std::string& dir)
     FindClose(h);
 }
 
+static void ScanInstalledModelProfiles(const std::string& exeDir)
+{
+    const std::string candidates[] = {
+        exeDir + "\\models",
+        exeDir,
+        exeDir + "\\..\\share\\nunn\\nets",
+        exeDir + "\\..\\share\\nunn\\models",
+    };
+
+    for (const auto& dir : candidates) {
+        ScanModelProfiles(dir);
+        if (!g_profiles.empty())
+            return;
+    }
+}
+
 static void BuildModelsMenu(HWND hWnd)
 {
     HMENU mainMenu = GetMenu(hWnd);
@@ -1126,7 +1142,8 @@ static void BuildModelsMenu(HWND hWnd)
     if (!g_modelsMenu)
         return;
     if (g_profiles.empty()) {
-        AppendMenuA(g_modelsMenu, MF_STRING | MF_GRAYED, 0, "(no models found in models/)");
+        AppendMenuA(g_modelsMenu, MF_STRING | MF_GRAYED, 0,
+            "(no models found in bin\\models or share\\nunn\\nets)");
     } else {
         for (size_t i = 0; i < g_profiles.size(); ++i)
             AppendMenuA(
@@ -1623,9 +1640,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // Scan for pre-trained models and build the Models menu
         {
             std::string exeDir = GetExeDir();
-            ScanModelProfiles(exeDir + "\\models");
-            if (g_profiles.empty())
-                ScanModelProfiles(exeDir); // fallback: json files next to exe
+            ScanInstalledModelProfiles(exeDir);
             BuildModelsMenu(hWnd);
         }
         break;

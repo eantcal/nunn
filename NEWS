@@ -152,9 +152,10 @@ New: MlpMatrixNN — Eigen 3.4.0 backed matrix MLP
 - Same per-layer activation and CE+Sigmoid constraint as MlpNN
 - 128 unit tests covering API, XOR convergence, and mini-batch SGD
 
-New: mnist_test --matrix / --batch flags
-- --matrix / -M selects MlpMatrixNN instead of MlpNN
-- --batch N / -b N enables mini-batch SGD (default 1 = online SGD)
+New: mnist_test --matrix / --mlp / --batch flags
+- MlpMatrixNN with backend auto and batch size 100 is the default training mode
+- --mlp / -C selects the classic MlpNN online-SGD path
+- --batch N / -b N enables mini-batch SGD (use --batch 1 for online SGD)
 - Epoch time (ms) and throughput (samples/s) reported each epoch
 
 Build:

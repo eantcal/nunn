@@ -19,9 +19,11 @@ The output is a 10-dimensional vector (one neuron per digit class).
 See also http://yann.lecun.com/exdb/mnist/
 
 Extra flags vs. the classic build:
-  --matrix / -M        Use MlpMatrixNN (Auto GPU/CPU) instead of MlpNN
-  --batch  / -b <N>
-Mini-batch size (requires --matrix; default 1 = online SGD)
+  --matrix / -M        Use MlpMatrixNN (default, Auto GPU/CPU)
+
+--mlp    / -C        Use classic MlpNN
+  --batch  / -b <N>    Mini-batch size (default 100; use 1
+for online SGD)
 */
 
 #include "mnist.h"
@@ -167,6 +169,11 @@ static bool process_cl(int argc, char* argv[], std::string& files_path, std::str
             use_matrix = true;
             continue;
         }
+        if (arg == "--mlp" || arg == "-C") {
+            use_matrix = false;
+            batch_size = 1;
+            continue;
+        }
         if ((arg == "--batch" || arg == "-b") && (pidx + 1) < argc) {
             try {
                 const int v = std::stoi(argv[++pidx]);
@@ -251,20 +258,21 @@ static void usage(const char* appname)
         << "\t[--hidden_layer|-hl <size>] ...      (default: " << HIDDEN_LAYER_SIZE << ")\n"
         << "\t[--activation|-a <name>]             (sigmoid|tanh|relu|leaky_relu|linear,"
            " default: sigmoid)\n"
-        << "\t[--matrix|-M]                        Use MlpMatrixNN (Auto GPU/CPU) instead of "
-           "MlpNN\n"
+        << "\t[--matrix|-M]                        Use MlpMatrixNN (default)\n"
+        << "\t[--mlp|-C]                           Use classic MlpNN instead of MlpMatrixNN\n"
         << "\t[--backend|-B <name>]                Matrix backend: auto|cpu|opencl (default: "
            "auto)\n"
         << "\t[--opencl|-g]                        Require MlpMatrixNN with ArrayFire/OpenCL GPU\n"
-        << "\t[--batch|-b <size>]                  Mini-batch size for --matrix (default: 1)\n"
+        << "\t[--batch|-b <size>]                  Mini-batch size (default: 100)\n"
         << "\n"
         << "Notes:\n"
         << "  --activation applies to all hidden layers; output layer is always Sigmoid.\n"
         << "  --use_cross_entropy is recommended together with Sigmoid hidden/output layers.\n"
-        << "  --batch requires --matrix; batch=1 is online SGD (same as no --batch).\n"
+        << "  MlpMatrixNN with backend auto and batch=100 is the default training mode.\n"
+        << "  Use --batch 1 for online SGD.\n"
         << "  --backend auto uses GPU/OpenCL when available and falls back to Eigen/CPU.\n"
         << "  --opencl implies --matrix and fails if ArrayFire/OpenCL is unavailable.\n"
-        << "  --save/--load are not available in --matrix mode.\n";
+        << "  --save/--load are available with --mlp.\n";
 }
 
 static const char* backend_name(nu::MlpMatrixNN::ComputeBackend backend)
@@ -386,9 +394,9 @@ int main(int argc, char* argv[])
     double momentum = NET_MOMENTUM;
     int epoch_cnt = TRAINING_EPOCH_NUMBER;
     bool use_ce = false;
-    bool use_matrix = false;
+    bool use_matrix = true;
     nu::MlpMatrixNN::ComputeBackend matrix_backend = nu::MlpMatrixNN::ComputeBackend::Auto;
-    size_t batch_size = 1;
+    size_t batch_size = 100;
     bool change_lr = false;
     bool change_m = false;
 

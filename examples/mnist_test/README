@@ -30,6 +30,7 @@ mnist_test
         [--learning_rate|-r <rate>]
         [--epoch_cnt|-e <count>]
         [--matrix|-M]
+        [--mlp|-C]
         [--backend|-B auto|cpu|opencl]
         [--batch|-b <size>]
         [[--hidden_layer|-hl <size> [--hidden_layer|--hl <size>] ... ]
@@ -54,23 +55,26 @@ Where:
 --hidden_layer or -hl 
         set hidden layer size (n. of neurons, default 100)
 --matrix or -M
-        use MlpMatrixNN instead of the classic MlpNN implementation
+        use MlpMatrixNN (default)
+--mlp or -C
+        use the classic MlpNN implementation
 --backend or -B
         select MlpMatrixNN backend: auto (default), cpu, or opencl
 --batch or -b
-        train MlpMatrixNN with mini-batches (default 1 = online SGD)
+        train MlpMatrixNN with mini-batches (default 100; use 1 for online SGD)
 
 Notes:
+MlpMatrixNN with backend auto and batch size 100 is the default training mode.
 --backend auto uses ArrayFire/OpenCL when available and falls back to Eigen/CPU.
 --backend opencl requires ArrayFire/OpenCL and fails if it cannot be initialised.
---save/--load remain available for the classic MlpNN path; matrix JSON workflows
+--save/--load remain available with --mlp; matrix JSON workflows
 are covered by the ocr_test MNIST training dialog and nunn unit tests.
 
 -------------------------------------------------------------------------------
 Example:
 
-# mnist_test -e 60 -r 0.40 -hl 135 -s nn_135hl_040lr.net
-# mnist_test --matrix --backend auto --batch 32 -e 30 -hl 300
+# mnist_test --mlp -e 60 -r 0.40 -hl 135 -s nn_135hl_040lr.net
+# mnist_test --backend auto --batch 100 -e 30 -hl 300
 
 -------------------------------------------------------------------------------
 Output:

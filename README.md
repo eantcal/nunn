@@ -216,11 +216,11 @@ nn.trainBatch(batch);
 `mnist_test` exposes CPU/GPU backend selection via flags:
 
 ```sh
-mnist_test                           # classic MlpNN, online SGD
-mnist_test --matrix                  # MlpMatrixNN, Auto GPU/CPU, online SGD
-mnist_test --matrix --backend cpu    # MlpMatrixNN, force Eigen/CPU
-mnist_test --matrix --backend opencl # MlpMatrixNN, require ArrayFire/OpenCL
-mnist_test --matrix --batch 32       # MlpMatrixNN, Auto GPU/CPU, mini-batch SGD
+mnist_test                           # MlpMatrixNN, Auto GPU/CPU, batch 100
+mnist_test --mlp                     # classic MlpNN, online SGD
+mnist_test --backend cpu             # MlpMatrixNN, force Eigen/CPU
+mnist_test --backend opencl          # MlpMatrixNN, require ArrayFire/OpenCL
+mnist_test --batch 1                 # MlpMatrixNN, Auto GPU/CPU, online SGD
 ```
 
 `MlpMatrixNN` JSON persistence is tested across training, save, reload, and
@@ -761,14 +761,14 @@ bash scripts/mnist/bash/run_all.sh --quick
 
 ### MNIST
 
-The MNIST dataset contains 60,000 training and 10,000 test images of handwritten digits (28×28 grayscale, flattened to 784 inputs). The `mnist_test` tool supports three backends:
+The MNIST dataset contains 60,000 training and 10,000 test images of handwritten digits (28×28 grayscale, flattened to 784 inputs). The `mnist_test` tool defaults to `MlpMatrixNN` with backend `auto` and batch size 100:
 
 ```sh
-mnist_test -p /path/to/mnist              # MlpNN, online SGD
-mnist_test -p /path/to/mnist --matrix     # MlpMatrixNN, Auto GPU/CPU, online SGD
-mnist_test -p /path/to/mnist --matrix --backend cpu     # force Eigen/CPU
-mnist_test -p /path/to/mnist --matrix --backend opencl  # require ArrayFire/OpenCL
-mnist_test -p /path/to/mnist --matrix --batch 32   # MlpMatrixNN, Auto GPU/CPU, mini-batch SGD
+mnist_test -p /path/to/mnist                    # MlpMatrixNN, Auto GPU/CPU, batch 100
+mnist_test -p /path/to/mnist --mlp              # classic MlpNN, online SGD
+mnist_test -p /path/to/mnist --backend cpu      # force Eigen/CPU
+mnist_test -p /path/to/mnist --backend opencl   # require ArrayFire/OpenCL
+mnist_test -p /path/to/mnist --batch 1          # MlpMatrixNN, Auto GPU/CPU, online SGD
 ```
 
 More information: http://yann.lecun.com/exdb/mnist/
