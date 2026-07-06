@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 MNIST Test Demo (mnist_test) relies on nunn library by Antonino Calderone
-(c) Antonino Calderone <acaldmail@gmail.com> - 2015
+(c) Antonino Calderone <acaldmail@gmail.com> - 2015, 2026
 https://sourceforge.net/projects/nunn/
 -------------------------------------------------------------------------------
 
@@ -29,7 +29,10 @@ mnist_test
         [--skip_training|-n]
         [--learning_rate|-r <rate>]
         [--epoch_cnt|-e <count>]
-        [[--hidden_layer|-hl <size> [--hidden_layer|--hl <size] ... ]
+        [--matrix|-M]
+        [--backend|-B auto|cpu|opencl]
+        [--batch|-b <size>]
+        [[--hidden_layer|-hl <size> [--hidden_layer|--hl <size>] ... ]
 
 Where:
 --version or -v
@@ -47,14 +50,27 @@ Where:
 --learning_rate or -r
         set learning rate (default 0.10)
 --epoch_cnt or -e
-        set epoch count (defualt 10)
+        set epoch count (default 10)
 --hidden_layer or -hl 
         set hidden layer size (n. of neurons, default 100)
+--matrix or -M
+        use MlpMatrixNN instead of the classic MlpNN implementation
+--backend or -B
+        select MlpMatrixNN backend: auto (default), cpu, or opencl
+--batch or -b
+        train MlpMatrixNN with mini-batches (default 1 = online SGD)
+
+Notes:
+--backend auto uses ArrayFire/OpenCL when available and falls back to Eigen/CPU.
+--backend opencl requires ArrayFire/OpenCL and fails if it cannot be initialised.
+--save/--load remain available for the classic MlpNN path; matrix JSON workflows
+are covered by the ocr_test MNIST training dialog and nunn unit tests.
 
 -------------------------------------------------------------------------------
 Example:
 
 # mnist_test -e 60 -r 0.40 -hl 135 -s nn_135hl_040lr.net
+# mnist_test --matrix --backend auto --batch 32 -e 30 -hl 300
 
 -------------------------------------------------------------------------------
 Output:

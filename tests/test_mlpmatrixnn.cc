@@ -12,8 +12,10 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <algorithm>
 #include <cmath>
 #include <limits>
+#include <sstream>
 #include <vector>
 
 using nu::Activation;
@@ -71,6 +73,11 @@ template <typename Factory> double xorBestMse(Factory factory, int epochs, int m
 }
 
 } // namespace
+
+static size_t argmaxIndex(const std::vector<double>& v)
+{
+    return static_cast<size_t>(std::max_element(v.begin(), v.end()) - v.begin());
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MatrixApiTest
@@ -535,4 +542,53 @@ TEST(MatrixJsonTest, ReloadPreservesInferenceWithResolvedBackend)
 
     ASSERT_EQ(before.size(), after.size());
     EXPECT_NEAR(before[0], after[0], 1e-12);
+}
+
+TEST(MatrixJsonTest, TrainingAndRecognitionSurviveJsonReload)
+{
+    const std::array<Sample, 4> classes = { {
+        { { 1.0, 0.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0, 0.0 } },
+        { { 0.0, 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0, 0.0 } },
+        { { 0.0, 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0, 0.0 } },
+        { { 0.0, 0.0, 0.0, 1.0 }, { 0.0, 0.0, 0.0, 1.0 } },
+    } };
+
+    MlpMatrixNN trained({ LC{ 4 }, LC{ 4, Activation::Sigmoid } }, 0.8, 0.0, CostFunction::MSE,
+        MlpMatrixNN::ComputeBackend::Auto);
+
+    for (int epoch = 0; epoch < 700; ++epoch) {
+        for (const auto& [input, target] : classes) {
+            trained.setInputVector(input);
+            trained.feedForward();
+            trained.backPropagate(target);
+        }
+    }
+
+    std::array<size_t, 4> expected{};
+    for (size_t i = 0; i < classes.size(); ++i) {
+        trained.setInputVector(classes[i].first);
+        trained.feedForward();
+
+        std::vector<double> out;
+        trained.copyOutputVector(out);
+        expected[i] = argmaxIndex(out);
+        EXPECT_EQ(expected[i], i) << "trained model did not recognize class " << i;
+    }
+
+    std::stringstream json;
+    trained.toJson(json);
+
+    MlpMatrixNN loaded(
+        { LC{ 1 }, LC{ 1 } }, 0.1, 0.0, CostFunction::MSE, MlpMatrixNN::ComputeBackend::Auto);
+    loaded.loadJson(json);
+
+    for (size_t i = 0; i < classes.size(); ++i) {
+        loaded.setInputVector(classes[i].first);
+        loaded.feedForward();
+
+        std::vector<double> out;
+        loaded.copyOutputVector(out);
+        EXPECT_EQ(argmaxIndex(out), expected[i])
+            << "reloaded JSON model changed recognition for class " << i;
+    }
 }

@@ -1,6 +1,6 @@
 //
 // This file is part of the nunn Library
-// Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+// Copyright (c) 2026 Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.  Licensed under the MIT License.
 //
 // kmeans_demo — cluster four 2D Gaussian blobs and print the ASCII grid.

@@ -1,6 +1,6 @@
 //
 // This file is part of the nunn Library
-// Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+// Copyright (c) 2026 Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
 // Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
@@ -663,22 +663,33 @@ std::ostream& MlpMatrixNN::toJson(std::ostream& os) const
         jlayers.push_back(std::move(entry));
     }
     for (const auto& l : _layers) {
+        Eigen::MatrixXd W = l.W;
+        Eigen::VectorXd b = l.b;
+#ifdef NUNN_HAS_ARRAYFIRE
+        if (_backend == ComputeBackend::OpenCL) {
+            if (l.W_af)
+                l.W_af->host(W.data());
+            if (l.b_af)
+                l.b_af->host(b.data());
+        }
+#endif
+
         json entry;
-        entry["size"] = static_cast<size_t>(l.W.rows());
+        entry["size"] = static_cast<size_t>(W.rows());
         entry["activation"] = std::string(act::name(l.act));
         // W as array of rows
         json jW = json::array();
-        for (Eigen::Index r = 0; r < l.W.rows(); ++r) {
+        for (Eigen::Index r = 0; r < W.rows(); ++r) {
             json row = json::array();
-            for (Eigen::Index c = 0; c < l.W.cols(); ++c)
-                row.push_back(l.W(r, c));
+            for (Eigen::Index c = 0; c < W.cols(); ++c)
+                row.push_back(W(r, c));
             jW.push_back(std::move(row));
         }
         entry["W"] = std::move(jW);
         // b as flat array
         json jb = json::array();
-        for (Eigen::Index i = 0; i < l.b.size(); ++i)
-            jb.push_back(l.b(i));
+        for (Eigen::Index i = 0; i < b.size(); ++i)
+            jb.push_back(b(i));
         entry["b"] = std::move(jb);
         jlayers.push_back(std::move(entry));
     }

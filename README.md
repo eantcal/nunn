@@ -39,7 +39,7 @@ The library aims to be compact, readable, and practical — a codebase you can a
 
 - **Perceptron** — single neuron, MSE or cross-entropy loss, momentum
 - **MlpNN** — classic fully connected MLP with per-layer activations
-- **MlpMatrixNN** — Eigen 3.4 backed MLP with mini-batch SGD
+- **MlpMatrixNN** — Eigen 3.4 backed MLP with mini-batch SGD and optional ArrayFire/OpenCL acceleration
 - **VanillaRnn** — Elman-style RNN with truncated BPTT
 - **GRU** — Gated Recurrent Unit with truncated BPTT
 - **LSTM** — Long Short-Term Memory with truncated BPTT
@@ -50,7 +50,7 @@ The library aims to be compact, readable, and practical — a codebase you can a
 - **LayerNorm / SelfAttentionLayer / TransformerBlock / MiniTransformer** — decoder-only transformer with multi-head causal attention and autoregressive generation
 - **DQN** — Deep Q-Network with experience replay buffer and frozen target network
 - **Q-learning** and **SARSA** tabular reinforcement learning
-- 234 GoogleTest unit tests; all network classes are fully tested
+- 342 GoogleTest unit tests; all network classes are fully tested
 - Cross-platform: Windows, Linux, macOS
 
 ---
@@ -69,6 +69,19 @@ Pass `-DNUNN_BUILD_TESTS=OFF` to skip the test suite. OpenCL support is attempte
 by default through ArrayFire (`-DNUNN_ENABLE_OPENCL=ON`); if ArrayFire/OpenCL is
 not installed, `MlpMatrixNN::ComputeBackend::Auto` falls back to Eigen/CPU. Use
 `-DNUNN_ENABLE_OPENCL=OFF` to build a CPU-only library.
+
+On Windows, `build-opencl.ps1` configures the project with OpenCL enabled and
+defaults to the standard ArrayFire install directory:
+
+```powershell
+.\build-opencl.ps1
+.\build-opencl.ps1 -Target ocr_test
+.\build-opencl.ps1 -ArrayFireRoot "C:\Program Files\ArrayFire\v3" -CleanCache
+```
+
+When ArrayFire/OpenCL is found, the build deploys the required runtime DLLs beside
+OpenCL-enabled executables so `ocr_test`, `mnist_test`, and `nunn_tests` can run
+without manually editing `PATH`.
 
 ---
 
@@ -192,7 +205,7 @@ nu::MlpMatrixNN nn(
 nn.trainBatch(batch);
 ```
 
-`mnist_test` exposes both backends via flags:
+`mnist_test` exposes CPU/GPU backend selection via flags:
 
 ```sh
 mnist_test                           # classic MlpNN, online SGD
@@ -201,6 +214,11 @@ mnist_test --matrix --backend cpu    # MlpMatrixNN, force Eigen/CPU
 mnist_test --matrix --backend opencl # MlpMatrixNN, require ArrayFire/OpenCL
 mnist_test --matrix --batch 32       # MlpMatrixNN, Auto GPU/CPU, mini-batch SGD
 ```
+
+`MlpMatrixNN` JSON persistence is tested across training, save, reload, and
+recognition. OpenCL-backed networks synchronise device weights before JSON
+serialisation and after JSON load, so a model trained on GPU behaves the same
+after reloading from disk.
 
 ---
 
@@ -717,7 +735,7 @@ bash scripts/mnist/bash/run_all.sh --quick
 | `and_test` | Perceptron | AND function (linearly separable) |
 | `xor_test` | MlpNN | XOR function (non-linearly separable) |
 | `mnist_test` | MlpNN / MlpMatrixNN | MNIST digit recognition (784→300→10) |
-| `ocr_test` | MlpNN | Interactive handwritten digit recognition |
+| `ocr_test` | MlpNN / MlpMatrixNN | Interactive handwritten digit recognition and MNIST training |
 | `rnn_sine` | VanillaRnn / GRU / LSTM | Sine-wave next-step prediction |
 | `rnn_char` | VanillaRnn / GRU / LSTM | Character-level language model |
 | `rnn_adding` | VanillaRnn / GRU / LSTM | Adding problem benchmark (selective memory) |
@@ -749,7 +767,12 @@ More information: http://yann.lecun.com/exdb/mnist/
 
 ### OCR demo
 
-`ocr_test` loads a `.net` model produced by `mnist_test` and performs real-time handwritten digit recognition.
+`ocr_test` loads legacy `.net` models and JSON models, performs real-time
+handwritten digit recognition, and can train a new MNIST model directly from the
+Train menu. The MNIST training dialog supports MlpNN and MlpMatrixNN, backend
+selection (`Auto`, `CPU`, `OpenCL`), persisted MNIST/save paths, mini-batch
+training, and a cost-convergence chart with labelled axes. Models trained from
+the dialog are saved as JSON and can be reloaded for recognition.
 
 [![Watch the video](https://youtu.be/ereeEG_1lmY)](https://youtu.be/ereeEG_1lmY)
 

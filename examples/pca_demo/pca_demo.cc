@@ -1,6 +1,6 @@
 //
 // This file is part of the nunn Library
-// Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+// Copyright (c) 2026 Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.  Licensed under the MIT License.
 //
 // pca_demo — reduce a synthetic 4D dataset to 2D with PCA and show

@@ -1,7 +1,30 @@
 nunn library NEWS -- history of user-visible changes.
-Author - Antonino Calderone - <acaldmail@gmail.com> - (c) 2015, 2016
+Author - Antonino Calderone - <acaldmail@gmail.com> - (c) 2015, 2016, 2026
 
 Please send nunn bug reports to <acaldmail@gmail.com>.
+
+Jul 6, 2026
+* Updated the nunn 2.1 release line with OpenCL runtime and OCR/MNIST workflow fixes
+
+Build and runtime:
+- OpenCL support is enabled by default when ArrayFire/OpenCL is available.
+- Added build-opencl.ps1 for Windows builds using the default ArrayFire location
+  C:\Program Files\ArrayFire\v3.
+- Windows builds now deploy the required ArrayFire runtime DLLs beside OpenCL-enabled
+  executables (ocr_test, mnist_test, nunn_tests), including afopencl.dll and mkl_rt.2.dll.
+
+MlpMatrixNN / JSON:
+- ComputeBackend::Auto selects ArrayFire/OpenCL when usable and falls back to Eigen/CPU.
+- Fixed JSON save/load consistency for OpenCL models: weights and biases are synchronised
+  host<->device during layer restore and JSON serialisation.
+- Added regression coverage for training, JSON save, JSON reload, and recognition after reload.
+
+ocr_test:
+- "Train from MNIST" moved from File to Train; per-digit training commands moved under
+  the "Current digit" submenu.
+- MNIST path and Save-to path are persisted in the user registry and restored on restart.
+- The MNIST training dialog now exposes backend selection (Auto/CPU/OpenCL), shows a
+  cost-convergence chart with labelled axes, and saves JSON models usable by ocr_test.
 
 Jun 28, 2026
 * Released nunn library 2.2 — five new architectures: Autoencoder, RBF, DQN, CNN 1D, Transformer
