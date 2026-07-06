@@ -498,3 +498,41 @@ TEST(AdamTest, ReshuffleResetsAdamState)
     net.feedForward();
     EXPECT_NO_THROW(net.backPropagate({ 0.0 }));
 }
+
+TEST(MatrixJsonTest, ReloadPreservesInferenceWithResolvedBackend)
+{
+    MlpMatrixNN net({ LC{ 2 }, { 3, Activation::Tanh }, { 1, Activation::Sigmoid } }, 0.1, 0.0,
+        CostFunction::MSE, MlpMatrixNN::ComputeBackend::Auto);
+
+    Eigen::MatrixXd w0(3, 2);
+    w0 << 0.20, -0.10, 0.40, 0.30, -0.50, 0.25;
+    Eigen::VectorXd b0(3);
+    b0 << 0.10, -0.20, 0.05;
+    Eigen::MatrixXd w1(1, 3);
+    w1 << 0.70, -0.60, 0.20;
+    Eigen::VectorXd b1(1);
+    b1 << -0.15;
+
+    net.setLayerW(0, w0);
+    net.setLayerB(0, b0);
+    net.setLayerW(1, w1);
+    net.setLayerB(1, b1);
+    net.setInputVector({ 0.75, -0.25 });
+    net.feedForward();
+    std::vector<double> before;
+    net.copyOutputVector(before);
+
+    std::stringstream ss;
+    net.toJson(ss);
+
+    MlpMatrixNN loaded(
+        { LC{ 1 }, LC{ 1 } }, 0.1, 0.0, CostFunction::MSE, MlpMatrixNN::ComputeBackend::Auto);
+    loaded.loadJson(ss);
+    loaded.setInputVector({ 0.75, -0.25 });
+    loaded.feedForward();
+    std::vector<double> after;
+    loaded.copyOutputVector(after);
+
+    ASSERT_EQ(before.size(), after.size());
+    EXPECT_NEAR(before[0], after[0], 1e-12);
+}

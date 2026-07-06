@@ -553,12 +553,24 @@ Eigen::VectorXd MlpMatrixNN::getLayerB(size_t layer) const
 
 void MlpMatrixNN::setLayerW(size_t layer, const Eigen::MatrixXd& W)
 {
-    _layers.at(layer).W = W;
+    auto& l = _layers.at(layer);
+    l.W = W;
+
+#ifdef NUNN_HAS_ARRAYFIRE
+    if (_backend == ComputeBackend::OpenCL)
+        l.W_af = af::array(l.W.rows(), l.W.cols(), l.W.data(), afHost);
+#endif
 }
 
 void MlpMatrixNN::setLayerB(size_t layer, const Eigen::VectorXd& b)
 {
-    _layers.at(layer).b = b;
+    auto& l = _layers.at(layer);
+    l.b = b;
+
+#ifdef NUNN_HAS_ARRAYFIRE
+    if (_backend == ComputeBackend::OpenCL)
+        l.b_af = af::array(static_cast<dim_t>(l.b.size()), (dim_t)1, l.b.data(), afHost);
+#endif
 }
 
 // ── getInputGradient ──────────────────────────────────────────────────────────
