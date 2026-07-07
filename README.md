@@ -110,10 +110,8 @@ corresponding source files and examples.
 The project is accompanied by the book *Fundamentals of Machine Learning:
 Algorithms and Applications in C++*, available in English and Italian editions:
 
-- English Kindle: https://read.amazon.com/sample/B0GY9L7N22?clientId=share
-- English paperback: https://read.amazon.com/sample/B0H7KQCFJY?clientId=share
-- Italian Kindle: https://read.amazon.com/sample/B0H6Q12LVJ?clientId=share
-- Italian paperback: https://read.amazon.com/sample/B0DF69MPZF?clientId=share
+- English: https://read.amazon.com/sample/B0H7KQCFJY?clientId=share
+- Italian: https://read.amazon.com/sample/B0DF69MPZF?clientId=share
 
 ---
 
