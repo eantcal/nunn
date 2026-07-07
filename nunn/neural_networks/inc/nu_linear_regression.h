@@ -26,6 +26,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/QR>
+#include <initializer_list>
 #include <stdexcept>
 #include <vector>
 
@@ -68,6 +69,14 @@ public:
 
     // Predict for a batch of samples.
     std::vector<double> predict(const std::vector<std::vector<double>>& X) const;
+
+    // Predict for a single sample given as a braced list, e.g. predict({1.5}).
+    // An initializer_list parameter is an exact match for braced arguments,
+    // which would otherwise be ambiguous between the two overloads above.
+    double predict(std::initializer_list<double> x) const
+    {
+        return predict(std::vector<double>(x));
+    }
 
     // Mean Squared Error on (X, y).
     double mse(const std::vector<std::vector<double>>& X, const std::vector<double>& y) const;
