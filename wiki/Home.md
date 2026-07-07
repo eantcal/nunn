@@ -54,10 +54,10 @@ Some diagrams and explanations in this wiki are adapted from the accompanying bo
 
 The companion book is *Fundamentals of Machine Learning: Algorithms and Applications in C++*:
 
-- English Kindle: https://read.amazon.com/sample/B0GY9L7N22?clientId=share
-- English paperback: https://read.amazon.com/sample/B0H7KQCFJY?clientId=share
-- Italian Kindle: https://read.amazon.com/sample/B0H6Q12LVJ?clientId=share
-- Italian paperback: https://read.amazon.com/sample/B0DF69MPZF?clientId=share
+- English Kindle: https://www.amazon.com/dp/B0GY9L7N22
+- English paperback: https://www.amazon.com/dp/B0H7KQCFJY
+- Italian Kindle: https://www.amazon.it/dp/B0H6Q12LVJ
+- Italian paperback: https://www.amazon.it/dp/B0DF69MPZF
 
 ## How to Read the Wiki
 

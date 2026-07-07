@@ -110,8 +110,10 @@ corresponding source files and examples.
 The project is accompanied by the book *Fundamentals of Machine Learning:
 Algorithms and Applications in C++*, available in English and Italian editions:
 
-- English: https://read.amazon.com/sample/B0H7KQCFJY?clientId=share
-- Italian: https://read.amazon.com/sample/B0DF69MPZF?clientId=share
+- English Kindle: https://www.amazon.com/dp/B0GY9L7N22
+- English paperback: https://www.amazon.com/dp/B0H7KQCFJY
+- Italian Kindle: https://www.amazon.it/dp/B0H6Q12LVJ
+- Italian paperback: https://www.amazon.it/dp/B0DF69MPZF
 
 ---
 
@@ -779,7 +781,7 @@ bash scripts/mnist/bash/run_all.sh --quick
 | `hopfield_test` | Hopfield | Pattern recall from noisy input |
 | `maze` | Q-learning / SARSA | Grid-world navigation |
 | `path_finder` | Q-learning / SARSA | Shortest-path under obstacles |
-| `nunn_topo` | — | Export network topology to Graphviz DOT |
+| `nunn_topo` | topology tool | Visualise MLP topology from JSON, legacy `.net`, or explicit layer sizes |
 
 ### MNIST
 
@@ -810,4 +812,29 @@ the dialog are saved as JSON and can be reloaded for recognition.
 
 ### Topology visualiser (`nunn_topo`)
 
-Exports a network topology to **Graphviz DOT** format, which `dot` can render as GIF, PNG, SVG, or PostScript.
+`nunn_topo` turns an MLP topology into a Graphviz diagram. It can read modern
+JSON models, legacy `.net` models, or an explicit topology passed on the command
+line:
+
+```sh
+nunn_topo --load examples/ocr_test/nn_125hl.json --save ocr-topology.svg
+nunn_topo --load examples/tictactoe/tictactoe.net --save tictactoe.dot
+nunn_topo --topology 784,300,10 --save mnist.png
+```
+
+DOT output works without extra tools:
+
+```sh
+nunn_topo --topology 2,3,1
+nunn_topo --topology 2,3,1 --save xor.dot
+```
+
+SVG, PNG, and PDF output require Graphviz `dot` in `PATH`:
+
+```sh
+nunn_topo --load model.json --format svg --save model.svg
+```
+
+Large networks are compacted by default so MNIST-sized topologies remain
+readable. Use `--full` to draw every node and every connection, or
+`--max-nodes N` to tune the compact view.

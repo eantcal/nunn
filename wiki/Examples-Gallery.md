@@ -20,8 +20,11 @@ Use these first when checking a build or reading the library for the first time.
 | `mnist_test` | `MlpMatrixNN` / `MlpNN` | Training and evaluating a digit classifier |
 | `ocr_test` | `MlpMatrixNN` / `MlpNN` | Interactive drawing, model loading, and MNIST training from GUI |
 | `net2json` | conversion tool | Migration from legacy `.net` model files to JSON |
+| `nunn_topo` | visualization tool | DOT/SVG/PNG/PDF topology diagrams from JSON, `.net`, or explicit layer sizes |
 
 `mnist_test` is the controlled experiment: fixed dataset, known train/test split, reproducible metrics. `ocr_test` is the user-facing experiment: it shows what happens when real drawings differ from the MNIST distribution.
+
+`nunn_topo` is useful when documenting or checking a trained model. It reads both modern JSON and legacy `.net` files, and it uses a compact view by default for large networks such as MNIST.
 
 ## Recurrent Models
 

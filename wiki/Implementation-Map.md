@@ -44,6 +44,7 @@ This page maps the main wiki topics to the nuNN source tree. It is useful when m
 | Command-line MNIST training | `examples/mnist_test/mnist_test.cc` |
 | Windows OCR GUI | `examples/ocr_test/ocr_test.cpp` |
 | OCR launcher/fallback | `examples/ocr_test/ocr_launcher.cpp` |
+| Topology visualization | `nunn_topo/nunn_topo.cc` |
 
 ## Reinforcement Learning
 
@@ -64,4 +65,4 @@ This page maps the main wiki topics to the nuNN source tree. It is useful when m
 | Convolution | `cnn_seq` |
 | Transformer | `transformer_char` |
 | Reinforcement learning | `maze`, `path_finder`, `dqn_maze` |
-| Utilities | `net2json`, `nunn_tests` |
+| Utilities | `net2json`, `nunn_topo`, `nunn_tests` |
