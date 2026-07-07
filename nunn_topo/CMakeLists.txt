@@ -17,7 +17,7 @@ file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 add_executable(nunn_topo ${SOURCES})
 
 # Link libraries
-target_link_libraries(nunn_topo nunn)
+target_link_libraries(nunn_topo PRIVATE nunn nlohmann_json::nlohmann_json)
 
 # Compiler-specific configurations
 if(MSVC)

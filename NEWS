@@ -15,6 +15,12 @@ Documentation:
 - README and wiki now mention the companion book, Fundamentals of Machine Learning:
   Algorithms and Applications in C++, with English and Italian Kindle/paperback links.
 
+Tools:
+- Reworked nunn_topo into a practical topology visualizer: it now reads JSON and
+  legacy .net models, accepts explicit topology lists, emits DOT without extra
+  dependencies, and can render SVG/PNG/PDF through Graphviz dot. Large topologies
+  are compacted by default, with --full available for exact complete graphs.
+
 Build and runtime:
 - OpenCL support is enabled by default when ArrayFire/OpenCL is available.
 - Added build-opencl.ps1 for Windows builds using the default ArrayFire location
