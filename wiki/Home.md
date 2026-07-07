@@ -15,9 +15,12 @@ This wiki complements the README:
 - [MNIST and OCR](MNIST-and-OCR)
 - [Recurrent Networks](Recurrent-Networks)
 - [Convolutional Networks and Transformer](Convolutional-and-Transformer)
+- [Classical and Unsupervised Models](Classical-and-Unsupervised)
 - [Reinforcement Learning](Reinforcement-Learning)
+- [Training and Diagnostics](Training-and-Diagnostics)
 - [Examples Gallery](Examples-Gallery)
 - [Theory Notes](Theory-Notes)
+- [Implementation Map](Implementation-Map)
 
 ## What nuNN Includes
 
@@ -47,5 +50,15 @@ The current implementation includes:
 
 ## Using Book Material
 
-Some diagrams in this wiki are adapted from the accompanying book material and stored as PNG assets under `assets/`. They are used here to connect the theory to the corresponding nuNN classes and demo programs.
+Some diagrams and explanations in this wiki are adapted from the accompanying book material and stored as PNG assets under `assets/`. They are used here to connect the theory to the corresponding nuNN classes and demo programs.
 
+The companion book is *Fundamentals of Machine Learning: Algorithms and Applications in C++*:
+
+- English Kindle: https://read.amazon.com/sample/B0GY9L7N22?clientId=share
+- English paperback: https://read.amazon.com/sample/B0H7KQCFJY?clientId=share
+- Italian Kindle: https://read.amazon.com/sample/B0H6Q12LVJ?clientId=share
+- Italian paperback: https://read.amazon.com/sample/B0DF69MPZF?clientId=share
+
+## How to Read the Wiki
+
+Start with [Getting Started](Getting-Started) if you want to build and run the examples. Use [Theory Notes](Theory-Notes) as the compact conceptual bridge from the book to the code. Use [Training and Diagnostics](Training-and-Diagnostics) when a model does not converge or behaves differently after reload. Then use [Implementation Map](Implementation-Map) when you want to jump from a concept to the relevant header, source file, or demo.

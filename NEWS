@@ -6,6 +6,15 @@ Please send nunn bug reports to <acaldmail@gmail.com>.
 Jul 6, 2026
 * Updated the nunn 2.1 release line with OpenCL runtime and OCR/MNIST workflow fixes
 
+Documentation:
+- Added an expanded GitHub Wiki source tree with book-derived theory notes,
+  diagrams, implementation mapping, training diagnostics, MNIST/OCR guidance,
+  reinforcement-learning notes, recurrent/CNN/Transformer pages, and classical
+  unsupervised model documentation.
+- README now points to the project wiki and its main entry pages.
+- README and wiki now mention the companion book, Fundamentals of Machine Learning:
+  Algorithms and Applications in C++, with English and Italian Kindle/paperback links.
+
 Build and runtime:
 - OpenCL support is enabled by default when ArrayFire/OpenCL is available.
 - Added build-opencl.ps1 for Windows builds using the default ArrayFire location

@@ -32,6 +32,7 @@ The library aims to be compact, readable, and practical — a codebase you can a
    - [DQN — Deep Q-Network](#dqn--deep-q-network-nu_dqnh)
 10. [Scripts](#scripts)
 11. [Demos and tools](#demos-and-tools)
+12. [Documentation](#documentation)
 
 ---
 
@@ -90,6 +91,29 @@ with the nunn `bin` directory already on `PATH`. On Linux/macOS, the package
 installs `nunn-dev-shell.sh` and `nunn-run-tests.sh` in `bin` for the same
 workflow. From that shell, examples such as `mnist_test`, `xor_test`,
 `nunn_tests`, and `net2json` can be launched directly.
+
+---
+
+## Documentation
+
+The GitHub Wiki contains the extended documentation layer for nuNN:
+
+- [nuNN Wiki](https://github.com/eantcal/nunn/wiki)
+- [Theory Notes](https://github.com/eantcal/nunn/wiki/Theory-Notes)
+- [Training and Diagnostics](https://github.com/eantcal/nunn/wiki/Training-and-Diagnostics)
+- [Implementation Map](https://github.com/eantcal/nunn/wiki/Implementation-Map)
+
+The wiki complements this README with book-derived explanations, diagrams,
+training diagnostics, MNIST/OCR notes, and links from each concept to the
+corresponding source files and examples.
+
+The project is accompanied by the book *Fundamentals of Machine Learning:
+Algorithms and Applications in C++*, available in English and Italian editions:
+
+- English Kindle: https://read.amazon.com/sample/B0GY9L7N22?clientId=share
+- English paperback: https://read.amazon.com/sample/B0H7KQCFJY?clientId=share
+- Italian Kindle: https://read.amazon.com/sample/B0H6Q12LVJ?clientId=share
+- Italian paperback: https://read.amazon.com/sample/B0DF69MPZF?clientId=share
 
 ---
 
