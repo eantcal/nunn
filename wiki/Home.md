@@ -10,14 +10,14 @@ This wiki complements the README:
 
 ## Quick Links
 
-- [Getting Started](Getting-Started.md)
-- [Neural Networks](Neural-Networks.md)
-- [MNIST and OCR](MNIST-and-OCR.md)
-- [Recurrent Networks](Recurrent-Networks.md)
-- [Convolutional Networks and Transformer](Convolutional-and-Transformer.md)
-- [Reinforcement Learning](Reinforcement-Learning.md)
-- [Examples Gallery](Examples-Gallery.md)
-- [Theory Notes](Theory-Notes.md)
+- [Getting Started](Getting-Started)
+- [Neural Networks](Neural-Networks)
+- [MNIST and OCR](MNIST-and-OCR)
+- [Recurrent Networks](Recurrent-Networks)
+- [Convolutional Networks and Transformer](Convolutional-and-Transformer)
+- [Reinforcement Learning](Reinforcement-Learning)
+- [Examples Gallery](Examples-Gallery)
+- [Theory Notes](Theory-Notes)
 
 ## What nuNN Includes
 
