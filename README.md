@@ -58,7 +58,7 @@ The library aims to be compact, readable, and practical — a codebase you can a
 
 ## Building and testing
 
-Requires CMake 3.14+ and a C++20 compiler. All dependencies (Eigen 3.4, GoogleTest) are fetched automatically via FetchContent.
+Requires CMake 3.14+ and a C++20 compiler. Eigen 3.4 and nlohmann/json are fetched automatically via FetchContent; GoogleTest is fetched when tests are enabled.
 
 ```sh
 cmake -S . -B build
@@ -84,7 +84,7 @@ When ArrayFire/OpenCL is found, the build deploys the required runtime DLLs besi
 OpenCL-enabled executables so `ocr_test`, `mnist_test`, and `nunn_tests` can run
 without manually editing `PATH`.
 
-Packages install all command-line demos and tools under `<install-root>\bin`.
+Packages install the core runtime demos and tools selected by the top-level CMake install rules under `<install-root>\bin`. The source-tree build provides the complete examples gallery.
 On Windows, the Start menu contains shortcuts for the graphical demos, the test
 runner, documentation, and `Nunn Developer Command Prompt`, which opens a console
 with the nunn `bin` directory already on `PATH`. On Linux/macOS, the package
@@ -99,6 +99,8 @@ workflow. From that shell, examples such as `mnist_test`, `xor_test`,
 The GitHub Wiki contains the extended documentation layer for nuNN:
 
 - [nuNN Wiki](https://github.com/eantcal/nunn/wiki)
+- [Getting Started](https://github.com/eantcal/nunn/wiki/Getting-Started)
+- [Examples Gallery](https://github.com/eantcal/nunn/wiki/Examples-Gallery)
 - [Theory Notes](https://github.com/eantcal/nunn/wiki/Theory-Notes)
 - [Training and Diagnostics](https://github.com/eantcal/nunn/wiki/Training-and-Diagnostics)
 - [Implementation Map](https://github.com/eantcal/nunn/wiki/Implementation-Map)
@@ -136,16 +138,21 @@ b  += lr · δ
 ```cpp
 #include "nu_perceptron.h"
 
+nu::StepFunction step(0.5, 0.0, 1.0);
 nu::Perceptron p(
     2,                          // number of inputs
     0.1,                        // learning rate
-    0.9,                        // momentum
-    nu::CostFunction::MSE
+    step,
+    nu::CostFunction::MSE,
+    0.9                         // momentum
 );
 
 p.setInputVector({1.0, 0.0});
-p.feedForward();
-p.backPropagate({1.0});         // target
+p.backPropagate(1.0);           // train toward target 1
+
+p.setInputVector({1.0, 0.0});
+p.feedForward();                // inference
+double label = p.getSharpOutput();
 ```
 
 **Demo:** `and_test` — learns the AND function in a handful of epochs.
@@ -156,7 +163,7 @@ p.backPropagate({1.0});         // target
 
 A fully connected multilayer network trained with online SGD and backpropagation. Topology is expressed as a `vector<size_t>` where the first element is the input size, the last is the output size, and everything in between defines hidden layers.
 
-Supported per-layer activations: `Sigmoid`, `Tanh`, `ReLU`, `Linear`.  
+Supported per-layer activations: `Sigmoid`, `Tanh`, `ReLU`, `LeakyReLU`, `Linear`.
 Cost functions: `MSE`, `CrossEntropy` (CE requires Sigmoid on the output layer).
 
 ```cpp
@@ -181,19 +188,30 @@ nu::MlpTrainer trainer(nn, /*max_epochs*/ 30, /*min_err*/ 0.01);
 trainer.runTraining(dataset, costCallback);
 ```
 
-Model states can be saved and reloaded:
+Model states can be saved and reloaded through streams:
 
 ```cpp
-nn.save("model.net");
-nn.load("model.net");
+#include <fstream>
+
+{
+    std::ofstream out("model.json");
+    nn.toJson(out);
+}
+
+nu::MlpNN loaded;
+{
+    std::ifstream in("model.json");
+    loaded.loadJson(in);
+}
 ```
 
-**Demo:** `xor_test` — the classic non-linearly separable problem.  
+**Demo:** `xor_test` — the classic non-linearly separable problem.
+
 **Demo:** `mnist_test` — MNIST digit recognition (784→300→10, ~98% accuracy).
 
 #### XOR walkthrough
 
-XOR cannot be solved by a linear model, but a two-layer MLP with a single hidden unit can learn the required non-linear boundary:
+XOR cannot be solved by a linear model, but a two-layer MLP with a small hidden layer can learn the required non-linear boundary:
 
 ```
 x1 | x2 | y
@@ -227,14 +245,18 @@ The public interface mirrors `MlpNN`; the key addition is `trainBatch()`:
 ```cpp
 #include "nu_mlpmatrixnn.h"
 
+using LC = nu::MlpMatrixNN::LayerConfig;
 nu::MlpMatrixNN nn(
-    {784, 300, 10},
+    {LC(784), LC(300, nu::Activation::ReLU),
+     LC(10, nu::Activation::Sigmoid)},
     0.05, 0.9,
     nu::CostFunction::CrossEntropy
 );
 
-// Mini-batch SGD — batch is a vector of (input, target) pairs
-nn.trainBatch(batch);
+// Mini-batch SGD uses parallel input and target containers.
+std::vector<std::vector<double>> inputs;
+std::vector<std::vector<double>> targets;
+nn.trainBatch(inputs, targets);
 ```
 
 `mnist_test` exposes CPU/GPU backend selection via flags:
@@ -479,15 +501,15 @@ A symmetric encoder–decoder built on top of `MlpMatrixNN`. The encoder compres
 #include "nu_autoencoder.h"
 
 nu::Autoencoder ae(
-    /*inputSize*/  16,   // also output size
-    /*latentSize*/ 4,    // bottleneck dimension
-    /*hiddenSize*/ 8,    // hidden layer width (encoder and decoder)
-    /*lr*/         0.005
+    16,                         // input and reconstruction size
+    {8, 4},                     // encoder; 4 is the bottleneck
+    nu::Activation::Tanh,
+    0.005
 );
 
-double loss = ae.train(sample);   // forward + backward
-auto code   = ae.encode(sample);  // [latentSize] vector
-auto recon  = ae.decode(code);    // [inputSize] reconstruction
+double loss = ae.train(dataset, 500);
+auto code   = ae.encode(dataset.front());
+auto recon  = ae.decode(code);
 ```
 
 **Demo:** `ae_demo` — trains on sinusoid fragments; prints latent codes and reconstruction error.
@@ -512,7 +534,7 @@ nu::Rbf rbf(
     /*numCenters*/  12,
     /*outputSize*/  1,
     /*lr*/          0.01,
-    /*outMode*/     nu::RbfOutput::Linear
+    /*outMode*/     nu::RnnOutput::Linear
 );
 
 rbf.fitCenters(data);              // place centres by random sampling
@@ -634,8 +656,8 @@ Q(s, a) ← Q(s, a) + α · [r + γ · Q(s', a')  −  Q(s, a)]
 SARSA is more conservative than Q-learning in stochastic environments because it accounts for the exploration policy during learning.
 
 **Demos:**
-- [Maze](https://github.com/eantcal/nunn/blob/master/examples/maze/maze.cc) — navigate from start to goal on a grid
-- [Path finder](https://github.com/eantcal/nunn/blob/master/examples/path_finder/path_finder.cc) — find shortest paths under obstacles
+- [Maze](https://github.com/eantcal/nunn/blob/main/examples/maze/maze.cc) — navigate from start to goal on a grid
+- [Path finder](https://github.com/eantcal/nunn/blob/main/examples/path_finder/path_finder.cc) — find shortest paths under obstacles
 
 ---
 

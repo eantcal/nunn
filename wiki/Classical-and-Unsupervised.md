@@ -1,203 +1,270 @@
 # Classical and Unsupervised Models
 
-Not every learning problem starts with labeled examples. nuNN also includes models for regression, clustering, dimensionality reduction, associative memory, reconstruction, and probabilistic representation learning. These algorithms are useful both as independent tools and as conceptual preparation for neural networks.
+This part of nuNN covers models that answer different questions from a classifier: fit a linear relationship, discover groups, retain variance, recall a pattern, compress an input, estimate a probabilistic representation, or organize prototypes on a map. The public APIs stay small enough to compare directly.
 
-## Linear Regression
+## Choose by objective
 
-`LinearRegression` models a target as a linear combination of input features:
+| Objective | Model | Fit result | Example |
+| --- | --- | --- | --- |
+| predict a continuous value with a line or plane | `LinearRegression` | coefficients and intercept | [`linear_regression_demo`](https://github.com/eantcal/nunn/blob/main/examples/linear_regression_demo/linear_regression_demo.cc) |
+| divide samples into compact groups | `KMeans` | centroids and labels | [`kmeans_demo`](https://github.com/eantcal/nunn/blob/main/examples/kmeans_demo/kmeans_demo.cc) |
+| retain high-variance linear directions | `Pca` | components and projections | [`pca_demo`](https://github.com/eantcal/nunn/blob/main/examples/pca_demo/pca_demo.cc) |
+| recover a stored binary pattern | `HopfieldNN` | attractor dynamics | [`hopfield_test`](https://github.com/eantcal/nunn/blob/main/examples/hopfield_test/hopfield_test.cc) |
+| learn nonlinear reconstruction | `Autoencoder` | latent code and reconstruction | [`ae_demo`](https://github.com/eantcal/nunn/blob/main/examples/ae_demo/ae_demo.cc) |
+| fit with distance-to-center features | `Rbf` | supervised output weights | [`rbf_demo`](https://github.com/eantcal/nunn/blob/main/examples/rbf_demo/rbf_demo.cc) |
+| model binary data probabilistically | `Rbm` | hidden probabilities and reconstructions | [`rbm_demo`](https://github.com/eantcal/nunn/blob/main/examples/rbm_demo/rbm_demo.cc) |
+| learn a smooth generative latent space | `Vae` | latent distribution, reconstruction, samples | [`vae_demo`](https://github.com/eantcal/nunn/blob/main/examples/vae_demo/vae_demo.cc) |
+| organize prototypes on a topology-preserving grid | `Som` | best matching units and neuron weights | [`som_demo`](https://github.com/eantcal/nunn/blob/main/examples/som_demo/som_demo.cc) |
+
+## Linear regression
+
+The model is:
 
 ```text
-y_hat = w * x + b
+prediction = w dot x + b
 ```
 
-The implementation supports two training modes:
+nuNN supports ordinary least squares and gradient descent. OLS uses an Eigen QR solve and is normally the practical choice; gradient descent exposes the iterative update used later by neural models.
 
-- Ordinary Least Squares, solved with QR factorization;
-- gradient descent, useful for connecting regression to neural-network training.
+Source-backed API:
 
-OLS is usually the practical choice for linear regression: it has no learning rate, no epochs, and no convergence curve to tune. The gradient-descent path is educational because it exposes the same update pattern used later by MLPs:
+```cpp
+#include "nu_linear_regression.h"
 
-```text
-w <- w - eta * grad_w
-b <- b - eta * grad_b
+nu::LinearRegression model(nu::LinearRegression::Method::OLS);
+model.fit(features, targets);
+
+double prediction = model.predict({1.5, 2.0});
+double testMse = model.mse(testFeatures, testTargets);
+double testR2 = model.rSquared(testFeatures, testTargets);
+
+const auto& weights = model.coefficients();
+double bias = model.intercept();
 ```
 
-Implementation:
+For the iterative path:
 
-- `nunn/neural_networks/inc/nu_linear_regression.h`
+```cpp
+nu::LinearRegression model(
+    nu::LinearRegression::Method::GradientDescent,
+    0.05,                       // learning rate
+    200000,                     // maximum iterations
+    1e-10                       // parameter-change tolerance
+);
+```
 
-Demo:
+Read the validation and API in [`nu_linear_regression.h`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/inc/nu_linear_regression.h), the QR and gradient-descent paths in [`nu_linear_regression.cc`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/src/nu_linear_regression.cc), and edge cases in [`test_linear_regression.cc`](https://github.com/eantcal/nunn/blob/main/tests/test_linear_regression.cc).
 
-- `linear_regression_demo`
+Interpret `R²` together with test MSE. A high training `R²` does not establish that the relationship generalizes.
 
 ## K-Means
 
-K-Means groups examples into `k` clusters by repeatedly assigning samples to the nearest centroid and then moving each centroid to the mean of the samples assigned to it.
+K-Means alternates between nearest-centroid assignment and centroid recomputation. nuNN uses k-means++ initialization and stops when centroid movement is below the tolerance or the iteration limit is reached.
 
-The algorithm is simple and useful when the question is: do the data naturally form compact groups?
+```cpp
+#include "nu_kmeans.h"
 
-Practical points:
+nu::KMeans model(
+    4,                          // clusters
+    300,                        // maximum iterations
+    1e-6,                       // centroid-shift tolerance
+    42                          // initialization seed
+);
 
-- the number of clusters `k` must be chosen by the user;
-- feature scale matters because distance drives the assignment;
-- different initial centroids can lead to different final clusters.
+model.fit(samples);
+auto labels = model.predict(samples);
+double withinClusterSse = model.inertia(samples);
+const auto& centers = model.centroids();
+```
 
-Implementation:
+The source handles an empty cluster by retaining its previous centroid. Follow initialization, assignment, and update in [`nu_kmeans.cc`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/src/nu_kmeans.cc); see [`test_kmeans.cc`](https://github.com/eantcal/nunn/blob/main/tests/test_kmeans.cc) for convergence and validation cases.
 
-- `nunn/neural_networks/inc/nu_kmeans.h`
-
-Demo:
-
-- `kmeans_demo`
+Because Euclidean distance drives both assignment and inertia, standardize features when their units differ materially. Compare several `k` values and seeds instead of treating one inertia value as self-explanatory.
 
 ## PCA
 
-Principal Component Analysis finds orthogonal directions of maximum variance. After centering the data, PCA projects samples onto the first components:
+PCA centers the dataset and finds orthogonal directions of decreasing variance. nuNN uses a thin SVD and stores the requested right-singular vectors.
 
-```text
-X_reduced = X_centered * V_k
+```cpp
+#include "nu_pca.h"
+
+nu::Pca pca(2);
+pca.fit(samples);
+
+auto projected = pca.transform(samples);
+auto reconstructed = pca.inverseTransform(projected.front());
+const auto& ratios = pca.explainedVarianceRatio();
+double retained = pca.totalExplainedVariance();
 ```
 
-PCA is useful for visualization, compression, denoising, and preprocessing. Its limitation is linearity: if the important structure is curved or strongly nonlinear, an autoencoder may be more expressive.
+`nComponents` must not exceed `min(number_of_samples, number_of_features)`. The implementation is in [`nu_pca.cc`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/src/nu_pca.cc), with round-trip and variance checks in [`test_pca.cc`](https://github.com/eantcal/nunn/blob/main/tests/test_pca.cc).
 
-Implementation:
+PCA is linear. If a low-dimensional structure is curved, compare reconstruction with an autoencoder rather than assuming that adding one more principal component solves the representation problem.
 
-- `nunn/neural_networks/inc/nu_pca.h`
+## Hopfield associative memory
 
-Demo:
-
-- `pca_demo`
-
-## Hopfield Network
-
-A Hopfield network is an associative memory. It stores binary patterns as stable attractors. During recall, it starts from a partial or noisy pattern and updates neurons until it reaches a stable state.
-
-The classical weight rule stores correlations between pattern components:
+A classical Hopfield network stores bipolar patterns as attractors using symmetric weights and no self-connections:
 
 ```text
-W_ij += pattern_i * pattern_j
+W_ij += pattern_i * pattern_j,  i != j
 W_ii = 0
 ```
 
-The important limitation is capacity. A classical Hopfield network stores only a small fraction of the number of neurons reliably, often approximated as:
+A compact use is:
 
-```text
-capacity ~= 0.138 * N
+```cpp
+nu::HopfieldNN memory(8);
+
+memory.addPattern({1, 1, 1, 1, -1, -1, -1, -1});
+
+nu::Vector recalled;
+memory.recall(
+    {1, 1, -1, 1, -1, -1, -1, -1},
+    recalled
+);
 ```
 
-Above that range, memories interfere and recall can converge to a wrong or mixed pattern.
-
-Implementation:
-
-- `nunn/neural_networks/inc/nu_hopfieldnn.h`
-
-Demo:
-
-- `hopfield_test`
+Read [`nu_hopfieldnn.cc`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/src/nu_hopfieldnn.cc) beside [`hopfield_test.cc`](https://github.com/eantcal/nunn/blob/main/examples/hopfield_test/hopfield_test.cc). The often-cited random-pattern capacity near `0.138 * N` is a rule of thumb, not a guarantee for correlated patterns.
 
 ## Autoencoder
 
-An autoencoder learns to reconstruct its own input through a bottleneck:
-
-```text
-x -> encoder -> z -> decoder -> x_hat
-```
-
-The reconstruction objective is usually MSE:
-
-```text
-loss = ||x - x_hat||^2
-```
-
-The bottleneck forces the network to keep the information that is most useful for reconstruction. Compared with PCA, an autoencoder can learn nonlinear compression because the encoder and decoder use activation functions.
+`Autoencoder` builds one symmetric `MlpMatrixNN` from an encoder specification. The final encoder size is the bottleneck; the decoder mirrors the earlier sizes and ends with a linear reconstruction layer.
 
 ![Autoencoder](assets/autoencoder.png)
 
-Implementation:
+The constructor in [`nu_autoencoder.h`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/inc/nu_autoencoder.h) is:
 
-- `nunn/neural_networks/inc/nu_autoencoder.h`
+```cpp
+nu::Autoencoder model(
+    16,                         // input and reconstruction size
+    {8, 4},                     // encoder; 4 is the bottleneck
+    nu::Activation::Tanh,
+    0.005
+);
 
-Demo:
-
-- `ae_demo`
-
-## RBM
-
-A Restricted Boltzmann Machine is a probabilistic energy-based model with visible units and hidden units. Connections exist between the two layers, but not inside a layer.
-
-RBMs are trained through sampling, commonly with Contrastive Divergence. This makes them different from autoencoders: the model learns a probability structure, not a deterministic encoder-decoder mapping.
-
-Use the RBM demo to observe reconstruction quality and hidden feature discovery on small binary patterns.
-
-Implementation:
-
-- `nunn/neural_networks/inc/nu_rbm.h`
-
-Demo:
-
-- `rbm_demo`
-
-## VAE
-
-A Variational Autoencoder combines an encoder-decoder architecture with a probabilistic latent space. Instead of producing one latent vector, the encoder predicts distribution parameters:
-
-```text
-encoder(x) -> mu, log_var
-z = mu + sigma * epsilon
+double finalMse = model.train(dataset, 500);
+auto latent = model.encode(dataset.front());
+auto reconstruction = model.decode(latent);
 ```
 
-The reparameterization trick keeps sampling compatible with gradient-based training. A VAE is useful when the latent space should be smooth enough for generation, interpolation, or structured sampling.
+`train()` consumes the full dataset for the requested number of epochs and returns the final epoch's mean reconstruction MSE. `decode()` uses decoder weights synchronized after training or reshuffling.
 
-Implementation:
+Follow topology construction and decoder synchronization in [`nu_autoencoder.cc`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/src/nu_autoencoder.cc); see [`test_autoencoder.cc`](https://github.com/eantcal/nunn/blob/main/tests/test_autoencoder.cc).
 
-- `nunn/neural_networks/inc/nu_vae.h`
+## RBF network
 
-Demo:
-
-- `vae_demo`
-
-## RBF Network
-
-An RBF network uses hidden units centered in input space:
+An RBF hidden unit responds to distance from a center:
 
 ```text
-h_j(x) = exp(-||x - c_j||^2 / (2 * sigma_j^2))
+h_j(x) = exp(-||x - center_j||^2 / (2 sigma_j^2))
 ```
 
-It can be read as a bridge between clustering and supervised learning. First choose centers, then train the output weights.
+nuNN first samples centers from the data and derives widths, then trains only the output weights:
 
-Implementation:
+```cpp
+nu::Rbf model(
+    1,                          // input dimensions
+    12,                         // centers
+    1,                          // outputs
+    0.05,
+    nu::RnnOutput::Linear
+);
 
-- `nunn/neural_networks/inc/nu_rbf.h`
+model.fitCenters(trainInputs);
+double finalLoss = model.train(trainInputs, trainTargets, 3000);
+auto prediction = model.forward({0.5});
+```
 
-Demo:
+Call `fitCenters()` before `forward()` or `train()`. For classification, select `RnnOutput::Softmax` and provide one-hot targets. The full algorithm is in [`nu_rbf.cc`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/src/nu_rbf.cc) and tested by [`test_rbf.cc`](https://github.com/eantcal/nunn/blob/main/tests/test_rbf.cc).
 
-- `rbf_demo`
+## Restricted Boltzmann machine
 
-## SOM
+An RBM is a bipartite energy-based model: visible units connect to hidden units, but there are no within-layer connections. nuNN trains binary/normalized data with online Contrastive Divergence.
 
-A Self-Organizing Map projects high-dimensional data onto a grid of neurons. For each sample, the closest neuron is the Best Matching Unit. The BMU and its neighbors move toward the sample.
+```cpp
+nu::Rbm model(
+    8,                          // visible units
+    6,                          // hidden units
+    0.05,
+    42                          // RNG seed
+);
 
-Compared with K-Means, SOM keeps a topological grid: nearby neurons tend to represent nearby regions of the input space.
+model.train(dataset, 300, 1);  // CD-1
+auto probabilities = model.reconstruct(noisySample);
+auto hiddenCode = model.encode(noisySample);
+double error = model.reconstructionError(dataset);
+```
 
-Implementation:
+`reconstruct()` is a soft probability path, while Gibbs sampling is used inside training. The phases and parameter update are in [`nu_rbm.cc`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/src/nu_rbm.cc); [`test_rbm.cc`](https://github.com/eantcal/nunn/blob/main/tests/test_rbm.cc) covers probabilities, sampling shapes, and learning.
 
-- `nunn/neural_networks/inc/nu_som.h`
+## Variational autoencoder
 
-Demo:
+The VAE predicts `mu` and `log_variance`, samples with the reparameterization trick, and minimizes reconstruction loss plus a KL term:
 
-- `som_demo`
+```text
+z = mu + exp(0.5 * log_variance) elementwise* epsilon
+epsilon ~ Normal(0, I)
+```
 
-## How These Models Relate
+Source-backed use from [`vae_demo.cc`](https://github.com/eantcal/nunn/blob/main/examples/vae_demo/vae_demo.cc):
 
-| Model | Main question | Output |
-| --- | --- | --- |
-| Linear Regression | Can a linear function predict the target? | coefficients and intercept |
-| K-Means | Do examples form compact groups? | cluster assignments and centroids |
-| PCA | Which linear directions preserve most variance? | reduced coordinates |
-| Hopfield | Can a noisy clue recover a stored pattern? | recalled pattern |
-| Autoencoder | Can the input be compressed and reconstructed? | reconstruction and latent vector |
-| RBM | Can binary/normalized data be modeled probabilistically? | hidden probabilities and reconstructions |
-| VAE | Can we learn a smooth generative latent space? | reconstruction and sampled latent vectors |
-| RBF | Can distance to centers solve regression/classification? | supervised prediction |
-| SOM | Can high-dimensional data self-organize on a grid? | best matching units and map weights |
+```cpp
+nu::Vae model(
+    8,                          // input
+    32,                         // encoder/decoder hidden width
+    4,                          // latent dimensions
+    0.003,
+    42
+);
+
+model.train(dataset, 2000, 0.2); // KL warm-up over first 20%
+auto [mu, logVariance] = model.encode(sample);
+auto deterministic = model.reconstruct(sample); // decodes mu
+auto generated = model.generate();              // z ~ Normal(0, I)
+```
+
+The output uses sigmoid and binary cross-entropy, so inputs should be in `[0, 1]`. Read the full gradient flow in [`nu_vae.cc`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/src/nu_vae.cc) and the loss/shape checks in [`test_vae.cc`](https://github.com/eantcal/nunn/blob/main/tests/test_vae.cc).
+
+KL warm-up prevents the regularizer from overwhelming reconstruction at the beginning of training. Evaluate reconstruction and sample quality separately.
+
+## Self-Organizing Map
+
+A SOM assigns each input to its closest neuron, then moves that best matching unit and its grid neighbors toward the sample:
+
+```text
+BMU = argmin_i ||x - w_i||
+w_i += learning_rate(t) * neighborhood(i, BMU, t) * (x - w_i)
+```
+
+Source-backed use:
+
+```cpp
+nu::Som map(
+    6, 6,                       // grid
+    2,                          // input dimensions
+    0.5,                        // initial learning rate
+    0.0,                        // auto radius = max(rows, cols) / 2
+    42
+);
+
+map.train(dataset, 200, 0.01, 0.5);
+auto [row, column] = map.bmu(sample);
+double quantization = map.quantizationError(dataset);
+auto prototype = map.getWeights(row, column);
+```
+
+The exponentially decaying learning rate and neighborhood are implemented in [`nu_som.cc`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/src/nu_som.cc); [`test_som.cc`](https://github.com/eantcal/nunn/blob/main/tests/test_som.cc) checks BMUs, training, and error reduction.
+
+Unlike K-Means, a SOM preserves a grid relation among prototypes. Quantization error measures closeness to a prototype, not whether the grid's neighborhood relations are meaningful; inspect both.
+
+## A fair comparison checklist
+
+- Scale features before distance-, variance-, or gradient-based fitting.
+- Keep training and evaluation data separate even for unsupervised reconstruction metrics.
+- Report seeds for K-Means, RBM, VAE, SOM, and any generated dataset.
+- Compare the metric that matches the objective: MSE/R², inertia, retained variance, reconstruction error, or quantization error.
+- Inspect learned objects—coefficients, centers, components, reconstructions, generated samples, or map weights—not only one scalar.
+
+## Keep reading
+
+Use [Examples Gallery](Examples-Gallery) for commands and expected observations, [Theory Notes](Theory-Notes) for the shared mathematics, and [Training and Diagnostics](Training-and-Diagnostics) when an iterative model is unstable.

@@ -1,13 +1,21 @@
+**Start**
+
 * [Home](Home)
 * [Getting Started](Getting-Started)
+* [Examples Gallery](Examples-Gallery)
+
+**Models**
+
 * [Neural Networks](Neural-Networks)
-* [MNIST and OCR](MNIST-and-OCR)
 * [Recurrent Networks](Recurrent-Networks)
 * [Convolutional and Transformer](Convolutional-and-Transformer)
 * [Classical and Unsupervised](Classical-and-Unsupervised)
 * [Reinforcement Learning](Reinforcement-Learning)
-* [Training and Diagnostics](Training-and-Diagnostics)
-* [Examples Gallery](Examples-Gallery)
+* [MNIST and OCR](MNIST-and-OCR)
+
+**Study and reference**
+
 * [Theory Notes](Theory-Notes)
+* [Training and Diagnostics](Training-and-Diagnostics)
 * [Implementation Map](Implementation-Map)
 * [Publishing](Publishing)
