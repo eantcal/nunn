@@ -75,7 +75,7 @@ theta <- theta + velocity_t
 
 In code, the sign may be absorbed into an error delta and the stored update added to a parameter. To verify the rule, trace one scalar weight and confirm that a small step reduces the loss.
 
-`MlpMatrixNN` also implements Adam on the Eigen path. Adam keeps exponential moving averages of the gradient and squared gradient, applies bias correction, and divides the first moment by the square root of the second.
+`MlpMatrixNN` implements Adam on both the Eigen and OpenCL paths. Adam keeps exponential moving averages of the gradient and squared gradient, applies bias correction, and divides the first moment by the square root of the second.
 
 ## Backpropagation
 

@@ -87,7 +87,7 @@ parameter <- parameter + update_t
 
 Momentum can accelerate a persistent direction and damp alternating gradients. It can also amplify an excessive learning rate.
 
-The Eigen path in `MlpMatrixNN` additionally supports Adam:
+Both the Eigen and OpenCL paths in `MlpMatrixNN` additionally support Adam:
 
 ```cpp
 net.setOptimizer(
@@ -98,7 +98,7 @@ net.setOptimizer(
 );
 ```
 
-Calling `setOptimizer()` resets the stored moments and step counter. JSON persistence records whether the model uses SGD or Adam; moment tensors themselves are not part of the current model format. The OpenCL backend always performs SGD.
+Calling `setOptimizer()` resets the stored moments and step counter. JSON persistence records whether the model uses SGD or Adam; moment tensors themselves are not part of the current model format.
 
 ## Online updates and mini-batches
 

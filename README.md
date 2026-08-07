@@ -40,7 +40,7 @@ The library aims to be compact, readable, and practical — a codebase you can a
 
 - **Perceptron** — single neuron, MSE or cross-entropy loss, momentum
 - **MlpNN** — classic fully connected MLP with per-layer activations
-- **MlpMatrixNN** — Eigen 3.4 backed MLP with mini-batch SGD and optional ArrayFire/OpenCL acceleration
+- **MlpMatrixNN** — Eigen 3.4 backed MLP with mini-batch SGD/Adam and optional ArrayFire/OpenCL acceleration
 - **VanillaRnn** — Elman-style RNN with truncated BPTT
 - **GRU** — Gated Recurrent Unit with truncated BPTT
 - **LSTM** — Long Short-Term Memory with truncated BPTT

@@ -125,7 +125,7 @@ public:
 
     // Switch optimizer. Adam hyperparameters use standard defaults when omitted.
     // Resets Adam state (moments and step counter) on every call.
-    // The OpenCL backend always uses SGD regardless of this setting.
+    // Both the Eigen and OpenCL backends support SGD and Adam.
     void setOptimizer(
         Optimizer opt, double beta1 = 0.9, double beta2 = 0.999, double eps = 1e-8) noexcept;
 
@@ -157,7 +157,9 @@ private:
     struct Layer {
         Eigen::MatrixXd W; // [out_size × in_size]  weight matrix
         Eigen::VectorXd b; // [out_size]             bias vector
-        Eigen::VectorXd a; // [out_size]             activation output (host mirror)
+        // Mutable because const inspection may lazily synchronize the OpenCL
+        // activation cache back to host memory.
+        mutable Eigen::VectorXd a; // [out_size]       activation output (host mirror)
         Eigen::VectorXd delta; // [out_size]             error signal (Eigen path)
         Eigen::MatrixXd dW; // [out_size × in_size]   SGD/momentum accumulator for W
         Eigen::VectorXd db; // [out_size]             SGD/momentum accumulator for b
@@ -175,6 +177,10 @@ private:
         std::optional<af::array> delta_af;
         std::optional<af::array> dW_af;
         std::optional<af::array> db_af;
+        std::optional<af::array> mW_af;
+        std::optional<af::array> vW_af;
+        std::optional<af::array> mb_af;
+        std::optional<af::array> vb_af;
 #endif
     };
 

@@ -175,7 +175,7 @@ The backend is resolved at construction; inspect it with `getBackend()`.
 
 ### SGD, momentum, and Adam
 
-The default optimizer is `MlpMatrixNN::Optimizer::SGD`. Momentum is supplied to the constructor. The Eigen backend can switch to Adam:
+The default optimizer is `MlpMatrixNN::Optimizer::SGD`. Momentum is supplied to the constructor. Either compute backend can switch to Adam:
 
 ```cpp
 net.setOptimizer(
@@ -186,7 +186,7 @@ net.setOptimizer(
 );
 ```
 
-Calling `setOptimizer()` resets Adam's moment estimates and step counter. The current OpenCL path always uses SGD; this constraint is declared beside the API in [`nu_mlpmatrixnn.h`](https://github.com/eantcal/nunn/blob/main/nunn/neural_networks/inc/nu_mlpmatrixnn.h).
+Calling `setOptimizer()` resets Adam's moment estimates and step counter. The Eigen and OpenCL implementations apply the same bias-corrected update rule; backend-parity tests cover both single-sample and mini-batch updates.
 
 ## Loss functions and output semantics
 

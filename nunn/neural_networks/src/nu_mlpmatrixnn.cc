@@ -181,6 +181,10 @@ void MlpMatrixNN::reshuffleWeights()
             l.b_af = af::array(static_cast<dim_t>(l.b.size()), (dim_t)1, l.b.data(), afHost);
             l.dW_af = af::constant(0.0, l.W.rows(), l.W.cols(), f64);
             l.db_af = af::constant(0.0, static_cast<dim_t>(l.b.size()), (dim_t)1, f64);
+            l.mW_af.reset();
+            l.vW_af.reset();
+            l.mb_af.reset();
+            l.vb_af.reset();
         }
     }
 #endif
@@ -200,6 +204,12 @@ void MlpMatrixNN::setOptimizer(Optimizer opt, double beta1, double beta2, double
         l.vW.setZero();
         l.mb.setZero();
         l.vb.setZero();
+#ifdef NUNN_HAS_ARRAYFIRE
+        l.mW_af.reset();
+        l.vW_af.reset();
+        l.mb_af.reset();
+        l.vb_af.reset();
+#endif
     }
     _adamT = 0;
 }
@@ -331,7 +341,7 @@ void MlpMatrixNN::backPropagate(const std::vector<double>& target)
     af::array x0 = af::array(inSz, (dim_t)1, _input.data(), afHost);
     af::array t = af::array(ouSz, (dim_t)1, target.data(), afHost);
 
-    // Output layer: delta + immediate weight update (mirrors Eigen path order).
+    // Output layer delta.
     auto& out = _layers.back();
     if (_cf == CostFunction::CrossEntropy)
         out.delta_af = t - *out.a_af;
@@ -339,28 +349,69 @@ void MlpMatrixNN::backPropagate(const std::vector<double>& target)
         out.delta_af = af_activate_backward(out.act, *out.a_af) * (t - *out.a_af);
 
     const size_t outIdx = _layers.size() - 1;
-    const af::array& prevA_out = (outIdx == 0) ? x0 : *_layers[outIdx - 1].a_af;
-    out.dW_af = _lr * af::matmul(*out.delta_af, prevA_out, AF_MAT_NONE, AF_MAT_TRANS)
-        + _momentum * *out.dW_af;
-    out.db_af = _lr * *out.delta_af + _momentum * *out.db_af;
-    *out.W_af += *out.dW_af;
-    *out.b_af += *out.db_af;
 
-    // Hidden layers: propagate through already-updated next.W_af (same as Eigen).
-    for (int l = static_cast<int>(_layers.size()) - 2; l >= 0; --l) {
-        const size_t lu = static_cast<size_t>(l);
-        auto& next = _layers[lu + 1];
-        auto& cur = _layers[lu];
-        const af::array& prevA = (lu == 0) ? x0 : *_layers[lu - 1].a_af;
+    if (_optimizer == Optimizer::Adam) {
+        // Adam must derive every delta from the same pre-update parameters.
+        for (int l = static_cast<int>(_layers.size()) - 2; l >= 0; --l) {
+            const size_t lu = static_cast<size_t>(l);
+            auto& next = _layers[lu + 1];
+            auto& cur = _layers[lu];
+            const af::array prop
+                = af::matmul(*next.W_af, *next.delta_af, AF_MAT_TRANS, AF_MAT_NONE);
+            cur.delta_af = prop * af_activate_backward(cur.act, *cur.a_af);
+        }
 
-        const af::array prop = af::matmul(*next.W_af, *next.delta_af, AF_MAT_TRANS, AF_MAT_NONE);
-        cur.delta_af = prop * af_activate_backward(cur.act, *cur.a_af);
+        ++_adamT;
+        const double bc1 = 1.0 - std::pow(_beta1, static_cast<double>(_adamT));
+        const double bc2 = 1.0 - std::pow(_beta2, static_cast<double>(_adamT));
+        for (size_t l = 0; l < _layers.size(); ++l) {
+            auto& lay = _layers[l];
+            const af::array& prevA = (l == 0) ? x0 : *_layers[l - 1].a_af;
+            const af::array gW = af::matmul(*lay.delta_af, prevA, AF_MAT_NONE, AF_MAT_TRANS);
+            const af::array gb = *lay.delta_af;
 
-        cur.dW_af = _lr * af::matmul(*cur.delta_af, prevA, AF_MAT_NONE, AF_MAT_TRANS)
-            + _momentum * *cur.dW_af;
-        cur.db_af = _lr * *cur.delta_af + _momentum * *cur.db_af;
-        *cur.W_af += *cur.dW_af;
-        *cur.b_af += *cur.db_af;
+            if (!lay.mW_af) {
+                lay.mW_af = af::constant(0.0, lay.W.rows(), lay.W.cols(), f64);
+                lay.vW_af = af::constant(0.0, lay.W.rows(), lay.W.cols(), f64);
+                lay.mb_af = af::constant(0.0, static_cast<dim_t>(lay.b.size()), (dim_t)1, f64);
+                lay.vb_af = af::constant(0.0, static_cast<dim_t>(lay.b.size()), (dim_t)1, f64);
+            }
+
+            *lay.mW_af = _beta1 * *lay.mW_af + (1.0 - _beta1) * gW;
+            *lay.vW_af = _beta2 * *lay.vW_af + (1.0 - _beta2) * gW * gW;
+            *lay.mb_af = _beta1 * *lay.mb_af + (1.0 - _beta1) * gb;
+            *lay.vb_af = _beta2 * *lay.vb_af + (1.0 - _beta2) * gb * gb;
+
+            const af::array mWhat = *lay.mW_af / bc1;
+            const af::array vWhat = *lay.vW_af / bc2;
+            const af::array mbhat = *lay.mb_af / bc1;
+            const af::array vbhat = *lay.vb_af / bc2;
+            *lay.W_af += _lr * mWhat / (af::sqrt(vWhat) + _adamEps);
+            *lay.b_af += _lr * mbhat / (af::sqrt(vbhat) + _adamEps);
+        }
+    } else {
+        // SGD + momentum mirrors the Eigen path's immediate-update order.
+        const af::array& prevAOut = (outIdx == 0) ? x0 : *_layers[outIdx - 1].a_af;
+        out.dW_af = _lr * af::matmul(*out.delta_af, prevAOut, AF_MAT_NONE, AF_MAT_TRANS)
+            + _momentum * *out.dW_af;
+        out.db_af = _lr * *out.delta_af + _momentum * *out.db_af;
+        *out.W_af += *out.dW_af;
+        *out.b_af += *out.db_af;
+
+        for (int l = static_cast<int>(_layers.size()) - 2; l >= 0; --l) {
+            const size_t lu = static_cast<size_t>(l);
+            auto& next = _layers[lu + 1];
+            auto& cur = _layers[lu];
+            const af::array& prevA = (lu == 0) ? x0 : *_layers[lu - 1].a_af;
+            const af::array prop
+                = af::matmul(*next.W_af, *next.delta_af, AF_MAT_TRANS, AF_MAT_NONE);
+            cur.delta_af = prop * af_activate_backward(cur.act, *cur.a_af);
+            cur.dW_af = _lr * af::matmul(*cur.delta_af, prevA, AF_MAT_NONE, AF_MAT_TRANS)
+                + _momentum * *cur.dW_af;
+            cur.db_af = _lr * *cur.delta_af + _momentum * *cur.db_af;
+            *cur.W_af += *cur.dW_af;
+            *cur.b_af += *cur.db_af;
+        }
     }
 #endif
 }
@@ -502,15 +553,47 @@ void MlpMatrixNN::trainBatch(
             D_af[lu] = prop * af_activate_backward(_layers[lu].act, A_af[lu]);
         }
 
-        // Weight update: mean gradient over batch + momentum.
-        const double lrB = _lr / static_cast<double>(B);
-        for (size_t l = 0; l < _layers.size(); ++l) {
-            const af::array& prevA = (l == 0) ? X_af : A_af[l - 1];
-            _layers[l].dW_af = lrB * af::matmul(D_af[l], prevA, AF_MAT_NONE, AF_MAT_TRANS)
-                + _momentum * *_layers[l].dW_af;
-            _layers[l].db_af = lrB * af::sum(D_af[l], 1) + _momentum * *_layers[l].db_af;
-            *_layers[l].W_af += *_layers[l].dW_af;
-            *_layers[l].b_af += *_layers[l].db_af;
+        // Weight update: mean gradient over batch.
+        const double invB = 1.0 / static_cast<double>(B);
+        if (_optimizer == Optimizer::Adam) {
+            ++_adamT;
+            const double bc1 = 1.0 - std::pow(_beta1, static_cast<double>(_adamT));
+            const double bc2 = 1.0 - std::pow(_beta2, static_cast<double>(_adamT));
+            for (size_t l = 0; l < _layers.size(); ++l) {
+                const af::array& prevA = (l == 0) ? X_af : A_af[l - 1];
+                auto& lay = _layers[l];
+                const af::array gW = invB * af::matmul(D_af[l], prevA, AF_MAT_NONE, AF_MAT_TRANS);
+                const af::array gb = invB * af::sum(D_af[l], 1);
+
+                if (!lay.mW_af) {
+                    lay.mW_af = af::constant(0.0, lay.W.rows(), lay.W.cols(), f64);
+                    lay.vW_af = af::constant(0.0, lay.W.rows(), lay.W.cols(), f64);
+                    lay.mb_af = af::constant(0.0, static_cast<dim_t>(lay.b.size()), (dim_t)1, f64);
+                    lay.vb_af = af::constant(0.0, static_cast<dim_t>(lay.b.size()), (dim_t)1, f64);
+                }
+
+                *lay.mW_af = _beta1 * *lay.mW_af + (1.0 - _beta1) * gW;
+                *lay.vW_af = _beta2 * *lay.vW_af + (1.0 - _beta2) * gW * gW;
+                *lay.mb_af = _beta1 * *lay.mb_af + (1.0 - _beta1) * gb;
+                *lay.vb_af = _beta2 * *lay.vb_af + (1.0 - _beta2) * gb * gb;
+
+                const af::array mWhat = *lay.mW_af / bc1;
+                const af::array vWhat = *lay.vW_af / bc2;
+                const af::array mbhat = *lay.mb_af / bc1;
+                const af::array vbhat = *lay.vb_af / bc2;
+                *lay.W_af += _lr * mWhat / (af::sqrt(vWhat) + _adamEps);
+                *lay.b_af += _lr * mbhat / (af::sqrt(vbhat) + _adamEps);
+            }
+        } else {
+            const double lrB = _lr * invB;
+            for (size_t l = 0; l < _layers.size(); ++l) {
+                const af::array& prevA = (l == 0) ? X_af : A_af[l - 1];
+                _layers[l].dW_af = lrB * af::matmul(D_af[l], prevA, AF_MAT_NONE, AF_MAT_TRANS)
+                    + _momentum * *_layers[l].dW_af;
+                _layers[l].db_af = lrB * af::sum(D_af[l], 1) + _momentum * *_layers[l].db_af;
+                *_layers[l].W_af += *_layers[l].dW_af;
+                *_layers[l].b_af += *_layers[l].db_af;
+            }
         }
 
         // Sync last sample's output to host for metrics called after trainBatch.
@@ -538,17 +621,34 @@ size_t MlpMatrixNN::getOutputSize() const noexcept
 
 const Eigen::VectorXd& MlpMatrixNN::getLayerOutput(size_t layer) const
 {
-    return _layers.at(layer).a;
+    const auto& l = _layers.at(layer);
+#ifdef NUNN_HAS_ARRAYFIRE
+    if (_backend == ComputeBackend::OpenCL && l.a_af)
+        l.a_af->host(l.a.data());
+#endif
+    return l.a;
 }
 
 Eigen::MatrixXd MlpMatrixNN::getLayerW(size_t layer) const
 {
-    return _layers.at(layer).W;
+    const auto& l = _layers.at(layer);
+    Eigen::MatrixXd W = l.W;
+#ifdef NUNN_HAS_ARRAYFIRE
+    if (_backend == ComputeBackend::OpenCL && l.W_af)
+        l.W_af->host(W.data());
+#endif
+    return W;
 }
 
 Eigen::VectorXd MlpMatrixNN::getLayerB(size_t layer) const
 {
-    return _layers.at(layer).b;
+    const auto& l = _layers.at(layer);
+    Eigen::VectorXd b = l.b;
+#ifdef NUNN_HAS_ARRAYFIRE
+    if (_backend == ComputeBackend::OpenCL && l.b_af)
+        l.b_af->host(b.data());
+#endif
+    return b;
 }
 
 void MlpMatrixNN::setLayerW(size_t layer, const Eigen::MatrixXd& W)

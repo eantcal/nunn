@@ -449,8 +449,8 @@ TEST(AdamTest, SingleSampleXOR_Converges)
     const std::vector<std::vector<double>> Y{ { 0 }, { 1 }, { 1 }, { 0 } };
     double bestMse = 1.0;
     for (int trial = 0; trial < 5; ++trial) {
-        MlpMatrixNN net(
-            { LC{ 2 }, { 8, Activation::Sigmoid }, { 1, Activation::Sigmoid } }, 0.01 /* lr */);
+        MlpMatrixNN net({ LC{ 2 }, { 8, Activation::Sigmoid }, { 1, Activation::Sigmoid } },
+            0.01 /* lr */, 0.0, CostFunction::MSE, MlpMatrixNN::ComputeBackend::Eigen);
         net.setOptimizer(MlpMatrixNN::Optimizer::Adam);
         for (int ep = 0; ep < 5000; ++ep) {
             for (size_t i = 0; i < X.size(); ++i) {
@@ -476,7 +476,8 @@ TEST(AdamTest, BatchXOR_Converges)
     const std::vector<std::vector<double>> Y{ { 0 }, { 1 }, { 1 }, { 0 } };
     double bestMse = 1.0;
     for (int trial = 0; trial < 5; ++trial) {
-        MlpMatrixNN net({ LC{ 2 }, { 8, Activation::Sigmoid }, { 1, Activation::Sigmoid } }, 0.01);
+        MlpMatrixNN net({ LC{ 2 }, { 8, Activation::Sigmoid }, { 1, Activation::Sigmoid } }, 0.01,
+            0.0, CostFunction::MSE, MlpMatrixNN::ComputeBackend::Eigen);
         net.setOptimizer(MlpMatrixNN::Optimizer::Adam);
         for (int ep = 0; ep < 3000; ++ep)
             net.trainBatch(X, Y);
@@ -504,6 +505,63 @@ TEST(AdamTest, ReshuffleResetsAdamState)
     net.setInputVector({ 0.5, 0.5 });
     net.feedForward();
     EXPECT_NO_THROW(net.backPropagate({ 0.0 }));
+}
+
+TEST(AdamTest, OpenCLMatchesEigenForSingleAndBatchUpdates)
+{
+    MlpMatrixNN opencl({ LC{ 2 }, { 3, Activation::Tanh }, { 1, Activation::Sigmoid } }, 0.01, 0.0,
+        CostFunction::MSE, MlpMatrixNN::ComputeBackend::Auto);
+    if (opencl.getBackend() != MlpMatrixNN::ComputeBackend::OpenCL)
+        GTEST_SKIP() << "OpenCL backend is not available";
+
+    MlpMatrixNN eigen({ LC{ 2 }, { 3, Activation::Tanh }, { 1, Activation::Sigmoid } }, 0.01, 0.0,
+        CostFunction::MSE, MlpMatrixNN::ComputeBackend::Eigen);
+
+    const auto configure = [](MlpMatrixNN& net) {
+        Eigen::MatrixXd w0(3, 2);
+        w0 << 0.20, -0.10, 0.40, 0.30, -0.50, 0.25;
+        Eigen::VectorXd b0(3);
+        b0 << 0.10, -0.20, 0.05;
+        Eigen::MatrixXd w1(1, 3);
+        w1 << 0.70, -0.60, 0.20;
+        Eigen::VectorXd b1(1);
+        b1 << -0.15;
+        net.setLayerW(0, w0);
+        net.setLayerB(0, b0);
+        net.setLayerW(1, w1);
+        net.setLayerB(1, b1);
+        net.setOptimizer(MlpMatrixNN::Optimizer::Adam);
+    };
+
+    const auto expectSameParameters = [](const MlpMatrixNN& lhs, const MlpMatrixNN& rhs) {
+        ASSERT_EQ(lhs.numLayers(), rhs.numLayers());
+        for (size_t layer = 0; layer < lhs.numLayers(); ++layer) {
+            EXPECT_TRUE(lhs.getLayerW(layer).isApprox(rhs.getLayerW(layer), 1e-8));
+            EXPECT_TRUE(lhs.getLayerB(layer).isApprox(rhs.getLayerB(layer), 1e-8));
+        }
+    };
+
+    configure(opencl);
+    configure(eigen);
+    const std::vector<double> input{ 0.25, 0.75 };
+    const std::vector<double> target{ 0.8 };
+    opencl.setInputVector(input);
+    eigen.setInputVector(input);
+    opencl.feedForward();
+    eigen.feedForward();
+    EXPECT_TRUE(opencl.getLayerOutput(0).isApprox(eigen.getLayerOutput(0), 1e-8));
+    opencl.backPropagate(target);
+    eigen.backPropagate(target);
+    expectSameParameters(opencl, eigen);
+
+    configure(opencl);
+    configure(eigen);
+    const std::vector<std::vector<double>> inputs{ { 0.0, 0.0 }, { 0.0, 1.0 }, { 1.0, 0.0 },
+        { 1.0, 1.0 } };
+    const std::vector<std::vector<double>> targets{ { 0.0 }, { 1.0 }, { 1.0 }, { 0.0 } };
+    opencl.trainBatch(inputs, targets);
+    eigen.trainBatch(inputs, targets);
+    expectSameParameters(opencl, eigen);
 }
 
 TEST(MatrixJsonTest, ReloadPreservesInferenceWithResolvedBackend)
